@@ -1,0 +1,96 @@
+.content {
+    display: flex;
+    gap: 20px;
+}
+
+/* Danh sách danh mục */
+.category-list {
+    flex: 2;
+}
+
+.category-list table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.category-list table th,
+.category-list table td {
+    text-align: left;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.category-list table th {
+    background: #f4f4f4;
+}
+
+.category-list img {
+    display: block;
+    margin: 0 auto;
+    width: 50px;
+    height: 50px;
+}
+
+/* Form thêm danh mục */
+.add-category {
+    flex: 1;
+    background: #f4f4f4;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.add-category h2 {
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.form-group textarea {
+    resize: none;
+}
+
+.btn {
+    display: inline-block;
+    background: #007bff;
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn:hover {
+    background: #0056b3;
+}
+td a{
+    padding: 8px 10px;
+    border-radius: 5px;
+    color: white;
+    display: inline-block;
+}
+.edit{
+    background: #ffc107;
+    margin: 0px 15px;
+}
+.delete{
+    background: #dc3545;
+    padding: 8px 12px;
+}

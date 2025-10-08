@@ -1,0 +1,218 @@
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;  /* Giảm từ 52px xuống 40px */
+    height: 22px; /* Giảm từ 28px xuống 22px */
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked+.slider {
+    background-color: #4CAF50;
+}
+
+input:checked+.slider:before {
+    transform: translateX(17px);
+}
+
+.status-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+tr th {
+    text-align: center !important;
+}
+
+.status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: capitalize;
+    line-height: 1.5;
+    white-space: nowrap;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status .icon-check,
+.status .icon-warning {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+
+.status.active {
+    background-color: #e6f4ea;
+    color: #2b8a3e;
+    border: 1px solid #cce7d0;
+}
+
+.status.active .icon-check {
+    background-image: url('https://cdn-icons-png.flaticon.com/512/845/845646.png');
+}
+
+.status.paused {
+    background-color: #fdecea;
+    color: #d93025;
+    border: 1px solid #f5c6cb;
+}
+
+.status.paused .icon-warning {
+    background-image: url('https://cdn-icons-png.flaticon.com/512/1828/1828843.png');
+}
+
+.endday {
+    color: red;
+    font-size: 13px;
+}
+
+td,
+th {
+    text-align: center;
+}
+
+.dropdown {
+    position: relative;
+    /* Ensure the dropdown menu is positioned relative to this div */
+}
+
+.dropdown-menu-service {
+    position: absolute;
+    top: 100%;
+    right: 0; /* neo sang phải */
+    z-index: 9999;
+    display: none;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-width: 150px;
+    overflow: hidden;
+    max-height: 300px; /* tránh quá dài bị tràn */
+    overflow-y: auto;
+}
+
+.action:hover .dropdown-menu-service {
+    display: block;
+
+}
+
+.cke_notifications_area {
+    display: none;
+}
+
+.error {
+    color: red;
+}
+
+.btn-transfer {
+    background-color: #e6f4ff;
+    border: 1px solid #91d5ff;
+    color: #1890ff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.dropdown-menu-service {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    min-width: 190px;
+    z-index: 1000;
+    font-family: 'Arial', sans-serif;
+    left: -114px;
+    font-size: 14px;
+    border-radius: 4px;
+
+}
+
+/* Cải thiện kiểu dáng các mục trong menu */
+.dropdown-menu-service ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.endday{
+    font-size: 11px;
+    margin-bottom: 0;
+}
+
+
+.dropdown-menu-service li {
+    margin: 8px 0;
+
+    font-size: 16px;
+
+}
+.select2-dropdown, .select2-results{
+    z-index: 9999 !important;
+    /* width: 100% !important; */
+}
+
+/* Liên kết trong menu */
+.dropdown-menu-service li a {
+    text-decoration: none;
+    color: #333;
+    display: block;
+    padding: 5px 10px;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.dropdown-menu-service li a:hover {
+    color: #fff;
+    background-color: #007bff;
+    border-radius: 4px;
+}
+
+
