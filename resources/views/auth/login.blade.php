@@ -239,7 +239,7 @@
                     </figure>
 
                     <div class="login_form" id="login_form" style="display: block">
-                        <form method="post" accept-charset="utf-8" id="form-login" action="">
+                        <form method="post" accept-charset="utf-8" id="form-login" action="{{ route('login.post') }}">
                             @csrf
 
                             <div class="form_group" style="display: block;">

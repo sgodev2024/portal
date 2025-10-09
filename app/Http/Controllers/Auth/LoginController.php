@@ -51,10 +51,8 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
 
-        if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
-        } elseif ($user->isStaff()) {
-            return redirect()->route('staff.dashboard');
+        if ($user->isAdmin() || $user->isStaff()) {
+            return redirect()->route('backend.dashboard');
         }
 
         return redirect()->route('home');
