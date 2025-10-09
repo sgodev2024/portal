@@ -52,7 +52,7 @@ class LoginController extends Controller
 
 
         if ($user->isAdmin() || $user->isStaff()) {
-            return redirect()->route('backend.dashboard');
+            return redirect()->route('dashboard');
         }
 
         return redirect()->route('home');

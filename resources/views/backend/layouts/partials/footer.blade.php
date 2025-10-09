@@ -19,7 +19,7 @@
         <a href="https://sgomedia.vn" target="_blank">SGO Việt Nam</a>
       </div>
       <div>
-        <a target="_blank" href="#"></a>.
+        <a target="_blank" href="#"></a>
       </div>
     </div>
   </footer>

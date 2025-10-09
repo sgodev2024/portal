@@ -52,7 +52,46 @@
 
     <div class="sidebar-wrapper scrollbar scrollbar-inner" style="background: #005aa1 no-repeat">
         <div class="sidebar-content">
+            <ul class="nav nav-secondary">
+                @if (Auth::user()->role == 1)
+                    <!-- Cấu hình -->
+                    <li
+                        class="nav-item {{ request()->routeIs('company.index', 'user.index', 'smtp.email', 'smtp.template', 'config_bank.*') ? 'active' : '' }}">
+                        <a data-bs-toggle="collapse" href="#config"
+                            aria-expanded="{{ request()->routeIs('company.index', 'user.index', 'smtp.email', 'smtp.template', 'config_bank.*') ? 'true' : 'false' }}">
+                            <i class="fas fa-cogs"></i>
+                            <p>Cấu hình</p>
+                            <span class="caret"></span>
+                        </a>
+                        <div class="collapse {{ request()->routeIs('company.index', 'user.index', 'smtp.email', 'smtp.template', 'config_bank.*') ? 'show' : '' }}"
+                            id="config">
+                            <ul class="nav nav-collapse">
+                                <li class="{{ request()->routeIs('company.index') ? 'active' : '' }}">
+                                    <a href="{{ route('company.index') }}">
+                                        <span class="sub-item"><span>Thông tin công ty</span></span>
+                                    </a>
+                                </li>
+                                {{-- <li class="{{ request()->routeIs('user.index') ? 'active' : '' }}">
+                                    <a href="{{ route('user.index') }}">
+                                        <span class="sub-item"><span>Tài khoản nhân sự</span></span>
+                                    </a>
+                                </li>
+                                <li class="{{ request()->routeIs('smtp.email', 'smtp.template') ? 'active' : '' }}">
+                                    <a href="{{ route('smtp.email') }}">
+                                        <span class="sub-item"><span>SMTP</span></span>
+                                    </a>
+                                </li>
+                                <li class="{{ request()->routeIs('config_bank.*') ? 'active' : '' }}">
+                                    <a href="{{ route('config_bank.index') }}">
+                                        <span class="sub-item"><span>Thông tin thanh toán</span></span>
+                                    </a>
+                                </li> --}}
+                            </ul>
+                        </div>
+                    </li>
+                @endif
 
+            </ul>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
