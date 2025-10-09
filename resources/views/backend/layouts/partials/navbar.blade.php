@@ -99,7 +99,7 @@
                     </div>
                     <span class="profile-username">
                         <span class="op-7">Hi,</span>
-                        {{-- <span class="fw-bold">{{ Auth::user()->full_name }}</span> --}}
+                        <span class="fw-bold">{{ Auth::user()->full_name }}</span>
                     </span>
                 </a>
                 <ul class="dropdown-menu dropdown-user animated fadeIn" style="width: 287px">
@@ -111,8 +111,8 @@
                                         class="avatar-img rounded" />
                                 </div>
                                 <div class="u-text">
-                                    {{-- <h4>{{ Auth::user()->full_name }}</h4> --}}
-                                    {{-- <p class="text-muted">{{ Auth::user()->email }}</p> --}}
+                                    <h4>{{ Auth::user()->name }}</h4>
+                                    <p class="text-muted">{{ Auth::user()->email }}</p>
                                     {{-- <a href="{{ route('profile') }}">
                                         View Profile</a> --}}
                                 </div>
@@ -120,7 +120,7 @@
                         </li>
                         <li>
 
-                            {{-- <a class="dropdown-item" href="{{ route('logout') }}">Logout</a> --}}
+                            <a class="dropdown-item" href="{{ route('logout') }}">Logout</a>
                         </li>
                     </div>
                 </ul>
