@@ -191,7 +191,6 @@
             background: #f8f9fa;
             padding: 1.5rem;
             border-radius: 8px;
-            border-left: 3px solid #6c757d;
         }
 
         .section-title {

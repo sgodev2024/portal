@@ -53,6 +53,18 @@
     <div class="sidebar-wrapper scrollbar scrollbar-inner" style="background: #005aa1 no-repeat">
         <div class="sidebar-content">
             <ul class="nav nav-secondary">
+                <!-- Dashboard -->
+                <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('dashboard') }}">
+                        <i class="fas fa-home"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+
+                <li class="nav-section">
+                    <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
+                    <h4 class="text-section">Components</h4>
+                </li>
                 @if (Auth::user()->role == 1)
                     <!-- Cấu hình -->
                     <li
