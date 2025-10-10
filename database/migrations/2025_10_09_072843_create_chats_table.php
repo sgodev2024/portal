@@ -12,8 +12,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('staff_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->enum('status', ['pending', 'processing', 'closed'])->default('pending')
-                ->comment('pending=chờ xử lý, processing=đang xử lý, closed=đã kết thúc');
+            $table->enum('status', ['pending', 'processing'])->default('pending')
+                ->comment('pending=chờ xử lý, processing=đang xử lý');
+            $table->longText('content')->nullable()->comment('Lưu tất cả tin nhắn dưới dạng JSON');
             $table->timestamp('last_message_at')->nullable()->comment('Thời điểm tin nhắn mới nhất');
             $table->timestamps();
 

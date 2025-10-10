@@ -54,8 +54,12 @@
         <div class="sidebar-content">
             <ul class="nav nav-secondary">
                 <!-- Dashboard -->
-                <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}">
+                @php
+                    $dashboardRoute = auth()->user()->isAdmin() ? 'admin.dashboard' : 'staff.dashboard';
+                @endphp
+
+                <li class="nav-item {{ request()->routeIs($dashboardRoute) ? 'active' : '' }}">
+                    <a href="{{ route($dashboardRoute) }}">
                         <i class="fas fa-home"></i>
                         <p>Dashboard</p>
                     </a>
@@ -102,7 +106,28 @@
                         </div>
                     </li>
                 @endif
-
+                <li
+                    class="nav-item
+    {{ Auth::user()->role == 1 && request()->routeIs('chat.*') ? 'active' : '' }}
+    {{ Auth::user()->role == 2 && request()->routeIs('staff.chats.*') ? 'active' : '' }}
+">
+                    @if (Auth::user()->role == 1)
+                        <a href="{{ route('chat.index') }}">
+                            <i class="fas fa-comments"></i>
+                            <p>Chat hỗ trợ</p>
+                        </a>
+                    @elseif (Auth::user()->role == 2)
+                        <a href="{{ route('staff.chats.index') }}">
+                            <i class="fas fa-headset"></i>
+                            <p>Chat khách hàng</p>
+                        </a>
+                    @elseif (Auth::user()->role == 3)
+                        {{-- <a href="{{ route('customer.chats.index') }}">
+                            <i class="fas fa-comment-dots"></i>
+                            <p>Liên hệ hỗ trợ</p>
+                        </a> --}}
+                    @endif
+                </li>
             </ul>
         </div>
     </div>
@@ -110,18 +135,11 @@
     <script>
         $(document).ready(function() {
             $(".nav-item > a").click(function(e) {
-                // Nếu menu đang mở, thì không làm gì
                 if ($(this).next(".collapse").hasClass("show")) {
                     return;
                 }
-
-                // Đóng tất cả các menu khác trước khi mở menu mới
                 $(".collapse").not($(this).next(".collapse")).removeClass("show");
-
-                // Bỏ class 'active' trên tất cả menu chính
                 $(".nav-item").removeClass("active");
-
-                // Thêm class 'active' cho menu vừa được click
                 $(this).parent().addClass("active");
             });
         });

@@ -21,8 +21,18 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                // return redirect(RouteServiceProvider::HOME);
-                return redirect()->route('dashboard');
+                $user = Auth::guard($guard)->user();
+
+                if ($user->isAdmin()) {
+                    return redirect()->route('admin.dashboard');
+                }
+
+                if ($user->isStaff()) {
+                    return redirect()->route('staff.dashboard');
+                }
+
+                // Nếu cần, mặc định
+                return redirect()->route('home');
             }
         }
 

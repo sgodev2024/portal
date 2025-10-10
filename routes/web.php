@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\ChatController;
+use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\CompanyController;
 
@@ -14,11 +16,25 @@ Route::middleware('guest')->group(function () {
 });
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
     // Trang dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     // Quản lý thông tin công ty
     Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
     Route::post('/company', [CompanyController::class, 'store'])->name('company.store');
+
+    Route::prefix('chat')->name('chat.')->group(function () {
+            Route::get('/', [ChatController::class, 'index'])->name('index');
+            Route::get('/{id}/messages', [ChatController::class, 'getMessages'])->name('messages');
+            Route::post('/{id}/assign', [ChatController::class, 'assign'])->name('assign');
+            Route::post('/{id}/send', [ChatController::class, 'sendMessage'])->name('send');
+        });
+});
+Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/chats', [ChatControllers::class, 'index'])->name('chats.index');
+    Route::get('/chats/{id}', [ChatControllers::class, 'show'])->name('chats.show');
+    Route::post('/chats/{id}/send', [ChatControllers::class, 'send'])->name('chats.send');
+    Route::get('/chats/{id}/messages', [ChatControllers::class, 'getMessages'])->name('chats.messages');
 });

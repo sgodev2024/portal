@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\ChatLog;
 
 class Chat extends Model
 {
@@ -13,10 +15,13 @@ class Chat extends Model
         'user_id',
         'staff_id',
         'status',
+        'content',
         'last_message_at',
     ];
 
-    // 🔗 Quan hệ
+    protected $casts = [
+        'content' => 'array',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -27,13 +32,8 @@ class Chat extends Model
         return $this->belongsTo(User::class, 'staff_id');
     }
 
-    public function messages()
-    {
-        return $this->hasMany(Message::class);
-    }
-
     public function logs()
     {
-        return $this->hasMany(ChatLog::class);
+        return $this->hasMany(ChatLog::class, 'chat_id');
     }
 }

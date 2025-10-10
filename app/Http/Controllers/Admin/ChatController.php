@@ -1,0 +1,123 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Models\Chat;
+use App\Models\User;
+use App\Models\ChatLog;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+
+class ChatController extends Controller
+{
+
+    public function index(Request $request)
+    {
+        $search = $request->get('search');
+        $staffs = User::where('role', 2)->where('is_active', true)->get();
+
+        $baseQuery = Chat::with(['user', 'staff'])
+            ->when(Auth::user()->role == 2, fn($q) => $q->where('staff_id', Auth::id()))
+            ->when($search, fn($q) => $q->whereHas('user', fn($sub) => $sub->where('name', 'like', "%{$search}%"))
+                ->orWhereHas('staff', fn($sub) => $sub->where('name', 'like', "%{$search}%"))
+                ->orWhere('id', 'like', "%{$search}%"));
+
+        $pendingChats = (clone $baseQuery)->where('status', 'pending')->orderByDesc('last_message_at')->get();
+        $processingChats = (clone $baseQuery)->where('status', 'processing')->orderByDesc('last_message_at')->get();
+
+        return view('backend.chatadmin.index', compact('pendingChats', 'processingChats', 'search', 'staffs'));
+    }
+
+    public function assign(Request $request, $id)
+    {
+        $chat = Chat::findOrFail($id);
+
+        if ($chat->status !== 'pending') {
+            return back()->with('error', 'Chat đã được xử lý hoặc kết thúc!');
+        }
+
+        $request->validate([
+            'staff_id' => 'required|exists:users,id',
+        ]);
+
+        $staffId = $request->input('staff_id');
+
+        $chat->update([
+            'staff_id' => $staffId,
+            'status' => 'processing',
+        ]);
+
+        ChatLog::create([
+            'chat_id' => $chat->id,
+            'changed_by' => Auth::id(),
+            'action' => 'assigned_to_staff',
+            'note' => 'Admin phân công chat cho nhân viên ID: ' . $staffId,
+        ]);
+
+        return redirect()->route('chat.index')->with('success', 'Chat đã được phân công cho nhân viên!');
+    }
+
+    public function getMessages(Request $request, $id)
+    {
+        $chat = Chat::findOrFail($id);
+
+        $lastMessageAt = $request->query('last_message_at');
+
+        $messages = $chat->content ?? [];
+
+        if ($lastMessageAt) {
+            $messages = array_filter($messages, function ($msg) use ($lastMessageAt) {
+                return isset($msg['created_at']) && $msg['created_at'] > $lastMessageAt;
+            });
+        }
+
+        return response()->json([
+            'success' => true,
+            'messages' => array_values($messages),
+        ]);
+    }
+
+    public function sendMessage(Request $request, $id)
+    {
+        $request->validate([
+            'message' => 'nullable|string',
+            'file' => 'nullable|file|max:10240',
+        ]);
+
+        $chat = Chat::findOrFail($id);
+
+        $messages = $chat->content ?? [];
+
+        $newMessage = [
+            'sender_id' => Auth::id(),
+            'type' => 'text',
+            'content' => $request->message,
+            'file_path' => null,
+            'file_name' => null,
+            'created_at' => now()->toDateTimeString(),
+        ];
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $path = $file->store('chat_uploads', 'public');
+            $newMessage['type'] = str_starts_with($file->getMimeType(), 'image/') ? 'image' : 'file';
+            $newMessage['file_path'] = $path;
+            $newMessage['file_name'] = $file->getClientOriginalName();
+            $newMessage['content'] = null; // Set content to null when has file
+        }
+
+        $messages[] = $newMessage;
+
+        $chat->update([
+            'content' => $messages,
+            'last_message_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đã gửi tin nhắn',
+            'data' => $newMessage,
+        ]);
+    }
+}

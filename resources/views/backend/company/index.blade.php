@@ -7,13 +7,6 @@
         <div class="row">
             <div class="col-12">
                 <div class="card shadow-sm">
-                    <div class="card-header bg-white border-bottom">
-                        <h4 class="mb-0">
-                            <i class="fas fa-building me-2"></i>
-                            {{ isset($company) ? 'Cập nhật thông tin công ty' : 'Thêm mới công ty' }}
-                        </h4>
-                    </div>
-
                     <div class="card-body p-4">
                         <form action="{{ route('company.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
@@ -21,7 +14,7 @@
 
                             <!-- Company Information -->
                             <div class="section-wrapper mb-4">
-                                <h5 class="section-title">
+                                <h5 class="section-titles">
                                     <i class="fas fa-info-circle me-2"></i>Thông tin công ty
                                 </h5>
                                 <div class="row g-3">
@@ -192,7 +185,14 @@
             padding: 1.5rem;
             border-radius: 8px;
         }
-
+        .section-titles {
+            /* font-size: 1.1rem; */
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
         .section-title {
             font-size: 1.1rem;
             font-weight: 600;

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Chat;
+use App\Models\User;
 
 class ChatLog extends Model
 {
@@ -18,7 +20,7 @@ class ChatLog extends Model
 
     public function chat()
     {
-        return $this->belongsTo(Chat::class);
+        return $this->belongsTo(Chat::class, 'chat_id');
     }
 
     public function user()
