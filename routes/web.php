@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Customer\ChatcustomerController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -37,4 +38,11 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->gro
     Route::get('/chats/{id}', [ChatControllers::class, 'show'])->name('chats.show');
     Route::post('/chats/{id}/send', [ChatControllers::class, 'send'])->name('chats.send');
     Route::get('/chats/{id}/messages', [ChatControllers::class, 'getMessages'])->name('chats.messages');
+});
+Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/chat', [ChatCustomerController::class, 'index'])->name('chatcustomer.index');
+    Route::get('/chat/messages', [ChatCustomerController::class, 'getMessages'])->name('chatcustomer.messages');
+    Route::post('/chat/send', [ChatCustomerController::class, 'send'])->name('chatcustomer.send');
 });

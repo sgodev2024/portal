@@ -13,7 +13,9 @@
         table tr td:last-child {
             text-align: center;
         }
-        #categoryTable, #originTable{
+
+        #categoryTable,
+        #originTable {
             width: 100% !important;
         }
     </style>
@@ -48,30 +50,63 @@
                     </div>
                     <!-- End Logo Header -->
                 </div>
+
                 <!-- Navbar Header -->
-
                 @include('backend.layouts.partials.navbar')
-
                 <!-- End Navbar -->
             </div>
 
             <div class="container">
                 <div class="page-inner">
-
                     @yield('content')
-
                 </div>
             </div>
-
 
             <footer class="footer">
                 @include('backend.layouts.partials.footer')
             </footer>
         </div>
-
-        <!-- Custom template | don't include it in your project! -->
-        <!-- End Custom template -->
     </div>
+    @if (Auth::check() && Auth::user()->role == 3)
+        <div id="chat-widget">
+            {{-- Icon chat nổi --}}
+            <div id="chat-icon"
+                style="position: fixed; bottom: 25px; right: 25px; background-color: #0084ff;
+                   border-radius: 50%; width: 60px; height: 60px; text-align: center;
+                   line-height: 60px; cursor: pointer; color: white; z-index: 9999;
+                   box-shadow: 0 3px 10px rgba(0,0,0,0.2); font-size: 28px;">
+                💬
+            </div>
+
+            {{-- Hộp chat (iframe hiển thị nội dung chat) --}}
+            <div id="chat-box"
+                style="display:none; position: fixed; bottom: 100px; right: 25px; width: 350px;
+                   height: 450px; background: white; border: 1px solid #ccc; border-radius: 10px;
+                   overflow: hidden; z-index: 10000; box-shadow: 0 3px 12px rgba(0,0,0,0.3);">
+                <iframe src="{{ route('customer.chatcustomer.index') }}" style="width:100%;height:100%;border:none;"
+                    id="chat-iframe">
+                </iframe>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const chatIcon = document.getElementById('chat-icon');
+                const chatBox = document.getElementById('chat-box');
+                const iframe = document.getElementById('chat-iframe');
+
+                chatIcon.addEventListener('click', function() {
+                    if (chatBox.style.display === 'none') {
+                        chatBox.style.display = 'block';
+                        iframe.contentWindow.location.reload();
+                    } else {
+                        chatBox.style.display = 'none';
+                    }
+                });
+            });
+        </script>
+    @endif
+
 
     @include('backend.layouts.partials.scripts')
 </body>

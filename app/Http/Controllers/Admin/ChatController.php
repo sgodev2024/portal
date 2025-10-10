@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
-
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -19,9 +18,13 @@ class ChatController extends Controller
 
         $baseQuery = Chat::with(['user', 'staff'])
             ->when(Auth::user()->role == 2, fn($q) => $q->where('staff_id', Auth::id()))
-            ->when($search, fn($q) => $q->whereHas('user', fn($sub) => $sub->where('name', 'like', "%{$search}%"))
-                ->orWhereHas('staff', fn($sub) => $sub->where('name', 'like', "%{$search}%"))
-                ->orWhere('id', 'like', "%{$search}%"));
+            ->when(
+                $search,
+                fn($q) =>
+                $q->whereHas('user', fn($sub) => $sub->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('staff', fn($sub) => $sub->where('name', 'like', "%{$search}%"))
+                    ->orWhere('id', 'like', "%{$search}%")
+            );
 
         $pendingChats = (clone $baseQuery)->where('status', 'pending')->orderByDesc('last_message_at')->get();
         $processingChats = (clone $baseQuery)->where('status', 'processing')->orderByDesc('last_message_at')->get();
@@ -37,9 +40,7 @@ class ChatController extends Controller
             return back()->with('error', 'Chat đã được xử lý hoặc kết thúc!');
         }
 
-        $request->validate([
-            'staff_id' => 'required|exists:users,id',
-        ]);
+        $request->validate(['staff_id' => 'required|exists:users,id']);
 
         $staffId = $request->input('staff_id');
 
@@ -61,15 +62,18 @@ class ChatController extends Controller
     public function getMessages(Request $request, $id)
     {
         $chat = Chat::findOrFail($id);
-
         $lastMessageAt = $request->query('last_message_at');
-
         $messages = $chat->content ?? [];
-
         if ($lastMessageAt) {
             $messages = array_filter($messages, function ($msg) use ($lastMessageAt) {
                 return isset($msg['created_at']) && $msg['created_at'] > $lastMessageAt;
             });
+        }
+        foreach ($messages as &$msg) {
+            if (empty($msg['sender_name']) && !empty($msg['sender_id'])) {
+                $user = User::find($msg['sender_id']);
+                $msg['sender_name'] = $user?->name ?? 'Người dùng';
+            }
         }
 
         return response()->json([
@@ -86,16 +90,25 @@ class ChatController extends Controller
         ]);
 
         $chat = Chat::findOrFail($id);
-
         $messages = $chat->content ?? [];
 
+        $user = Auth::user();
+        $roleLabel = match ($user->role) {
+            1 => 'admin',
+            2 => 'staff',
+            3 => 'customer',
+            default => 'user',
+        };
+
         $newMessage = [
-            'sender_id' => Auth::id(),
-            'type' => 'text',
-            'content' => $request->message,
-            'file_path' => null,
-            'file_name' => null,
-            'created_at' => now()->toDateTimeString(),
+            'sender_id'   => $user->id,
+            'sender_name' => $user->name,
+            'sender_role' => $roleLabel,
+            'type'        => 'text',
+            'content'     => $request->message,
+            'file_path'   => null,
+            'file_name'   => null,
+            'created_at'  => now()->toDateTimeString(),
         ];
 
         if ($request->hasFile('file')) {
@@ -104,7 +117,7 @@ class ChatController extends Controller
             $newMessage['type'] = str_starts_with($file->getMimeType(), 'image/') ? 'image' : 'file';
             $newMessage['file_path'] = $path;
             $newMessage['file_name'] = $file->getClientOriginalName();
-            $newMessage['content'] = null; // Set content to null when has file
+            $newMessage['content'] = null;
         }
 
         $messages[] = $newMessage;

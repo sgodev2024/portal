@@ -59,7 +59,7 @@ class LoginController extends Controller
             return redirect()->route('staff.dashboard');
         }
 
-        return redirect()->route('home');
+        return redirect()->route('customer.dashboard');
     }
 
 
