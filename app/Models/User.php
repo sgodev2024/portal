@@ -16,9 +16,15 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'phone',
+        'gender',
+        'birthday',
+        'tax_code',
         'password',
+        'identity_number',
+        'must_update_profile',
         'role',
         'is_active',
     ];
@@ -38,6 +44,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_active' => 'boolean',
+        'must_update_profile' => 'boolean',
     ];
 
     /**

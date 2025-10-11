@@ -121,13 +121,16 @@
                             <i class="fas fa-headset"></i>
                             <p>Chat khách hàng</p>
                         </a>
-                    @elseif (Auth::user()->role == 3)
-                        {{-- <a href="{{ route('customer.chats.index') }}">
-                            <i class="fas fa-comment-dots"></i>
-                            <p>Liên hệ hỗ trợ</p>
-                        </a> --}}
                     @endif
                 </li>
+                @if (in_array(Auth::user()->role, [1, 2]))
+                    <li class="nav-item {{ request()->routeIs('customer.*') ? 'active' : '' }}">
+                        <a href="{{ route('customers.index') }}">
+                            <i class="fas fa-users"></i>
+                            <p>Quản lý khách hàng</p>
+                        </a>
+                    </li>
+                @endif
             </ul>
         </div>
     </div>

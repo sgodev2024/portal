@@ -3,9 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\ChatController;
-use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Customer\ChatcustomerController;
 
 Route::get('/', function () {
@@ -26,11 +27,20 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
     Route::post('/company', [CompanyController::class, 'store'])->name('company.store');
 
     Route::prefix('chat')->name('chat.')->group(function () {
-            Route::get('/', [ChatController::class, 'index'])->name('index');
-            Route::get('/{id}/messages', [ChatController::class, 'getMessages'])->name('messages');
-            Route::post('/{id}/assign', [ChatController::class, 'assign'])->name('assign');
-            Route::post('/{id}/send', [ChatController::class, 'sendMessage'])->name('send');
-        });
+        Route::get('/', [ChatController::class, 'index'])->name('index');
+        Route::get('/{id}/messages', [ChatController::class, 'getMessages'])->name('messages');
+        Route::post('/{id}/assign', [ChatController::class, 'assign'])->name('assign');
+        Route::post('/{id}/send', [ChatController::class, 'sendMessage'])->name('send');
+    });
+});
+Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1,2'])->group(function () {
+    Route::get('/', [CustomerController::class, 'index'])->name('index');
+    Route::get('/create', [CustomerController::class, 'create'])->name('create');
+    Route::post('/store', [CustomerController::class, 'store'])->name('store');
+    Route::get('/edit/{id}', [CustomerController::class, 'edit'])->name('edit');
+    Route::put('/update/{id}', [CustomerController::class, 'update'])->name('update');
+    Route::delete('/delete/{id}', [CustomerController::class, 'destroy'])->name('delete');
+    Route::post('/import', [CustomerController::class, 'import'])->name('import');
 });
 Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
