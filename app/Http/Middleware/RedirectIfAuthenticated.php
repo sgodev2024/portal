@@ -2,36 +2,37 @@
 
 namespace App\Http\Middleware;
 
-use App\Providers\RouteServiceProvider;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\User;
 
 class RedirectIfAuthenticated
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {
         $guards = empty($guards) ? [null] : $guards;
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                /** @var User|null $user */
                 $user = Auth::guard($guard)->user();
+                if ($user instanceof User) {
+                    if ($user->isAdmin()) {
+                        return redirect()->route('admin.dashboard');
+                    }
 
-                if ($user->isAdmin()) {
-                    return redirect()->route('admin.dashboard');
+                    if ($user->isStaff()) {
+                        return redirect()->route('staff.dashboard');
+                    }
+
+                    if ($user->isUser()) {
+                        return redirect()->route('customer.dashboard');
+                    }
                 }
 
-                if ($user->isStaff()) {
-                    return redirect()->route('staff.dashboard');
-                }
-
-                // Nếu cần, mặc định
+                // fallback nếu $user không phải User hoặc không có role xác định
                 return redirect()->route('home');
             }
         }

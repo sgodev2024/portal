@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Cookie;
 class LoginController extends Controller
 {
     public function showLoginForm()
@@ -33,7 +33,6 @@ class LoginController extends Controller
             ])->withInput();
         }
 
-
         if (!$user->is_active) {
             return back()->withErrors([
                 'name' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.',
@@ -50,6 +49,10 @@ class LoginController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
+        // if ($user->role == 3 && $user->must_update_profile) {
+        //     return redirect()->route('customers.edit', $user->id)
+        //         ->with('info', 'Vui lòng cập nhật thông tin tài khoản trước khi tiếp tục.');
+        // }
 
         if ($user->isAdmin()) {
             return redirect()->route('admin.dashboard');
@@ -70,8 +73,8 @@ class LoginController extends Controller
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        Cookie::queue(Cookie::forget('laravel_session'));
 
-        session()->flash('success', 'Đăng xuất thành công!');
-        return redirect()->route('login');
+        return redirect()->route('login')->with('success', 'Đăng xuất thành công!');
     }
 }
