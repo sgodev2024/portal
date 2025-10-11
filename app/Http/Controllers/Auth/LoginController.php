@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cookie;
+
 class LoginController extends Controller
 {
     public function showLoginForm()
@@ -49,10 +50,10 @@ class LoginController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        // if ($user->role == 3 && $user->must_update_profile) {
-        //     return redirect()->route('customers.edit', $user->id)
-        //         ->with('info', 'Vui lòng cập nhật thông tin tài khoản trước khi tiếp tục.');
-        // }
+        if ($user->role == 3 && $user->must_update_profile) {
+            return redirect()->route('customer.profile.edit')
+                ->with('info', 'Vui lòng cập nhật thông tin tài khoản trước khi tiếp tục.');
+        }
 
         if ($user->isAdmin()) {
             return redirect()->route('admin.dashboard');
