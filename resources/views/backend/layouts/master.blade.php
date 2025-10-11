@@ -186,23 +186,42 @@
                 overflow: hidden;
                 z-index: 10000;
                 box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
+                flex-direction: column;
             }
 
-            #chat-box.show {
+            /* Animation mở */
+            #chat-box.opening {
                 display: flex;
-                flex-direction: column;
-                animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+
+            /* Animation đóng */
+            #chat-box.closing {
+                display: flex;
+                animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             }
 
             @keyframes slideUp {
                 from {
                     opacity: 0;
-                    transform: translateY(24px) scale(0.95);
+                    transform: translateY(20px) scale(0.95);
                 }
 
                 to {
                     opacity: 1;
                     transform: translateY(0) scale(1);
+                }
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+
+                to {
+                    opacity: 0;
+                    transform: translateY(20px) scale(0.95);
                 }
             }
 
@@ -339,12 +358,19 @@
                         return;
                     }
 
+                    let isOpen = false;
+
                     // Open chat box
                     function openChatBox() {
+                        if (isOpen) return;
+                        isOpen = true;
+
+                        // Remove any existing classes
+                        chatBox.classList.remove('closing');
+
+                        // Show and animate
                         chatBox.style.display = 'flex';
-                        setTimeout(function() {
-                            chatBox.classList.add('show');
-                        }, 10);
+                        chatBox.classList.add('opening');
 
                         // Hide badge
                         if (badge) {
@@ -357,20 +383,35 @@
                         } catch (e) {
                             console.log('Iframe reload prevented by browser policy');
                         }
+
+                        // Remove opening class after animation
+                        setTimeout(function() {
+                            chatBox.classList.remove('opening');
+                        }, 300);
                     }
 
                     // Close chat box
                     function closeChatBox() {
-                        chatBox.classList.remove('show');
+                        if (!isOpen) return;
+                        isOpen = false;
+
+                        // Remove opening class if exists
+                        chatBox.classList.remove('opening');
+
+                        // Add closing animation
+                        chatBox.classList.add('closing');
+
+                        // Hide after animation completes
                         setTimeout(function() {
                             chatBox.style.display = 'none';
+                            chatBox.classList.remove('closing');
                         }, 300);
                     }
 
                     // Toggle chat box
                     chatIcon.addEventListener('click', function(e) {
                         e.stopPropagation();
-                        if (chatBox.classList.contains('show')) {
+                        if (isOpen) {
                             closeChatBox();
                         } else {
                             openChatBox();
@@ -385,7 +426,7 @@
 
                     // Close on outside click
                     document.addEventListener('click', function(e) {
-                        if (chatBox.classList.contains('show') &&
+                        if (isOpen &&
                             !chatBox.contains(e.target) &&
                             !chatIcon.contains(e.target)) {
                             closeChatBox();
@@ -399,7 +440,7 @@
 
                     // ESC key to close
                     document.addEventListener('keydown', function(e) {
-                        if (e.key === 'Escape' && chatBox.classList.contains('show')) {
+                        if (e.key === 'Escape' && isOpen) {
                             closeChatBox();
                         }
                     });

@@ -10,10 +10,17 @@
 <div class="chat-container">
     <!-- Messages Area -->
     <div id="chat-messages" class="chat-messages">
-        <div class="welcome-message">
+        <!-- Welcome message ẩn ngay từ đầu -->
+        <div class="welcome-message" style="display: none;">
             <div class="welcome-icon">💬</div>
             <h4>Chào mừng bạn!</h4>
             <p>Chúng tôi sẵn sàng hỗ trợ bạn</p>
+        </div>
+        <!-- Loading indicator -->
+        <div class="loading-indicator">
+            <div class="loading-dots">
+                <span></span><span></span><span></span>
+            </div>
         </div>
     </div>
 
@@ -121,13 +128,17 @@
         display: flex;
         align-items: flex-end;
         margin-bottom: 14px;
-        animation: slideIn 0.25s ease-out;
+    }
+
+    /* Chỉ animate tin nhắn mới */
+    .message-wrapper.new-message {
+        animation: slideIn 0.2s ease-out;
     }
 
     @keyframes slideIn {
         from {
             opacity: 0;
-            transform: translateY(6px);
+            transform: translateY(4px);
         }
         to {
             opacity: 1;
@@ -233,6 +244,42 @@
 
     .error-message {
         color: #ff4d4f;
+    }
+
+    /* Loading indicator */
+    .loading-indicator {
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+    .loading-dots {
+        display: inline-flex;
+        gap: 8px;
+    }
+
+    .loading-dots span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #0084ff;
+        animation: loadingBounce 1.4s infinite ease-in-out both;
+    }
+
+    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes loadingBounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+
+    /* Optimistic message (tin nhắn tạm) */
+    .message-wrapper.optimistic {
+        opacity: 0.6;
+    }
+
+    .message-wrapper.optimistic .message-bubble {
+        background: linear-gradient(135deg, #66b3ff 0%, #4da6ff 100%);
     }
 
     /* Input Area */
@@ -371,6 +418,9 @@
 
     let lastMessageCount = 0;
     let isLoadingMessages = false;
+    let pollingInterval = null;
+    let isFirstLoad = true;
+    let optimisticMessageId = 0;
 
     document.addEventListener('DOMContentLoaded', function() {
         const messagesDiv = document.getElementById('chat-messages');
@@ -430,45 +480,119 @@
             }
         });
 
-        // Load messages (OPTIMIZED - No flicker)
-        function loadMessages(forceScroll = false) {
-            if (isLoadingMessages) return;
+        // Tạo tin nhắn optimistic (hiển thị ngay)
+        function addOptimisticMessage(content, fileData = null) {
+            const msgId = `optimistic-${optimisticMessageId++}`;
+            const msgWrapper = document.createElement('div');
+            msgWrapper.className = 'message-wrapper customer optimistic new-message';
+            msgWrapper.setAttribute('data-optimistic-id', msgId);
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = 'B';
+
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'message-content-wrapper';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble customer';
+
+            if (fileData) {
+                if (fileData.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = fileData.preview;
+                    img.alt = fileData.name;
+                    bubble.appendChild(img);
+                } else {
+                    bubble.textContent = `📎 ${fileData.name}`;
+                }
+            } else {
+                bubble.textContent = content;
+            }
+
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            const now = new Date();
+            time.textContent = now.toLocaleString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            contentWrapper.appendChild(bubble);
+            contentWrapper.appendChild(time);
+            msgWrapper.appendChild(avatar);
+            msgWrapper.appendChild(contentWrapper);
+
+            // Ẩn loading nếu có
+            const loading = messagesDiv.querySelector('.loading-indicator');
+            if (loading) loading.style.display = 'none';
+
+            messagesDiv.appendChild(msgWrapper);
+            scrollToBottom();
+
+            return msgId;
+        }
+
+        // Xóa tin nhắn optimistic
+        function removeOptimisticMessage(msgId) {
+            const msg = messagesDiv.querySelector(`[data-optimistic-id="${msgId}"]`);
+            if (msg) msg.remove();
+        }
+
+        // Load messages (OPTIMIZED)
+        function loadMessages(forceScroll = false, isNewMessage = false) {
+            if (isLoadingMessages) return Promise.resolve();
             isLoadingMessages = true;
 
-            fetch("{{ route('customer.chatcustomer.messages') }}")
+            return fetch("{{ route('customer.chatcustomer.messages') }}")
                 .then(res => res.json())
                 .then(data => {
                     const messages = data.messages || [];
 
+                    // Ẩn loading indicator
+                    const loading = messagesDiv.querySelector('.loading-indicator');
+                    if (loading) loading.style.display = 'none';
+
                     // Check if messages changed
                     if (messages.length === lastMessageCount && !forceScroll) {
-                        isLoadingMessages = false;
-                        return; // No changes, don't update DOM
-                    }
-
-                    const wasAtBottom = isScrolledToBottom();
-                    lastMessageCount = messages.length;
-
-                    // Clear or show welcome
-                    if (messages.length === 0) {
-                        messagesDiv.innerHTML = `
-                            <div class="welcome-message">
-                                <div class="welcome-icon">💬</div>
-                                <h4>Chào mừng bạn!</h4>
-                                <p>Gửi tin nhắn đầu tiên để bắt đầu trò chuyện</p>
-                            </div>
-                        `;
                         isLoadingMessages = false;
                         return;
                     }
 
+                    const wasAtBottom = isScrolledToBottom();
+                    const previousCount = lastMessageCount;
+                    lastMessageCount = messages.length;
+
+                    // Hiện welcome nếu không có tin nhắn
+                    if (messages.length === 0) {
+                        const welcome = messagesDiv.querySelector('.welcome-message');
+                        if (welcome) welcome.style.display = 'block';
+                        isLoadingMessages = false;
+                        isFirstLoad = false;
+                        return;
+                    }
+
+                    // Ẩn welcome
+                    const welcome = messagesDiv.querySelector('.welcome-message');
+                    if (welcome) welcome.style.display = 'none';
+
+                    // Xóa tất cả tin nhắn optimistic trước khi render
+                    messagesDiv.querySelectorAll('.optimistic').forEach(el => el.remove());
+
                     // Build messages HTML
                     const fragment = document.createDocumentFragment();
 
-                    messages.forEach(msg => {
+                    messages.forEach((msg, index) => {
                         const isCustomer = msg.sender_id == currentUserId;
                         const msgWrapper = document.createElement('div');
                         msgWrapper.className = `message-wrapper ${isCustomer ? 'customer' : 'staff'}`;
+
+                        // Chỉ animate tin nhắn mới
+                        if (isNewMessage && index >= previousCount) {
+                            msgWrapper.classList.add('new-message');
+                        }
 
                         const avatar = document.createElement('div');
                         avatar.className = 'message-avatar';
@@ -515,8 +639,14 @@
                         fragment.appendChild(msgWrapper);
                     });
 
-                    // Update DOM once
+                    // Giữ lại các element cố định (welcome, loading)
+                    const staticElements = Array.from(messagesDiv.children).filter(el =>
+                        el.classList.contains('welcome-message') || el.classList.contains('loading-indicator')
+                    );
+
+                    // Clear và append
                     messagesDiv.innerHTML = '';
+                    staticElements.forEach(el => messagesDiv.appendChild(el));
                     messagesDiv.appendChild(fragment);
 
                     // Scroll if needed
@@ -525,11 +655,20 @@
                     }
 
                     isLoadingMessages = false;
+                    isFirstLoad = false;
                 })
                 .catch(err => {
-                    messagesDiv.innerHTML = '<p class="error-message">❌ Không thể tải tin nhắn!</p>';
+                    const loading = messagesDiv.querySelector('.loading-indicator');
+                    if (loading) loading.style.display = 'none';
+
+                    const errorMsg = document.createElement('p');
+                    errorMsg.className = 'error-message';
+                    errorMsg.textContent = '❌ Không thể tải tin nhắn!';
+                    messagesDiv.appendChild(errorMsg);
+
                     console.error('Load error:', err);
                     isLoadingMessages = false;
+                    isFirstLoad = false;
                 });
         }
 
@@ -541,9 +680,20 @@
 
         // Smooth scroll to bottom
         function scrollToBottom() {
-            requestAnimationFrame(() => {
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            });
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Start/Stop polling
+        function startPolling() {
+            if (pollingInterval) return;
+            pollingInterval = setInterval(() => loadMessages(false), 3000);
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
         }
 
         // Send message
@@ -554,11 +704,35 @@
             const file = fileInput.files[0];
             if (!message && !file) return;
 
+            // Stop polling
+            stopPolling();
+
+            // Prepare file data nếu có
+            let fileData = null;
+            if (file) {
+                fileData = {
+                    name: file.name,
+                    type: file.type,
+                    preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+                };
+            }
+
+            // HIỂN THI TIN NHẮN NGAY LẬP TỨC (Optimistic UI)
+            const optimisticId = addOptimisticMessage(message, fileData);
+
+            // Clear input
+            const tempMessage = message;
+            const tempFile = file;
+            input.value = '';
+            input.style.height = 'auto';
+            fileInput.value = '';
+            filePreview.classList.remove('show');
+            updateSendButtonState();
             sendBtn.disabled = true;
 
             const formData = new FormData();
-            if (message) formData.append('message', message);
-            if (file) formData.append('file', file);
+            if (tempMessage) formData.append('message', tempMessage);
+            if (tempFile) formData.append('file', tempFile);
 
             fetch("{{ route('customer.chatcustomer.send') }}", {
                 method: 'POST',
@@ -570,25 +744,31 @@
                     return res.json();
                 })
                 .then(() => {
-                    input.value = '';
-                    input.style.height = 'auto';
-                    fileInput.value = '';
-                    filePreview.classList.remove('show');
-                    updateSendButtonState();
-                    loadMessages(true);
+                    // Load tin nhắn thật từ server và xóa optimistic
+                    setTimeout(() => {
+                        loadMessages(true, true);
+                    }, 200);
                 })
                 .catch(err => {
+                    // Xóa tin nhắn optimistic nếu lỗi
+                    removeOptimisticMessage(optimisticId);
                     alert('❌ Không thể gửi tin nhắn!');
                     console.error('Send error:', err);
+                    // Restore
+                    input.value = tempMessage;
+                    input.style.height = 'auto';
+                    input.style.height = Math.min(input.scrollHeight, 100) + 'px';
                 })
                 .finally(() => {
                     sendBtn.disabled = false;
+                    updateSendButtonState();
+                    setTimeout(startPolling, 500);
                 });
         });
 
-        // Initialize
+        // Initialize - Load ngay
         loadMessages(true);
-        setInterval(() => loadMessages(false), 3000);
+        setTimeout(startPolling, 1000);
         updateSendButtonState();
     });
 })();
