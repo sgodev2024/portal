@@ -26,7 +26,15 @@ class CustomerController extends Controller
             });
         }
 
-        $customers = $query->orderBy('created_at', 'desc')->paginate(10);
+        if ($request->has('active') && $request->active !== '') {
+            $query->where('is_active', $request->active);
+        }
+
+        if ($request->has('profile') && $request->profile !== '') {
+            $query->where('must_update_profile', $request->profile);
+        }
+
+        $customers = $query->orderBy('created_at', 'desc')->paginate(8);
 
         if ($request->ajax()) {
             return view('backend.customers.table', compact('customers'))->render();
@@ -36,6 +44,11 @@ class CustomerController extends Controller
     }
 
 
+    public function show($id)
+    {
+        $user = User::where('role', 3)->findOrFail($id);
+        return view('backend.customers.show', compact('user'));
+    }
 
     /**
      * Form thêm khách hàng
@@ -125,7 +138,7 @@ class CustomerController extends Controller
             'identity_number' => $request->identity_number,
             'username' => $request->username,
             'must_update_profile' => $request->boolean('must_update_profile'),
-            'is_active' => $request->boolean('is_active'), // ✅ xử lý checkbox chuẩn
+            'is_active' => $request->boolean('is_active'),
             'tax_code' => $request->tax_code,
             'gender' => $request->gender,
             'birthday' => $request->birthday,
@@ -134,11 +147,19 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công!');
     }
 
-    public function destroy($id)
+    public function deleteSelected(Request $request)
     {
-        User::findOrFail($id)->delete();
-        return redirect()->route('customers.index')->with('success', 'Đã xóa khách hàng!');
+        $ids = $request->input('ids', []);
+
+        if (empty($ids)) {
+            return back()->with('error', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+        }
+
+        User::whereIn('id', $ids)->delete();
+
+        return back()->with('success', 'Đã xóa thành công ' . count($ids) . ' khách hàng!');
     }
+
 
     /**
      * Import file Excel
@@ -157,6 +178,32 @@ class CustomerController extends Controller
             return redirect()->route('customers.index')->with('success', 'Import khách hàng thành công!');
         } catch (\Exception $e) {
             return redirect()->route('customers.index')->with('error', 'Import lỗi: ' . $e->getMessage());
+        }
+    }
+    public function bulkAction(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $action = $request->input('action');
+
+        if (empty($ids)) {
+            return back()->with('error', 'Vui lòng chọn ít nhất một khách hàng.');
+        }
+
+        switch ($action) {
+            case 'delete':
+                User::whereIn('id', $ids)->delete();
+                return back()->with('success', 'Đã xóa các khách hàng được chọn.');
+
+            // case 'activate':
+            //     User::whereIn('id', $ids)->update(['is_active' => 1]);
+            //     return back()->with('success', 'Đã kích hoạt các khách hàng được chọn.');
+
+            // case 'deactivate':
+            //     User::whereIn('id', $ids)->update(['is_active' => 0]);
+            //     return back()->with('success', 'Đã ngừng hoạt động các khách hàng được chọn.');
+
+            default:
+                return back()->with('error', 'Hành động không hợp lệ.');
         }
     }
 }

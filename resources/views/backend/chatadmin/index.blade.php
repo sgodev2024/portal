@@ -76,6 +76,7 @@
             cursor: pointer;
             transition: all 0.2s;
             border-bottom: 1px solid #f0f2f5;
+            position: relative;
         }
 
         .chat-item:hover {
@@ -85,6 +86,22 @@
         .chat-item.active {
             background: #e7f3ff;
             border-left: 3px solid #0084ff;
+        }
+
+        /* Highlight new message animation */
+        .chat-item.highlight-new {
+            background: #e7f3ff !important;
+            animation: pulse 2s ease-in-out;
+            border-left: 3px solid #0084ff;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                background: #e7f3ff;
+            }
+            50% {
+                background: #d0e8ff;
+            }
         }
 
         .chat-avatar {
@@ -279,7 +296,6 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -548,6 +564,30 @@
             background: #95999d;
         }
 
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #65676b;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(3, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% {
+                content: '.';
+            }
+            40% {
+                content: '..';
+            }
+            60%, 100% {
+                content: '...';
+            }
+        }
+
         /* Responsive */
         @media (max-width: 992px) {
             .chat-container {
@@ -628,35 +668,6 @@
                 font-size: 12px;
             }
         }
-
-        /* Loading state */
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #65676b;
-        }
-
-        .loading::after {
-            content: '...';
-            animation: dots 1.5s steps(3, end) infinite;
-        }
-
-        @keyframes dots {
-
-            0%,
-            20% {
-                content: '.';
-            }
-
-            40% {
-                content: '..';
-            }
-
-            60%,
-            100% {
-                content: '...';
-            }
-        }
     </style>
 @endpush
 
@@ -670,10 +681,10 @@
 
             <div class="chat-tabs">
                 <button class="chat-tab active" data-tab="pending">
-                    Chờ ({{ count($pendingChats) }})
+                    Chờ (<span id="pendingCount">{{ count($pendingChats) }}</span>)
                 </button>
                 <button class="chat-tab" data-tab="processing">
-                    Đang xử lý ({{ count($processingChats) }})
+                    Đang xử lý (<span id="processingCount">{{ count($processingChats) }}</span>)
                 </button>
             </div>
 
@@ -792,7 +803,7 @@
 
 @push('scripts')
     <script>
-        (function() {
+        $(document).ready(function() {
             'use strict';
 
             // Cache DOM elements
@@ -810,46 +821,54 @@
                 mobileToggle: $('#mobileChatToggle')
             };
 
-            // State
-            let state = {
+            // State management
+            const state = {
                 currentChatId: null,
                 currentChatStatus: null,
+                currentStaffName: null,
                 lastMessageAt: null,
                 pollingInterval: null,
-                isSubmitting: false
+                listPollingInterval: null,
+                isSubmitting: false,
+                processedMessageIds: new Set()
             };
 
             // Initialize
             function init() {
                 bindEvents();
                 updateSendButtonState();
+                startListPolling();
             }
 
-            // Bind all events
+            // Bind events (only once)
             function bindEvents() {
                 // Tab switching
-                $('.chat-tab').on('click', handleTabSwitch);
+                $(document).off('click', '.chat-tab').on('click', '.chat-tab', handleTabSwitch);
 
                 // Chat item click
-                $('.chat-item').on('click', handleChatItemClick);
+                $(document).off('click', '.chat-item').on('click', '.chat-item', handleChatItemClick);
 
                 // Message input
-                elements.messageInput.on('input', handleMessageInput);
-                elements.messageInput.on('keydown', handleMessageKeydown);
+                elements.messageInput.off('input keydown')
+                    .on('input', handleMessageInput)
+                    .on('keydown', handleMessageKeydown);
 
                 // File input
-                elements.fileInput.on('change', handleFileChange);
-                $(document).on('click', '.remove-file', handleFileRemove);
+                elements.fileInput.off('change').on('change', handleFileChange);
+                $(document).off('click', '.remove-file').on('click', '.remove-file', handleFileRemove);
 
                 // Form submit
-                elements.chatForm.on('submit', handleFormSubmit);
+                elements.chatForm.off('submit').on('submit', handleFormSubmit);
 
                 // Mobile toggle
-                elements.mobileToggle.on('click', toggleSidebar);
+                elements.mobileToggle.off('click').on('click', toggleSidebar);
 
                 // Close sidebar on chat selection (mobile)
                 if (window.innerWidth <= 992) {
-                    $('.chat-item').on('click', () => elements.sidebar.removeClass('show'));
+                    $(document).off('click', '.chat-item.mobile-close')
+                        .on('click', '.chat-item', function() {
+                            elements.sidebar.removeClass('show');
+                        });
                 }
             }
 
@@ -866,24 +885,36 @@
             }
 
             // Chat item click
-            function handleChatItemClick() {
+            function handleChatItemClick(e) {
+                e.preventDefault();
+
                 $('.chat-item').removeClass('active');
                 $(this).addClass('active');
 
-                state.currentChatId = $(this).data('chat-id');
-                state.currentChatStatus = $(this).data('status');
+                const chatId = $(this).data('chat-id');
+                const chatStatus = $(this).data('status');
+                const staffName = $(this).data('staff-name');
 
-                loadChatDetail(state.currentChatId, state.currentChatStatus, $(this));
+                // Stop old polling if switching chat
+                if (state.currentChatId !== chatId) {
+                    stopPolling();
+                    state.processedMessageIds.clear();
+                }
+
+                state.currentChatId = chatId;
+                state.currentChatStatus = chatStatus;
+                state.currentStaffName = staffName;
+
+                loadChatDetail(chatId, chatStatus, $(this));
             }
 
-            // Message input
+            // Message input handlers
             function handleMessageInput() {
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 100) + 'px';
                 updateSendButtonState();
             }
 
-            // Message keydown
             function handleMessageKeydown(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -893,7 +924,7 @@
                 }
             }
 
-            // File change
+            // File handlers
             function handleFileChange() {
                 if (this.files.length > 0) {
                     elements.fileName.text('📎 ' + this.files[0].name);
@@ -904,14 +935,13 @@
                 updateSendButtonState();
             }
 
-            // File remove
             function handleFileRemove() {
                 elements.fileInput.val('');
                 elements.filePreview.removeClass('show');
                 updateSendButtonState();
             }
 
-            // Form submit
+            // Form submit - FIXED: No duplicate messages
             async function handleFormSubmit(e) {
                 e.preventDefault();
 
@@ -921,15 +951,19 @@
                 const hasFile = elements.fileInput[0].files.length > 0;
 
                 if (!hasText && !hasFile) {
-                    alert('Vui lòng nhập tin nhắn hoặc chọn tệp!');
+                    showNotification('Vui lòng nhập tin nhắn hoặc chọn tệp!', 'warning');
                     return;
                 }
 
+                // Disable submit
                 state.isSubmitting = true;
                 elements.sendButton.prop('disabled', true);
 
+                // Temporarily stop polling to avoid duplicates
+                const wasPolling = !!state.pollingInterval;
+                stopPolling();
+
                 const formData = new FormData(this);
-                const staffName = $(`.chat-item[data-chat-id="${state.currentChatId}"]`).data('staff-name');
 
                 try {
                     const response = await $.ajax({
@@ -944,8 +978,13 @@
                         }
                     });
 
-                    if (response.success) {
-                        appendMessage(response.data, staffName);
+                    if (response.success && response.data) {
+                        // Add message ID to processed set
+                        if (response.data.id) {
+                            state.processedMessageIds.add(response.data.id);
+                        }
+
+                        appendMessage(response.data, state.currentStaffName);
                         state.lastMessageAt = response.data.created_at;
 
                         // Reset form
@@ -953,19 +992,29 @@
                         elements.messageInput.css('height', 'auto');
                         elements.filePreview.removeClass('show');
                         elements.messageInput.focus();
+
+                        // Update chat list item
+                        updateChatListItem(state.currentChatId, response.data);
                     } else {
                         throw new Error(response.message || 'Gửi tin nhắn thất bại');
                     }
                 } catch (error) {
                     console.error('Send message error:', error);
-                    alert('Lỗi: ' + (error.responseJSON?.message || error.message || 'Không thể gửi tin nhắn'));
+                    showNotification('Lỗi: ' + (error.responseJSON?.message || error.message || 'Không thể gửi tin nhắn'), 'error');
                 } finally {
                     state.isSubmitting = false;
                     updateSendButtonState();
+
+                    // Restart polling after 500ms
+                    if (wasPolling) {
+                        setTimeout(() => {
+                            startPolling(state.currentChatId, state.currentStaffName);
+                        }, 500);
+                    }
                 }
             }
 
-            // Toggle sidebar (mobile)
+            // Toggle sidebar
             function toggleSidebar() {
                 elements.sidebar.toggleClass('show');
             }
@@ -974,22 +1023,21 @@
             function resetChatView() {
                 state.currentChatId = null;
                 state.currentChatStatus = null;
+                state.currentStaffName = null;
                 state.lastMessageAt = null;
+                state.processedMessageIds.clear();
 
-                if (state.pollingInterval) {
-                    clearInterval(state.pollingInterval);
-                    state.pollingInterval = null;
-                }
+                stopPolling();
 
                 elements.chatHeader.hide();
                 elements.chatInput.hide();
                 elements.chatMessages.html(`
-            <div class="chat-empty">
-                <div class="chat-empty-icon">💬</div>
-                <h5>Chọn một cuộc trò chuyện</h5>
-                <p>Chọn từ danh sách bên trái để bắt đầu</p>
-            </div>
-        `);
+                    <div class="chat-empty">
+                        <div class="chat-empty-icon">💬</div>
+                        <h5>Chọn một cuộc trò chuyện</h5>
+                        <p>Chọn từ danh sách bên trái để bắt đầu</p>
+                    </div>
+                `);
             }
 
             // Load chat detail
@@ -1010,31 +1058,31 @@
                 } else {
                     $('#chatActions').empty();
                     elements.chatInput.show();
-                    loadMessages(chatId, chatItem.data('staff-name'));
-                    startPolling(chatId, chatItem.data('staff-name'));
+                    loadMessages(chatId, state.currentStaffName);
+                    startPolling(chatId, state.currentStaffName);
                 }
             }
 
             // Show assign form
             function showAssignForm(chatId) {
                 elements.chatMessages.html(`
-            <div class="chat-empty">
-                <div class="chat-empty-icon">👤</div>
-                <h5>Phân công nhân viên</h5>
-                <div class="assign-form">
-                    <form action="/admin/chat/${chatId}/assign" method="POST">
-                        @csrf
-                        <select name="staff_id" required>
-                            <option value="">Chọn nhân viên</option>
-                            @foreach ($staffs as $staff)
-                                <option value="{{ $staff->id }}">{{ $staff->name }}</option>
-                            @endforeach
-                        </select>
-                        <button type="submit">Phân công ngay</button>
-                    </form>
-                </div>
-            </div>
-        `);
+                    <div class="chat-empty">
+                        <div class="chat-empty-icon">👤</div>
+                        <h5>Phân công nhân viên</h5>
+                        <div class="assign-form">
+                            <form action="/admin/chat/${chatId}/assign" method="POST">
+                                @csrf
+                                <select name="staff_id" required>
+                                    <option value="">Chọn nhân viên</option>
+                                    @foreach ($staffs as $staff)
+                                        <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit">Phân công ngay</button>
+                            </form>
+                        </div>
+                    </div>
+                `);
             }
 
             // Load messages
@@ -1051,20 +1099,31 @@
                     });
 
                     if (response.success) {
+                        // Clear processed IDs
+                        state.processedMessageIds.clear();
+
+                        // Add all loaded message IDs
+                        if (response.messages) {
+                            response.messages.forEach(msg => {
+                                if (msg.id) state.processedMessageIds.add(msg.id);
+                            });
+                        }
+
                         renderMessages(response.messages, staffName);
-                        if (response.messages.length > 0) {
+
+                        if (response.messages && response.messages.length > 0) {
                             state.lastMessageAt = response.messages[response.messages.length - 1].created_at;
                         }
                     }
                 } catch (error) {
                     console.error('Load messages error:', error);
                     elements.chatMessages.html(`
-                <div class="chat-empty">
-                    <div class="chat-empty-icon">⚠️</div>
-                    <h5>Không thể tải tin nhắn</h5>
-                    <p>Vui lòng thử lại sau</p>
-                </div>
-            `);
+                        <div class="chat-empty">
+                            <div class="chat-empty-icon">⚠️</div>
+                            <h5>Không thể tải tin nhắn</h5>
+                            <p>Vui lòng thử lại sau</p>
+                        </div>
+                    `);
                 }
             }
 
@@ -1072,12 +1131,12 @@
             function renderMessages(messages, staffName) {
                 if (!messages || messages.length === 0) {
                     elements.chatMessages.html(`
-                <div class="chat-empty">
-                    <div class="chat-empty-icon">💬</div>
-                    <h5>Chưa có tin nhắn</h5>
-                    <p>Bắt đầu cuộc trò chuyện</p>
-                </div>
-            `);
+                        <div class="chat-empty">
+                            <div class="chat-empty-icon">💬</div>
+                            <h5>Chưa có tin nhắn</h5>
+                            <p>Bắt đầu cuộc trò chuyện</p>
+                        </div>
+                    `);
                     return;
                 }
 
@@ -1086,14 +1145,24 @@
                 scrollToBottom();
             }
 
-            // Append message
+            // Append message - FIXED: Check for duplicates
             function appendMessage(msg, staffName) {
+                // Check if message already exists
+                if (msg.id && state.processedMessageIds.has(msg.id)) {
+                    return; // Skip duplicate
+                }
+
                 const html = createMessageHTML(msg, staffName);
 
                 if (elements.chatMessages.find('.chat-empty').length) {
                     elements.chatMessages.html(html);
                 } else {
                     elements.chatMessages.append(html);
+                }
+
+                // Add to processed set
+                if (msg.id) {
+                    state.processedMessageIds.add(msg.id);
                 }
 
                 scrollToBottom();
@@ -1109,32 +1178,28 @@
                 if (msg.type === 'text') {
                     content = escapeHtml(msg.content || '');
                 } else if (msg.type === 'image' && msg.file_path) {
-                    content =
-                        `<img src="/storage/${escapeHtml(msg.file_path)}" alt="${escapeHtml(msg.file_name || 'Image')}">`;
+                    content = `<img src="/storage/${escapeHtml(msg.file_path)}" alt="${escapeHtml(msg.file_name || 'Image')}">`;
                 } else if (msg.file_path) {
-                    content =
-                        `<a href="/storage/${escapeHtml(msg.file_path)}" target="_blank">📎 ${escapeHtml(msg.file_name || 'Tệp đính kèm')}</a>`;
+                    content = `<a href="/storage/${escapeHtml(msg.file_path)}" target="_blank">📎 ${escapeHtml(msg.file_name || 'Tệp đính kèm')}</a>`;
                 }
 
                 return `
-            <div class="message ${isMe ? 'sent' : 'received'}" data-created-at="${msg.created_at}">
-                <div class="message-avatar">${senderInitial}</div>
-                <div class="message-content">
-                    <div class="message-bubble">${content}</div>
-                    <div class="message-time">${escapeHtml(senderName)} • ${formatDateTime(msg.created_at)}</div>
-                </div>
-            </div>
-        `;
+                    <div class="message ${isMe ? 'sent' : 'received'}" data-message-id="${msg.id || ''}" data-created-at="${msg.created_at}">
+                        <div class="message-avatar">${senderInitial}</div>
+                        <div class="message-content">
+                            <div class="message-bubble">${content}</div>
+                            <div class="message-time">${escapeHtml(senderName)} • ${formatDateTime(msg.created_at)}</div>
+                        </div>
+                    </div>
+                `;
             }
 
-            // Start polling
+            // Start polling for messages
             function startPolling(chatId, staffName) {
-                if (state.pollingInterval) {
-                    clearInterval(state.pollingInterval);
-                }
+                stopPolling(); // Clear any existing interval
 
                 state.pollingInterval = setInterval(async () => {
-                    if (state.currentChatId !== chatId) return;
+                    if (state.currentChatId !== chatId || state.isSubmitting) return;
 
                     try {
                         const response = await $.ajax({
@@ -1149,13 +1214,114 @@
                         });
 
                         if (response.success && response.messages && response.messages.length > 0) {
-                            response.messages.forEach(msg => appendMessage(msg, staffName));
-                            state.lastMessageAt = response.messages[response.messages.length - 1]
-                                .created_at;
+                            response.messages.forEach(msg => {
+                                appendMessage(msg, staffName);
+                            });
+                            state.lastMessageAt = response.messages[response.messages.length - 1].created_at;
+
+                            // Update chat list
+                            const lastMsg = response.messages[response.messages.length - 1];
+                            updateChatListItem(chatId, lastMsg);
                         }
                     } catch (error) {
                         console.error('Polling error:', error);
                     }
+                }, 3000);
+            }
+
+            // Stop polling
+            function stopPolling() {
+                if (state.pollingInterval) {
+                    clearInterval(state.pollingInterval);
+                    state.pollingInterval = null;
+                }
+            }
+
+            // Start list polling - NEW FEATURE
+            function startListPolling() {
+                stopListPolling();
+
+                state.listPollingInterval = setInterval(async () => {
+                    try {
+                        const activeTab = $('.chat-tab.active').data('tab');
+
+                        const response = await $.ajax({
+                            url: '/admin/chat/list-updates',
+                            method: 'GET',
+                            data: { tab: activeTab },
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+
+                        if (response.success && response.chats) {
+                            updateChatList(response.chats, activeTab);
+                        }
+                    } catch (error) {
+                        console.error('List polling error:', error);
+                    }
+                }, 5000);
+            }
+
+            // Stop list polling
+            function stopListPolling() {
+                if (state.listPollingInterval) {
+                    clearInterval(state.listPollingInterval);
+                    state.listPollingInterval = null;
+                }
+            }
+
+            // Update chat list - NEW FEATURE
+            function updateChatList(chats, tab) {
+                const targetList = $(`.tab-content-list[data-content="${tab}"]`);
+
+                chats.forEach(chat => {
+                    const existingItem = targetList.find(`.chat-item[data-chat-id="${chat.id}"]`);
+
+                    if (existingItem.length) {
+                        // Update time
+                        existingItem.find('.chat-time').text(formatTimeAgo(chat.last_message_at));
+
+                        // Highlight if new message and not current chat
+                        if (chat.has_new_message && chat.id !== state.currentChatId) {
+                            highlightChatItem(existingItem);
+                        }
+
+                        // Move to top if has new message
+                        if (chat.has_new_message) {
+                            existingItem.prependTo(targetList);
+                        }
+                    }
+                });
+
+                // Update count
+                if (tab === 'pending') {
+                    $('#pendingCount').text(chats.length);
+                } else if (tab === 'processing') {
+                    $('#processingCount').text(chats.length);
+                }
+            }
+
+            // Update single chat list item
+            function updateChatListItem(chatId, lastMessage) {
+                const chatItem = $(`.chat-item[data-chat-id="${chatId}"]`);
+                if (chatItem.length) {
+                    chatItem.find('.chat-time').text(formatTimeAgo(lastMessage.created_at));
+
+                    // Move to top
+                    const parentList = chatItem.parent();
+                    chatItem.prependTo(parentList);
+
+                    // Highlight
+                    highlightChatItem(chatItem);
+                }
+            }
+
+            // Highlight chat item - NEW FEATURE
+            function highlightChatItem(chatItem) {
+                chatItem.addClass('highlight-new');
+                setTimeout(() => {
+                    chatItem.removeClass('highlight-new');
                 }, 3000);
             }
 
@@ -1187,22 +1353,46 @@
                 }
             }
 
+            // Format time ago
+            function formatTimeAgo(dateStr) {
+                try {
+                    const date = new Date(dateStr);
+                    const now = new Date();
+                    const diff = Math.floor((now - date) / 1000); // seconds
+
+                    if (diff < 60) return 'Vừa xong';
+                    if (diff < 3600) return Math.floor(diff / 60) + ' phút trước';
+                    if (diff < 86400) return Math.floor(diff / 3600) + ' giờ trước';
+                    if (diff < 604800) return Math.floor(diff / 86400) + ' ngày trước';
+
+                    return date.toLocaleDateString('vi-VN');
+                } catch (e) {
+                    return 'Vừa xong';
+                }
+            }
+
             // Escape HTML
             function escapeHtml(text) {
+                if (!text) return '';
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
             }
 
+            // Show notification
+            function showNotification(message, type = 'info') {
+                // Simple alert for now, can be replaced with better UI
+                alert(message);
+            }
+
             // Cleanup on page unload
             $(window).on('beforeunload', function() {
-                if (state.pollingInterval) {
-                    clearInterval(state.pollingInterval);
-                }
+                stopPolling();
+                stopListPolling();
             });
 
-            // Initialize on document ready
-            $(document).ready(init);
-        })();
+            // Initialize
+            init();
+        });
     </script>
 @endpush

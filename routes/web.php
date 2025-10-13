@@ -32,6 +32,7 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::get('/{id}/messages', [ChatController::class, 'getMessages'])->name('messages');
         Route::post('/{id}/assign', [ChatController::class, 'assign'])->name('assign');
         Route::post('/{id}/send', [ChatController::class, 'sendMessage'])->name('send');
+        Route::get('/list-updates', [ChatController::class, 'getListUpdates']);
     });
 });
 // route admin, nhân viên
@@ -41,8 +42,10 @@ Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1
     Route::post('/store', [CustomerController::class, 'store'])->name('store');
     Route::get('/edit/{id}', [CustomerController::class, 'edit'])->name('edit');
     Route::put('/update/{id}', [CustomerController::class, 'update'])->name('update');
-    Route::delete('/delete/{id}', [CustomerController::class, 'destroy'])->name('delete');
     Route::post('/import', [CustomerController::class, 'import'])->name('import');
+    Route::get('/{id}', [CustomerController::class, 'show'])->name('show');
+    Route::post('/bulk-action', [CustomerController::class, 'bulkAction'])->name('bulkAction');
+    Route::post('/bulk-action', [CustomerController::class, 'bulkAction'])->name('bulkAction');
 });
 // route nhân viên
 Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->group(function () {

@@ -81,7 +81,33 @@ class ChatController extends Controller
             'messages' => array_values($messages),
         ]);
     }
+    public function getListUpdates(Request $request)
+    {
+        $tab = $request->get('tab', 'pending');
 
+        if ($tab === 'pending') {
+            $chats = Chat::where('status', 'pending')
+                ->with('user')
+                ->latest('last_message_at')
+                ->get();
+        } else {
+            $chats = Chat::where('status', 'processing')
+                ->with(['user', 'staff'])
+                ->latest('last_message_at')
+                ->get();
+        }
+
+        return response()->json([
+            'success' => true,
+            'chats' => $chats->map(function ($chat) {
+                return [
+                    'id' => $chat->id,
+                    'last_message_at' => $chat->last_message_at,
+                    'has_new_message' => $chat->hasNewMessages()
+                ];
+            })
+        ]);
+    }
     public function sendMessage(Request $request, $id)
     {
         $request->validate([
