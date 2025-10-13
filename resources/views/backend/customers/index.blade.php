@@ -233,6 +233,78 @@
                 });
             }
 
+            // Hàm khởi tạo checkbox và bulk action button
+            function initCheckboxes() {
+                const checkAll = document.getElementById('checkAll');
+                const checkItems = document.querySelectorAll('.checkItem');
+                const bulkActionBtn = document.getElementById('bulkActionDropdown');
+
+                console.log('Init checkboxes - checkAll:', checkAll);
+                console.log('Init checkboxes - checkItems count:', checkItems.length);
+
+                // Xử lý checkbox "Chọn tất cả"
+                if (checkAll) {
+                    // Xóa event listener cũ bằng cách clone node
+                    const newCheckAll = checkAll.cloneNode(true);
+                    checkAll.parentNode.replaceChild(newCheckAll, checkAll);
+
+                    newCheckAll.addEventListener('change', function() {
+                        console.log('CheckAll changed:', this.checked);
+                        const currentCheckItems = document.querySelectorAll('.checkItem');
+                        currentCheckItems.forEach(item => {
+                            item.checked = this.checked;
+                        });
+                        updateBulkActionButton();
+                    });
+                }
+
+                // Xử lý từng checkbox con
+                checkItems.forEach((item, index) => {
+                    // Clone để xóa event listener cũ
+                    const newItem = item.cloneNode(true);
+                    item.parentNode.replaceChild(newItem, item);
+
+                    newItem.addEventListener('change', function() {
+                        console.log('CheckItem', index, 'changed:', this.checked);
+                        updateCheckAllState();
+                        updateBulkActionButton();
+                    });
+                });
+
+                // Cập nhật trạng thái ban đầu
+                updateCheckAllState();
+                updateBulkActionButton();
+            }
+
+            // Hàm cập nhật trạng thái checkbox "Chọn tất cả"
+            function updateCheckAllState() {
+                const checkAll = document.getElementById('checkAll');
+                const checkItems = document.querySelectorAll('.checkItem');
+
+                if (checkAll && checkItems.length > 0) {
+                    const checkedCount = document.querySelectorAll('.checkItem:checked').length;
+                    const allChecked = checkedCount === checkItems.length;
+                    const someChecked = checkedCount > 0 && checkedCount < checkItems.length;
+
+                    checkAll.checked = allChecked;
+                    checkAll.indeterminate = someChecked;
+
+                    console.log('UpdateCheckAllState - checked:', checkedCount, 'total:', checkItems.length);
+                }
+            }
+
+            // Hàm cập nhật trạng thái nút bulk action
+            function updateBulkActionButton() {
+                const bulkActionBtn = document.getElementById('bulkActionDropdown');
+                const checkedCount = document.querySelectorAll('.checkItem:checked').length;
+
+                console.log('UpdateBulkActionButton - checked count:', checkedCount);
+
+                if (bulkActionBtn) {
+                    bulkActionBtn.disabled = checkedCount === 0;
+                }
+            }
+
             // Hàm load lại bảng với AJAX
             function loadTable(params = {}) {
                 const query = new URLSearchParams({
@@ -264,12 +336,19 @@
                     })
                     .then(data => {
                         document.getElementById('customerTableWrapper').innerHTML = data;
+
+                        // QUAN TRỌNG: Khởi tạo lại checkbox sau khi load AJAX
+                        console.log('Table loaded, reinitializing checkboxes...');
+                        initCheckboxes();
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         alert('Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại!');
                     });
             }
+
+            // Khởi tạo checkbox lần đầu khi trang load
+            initCheckboxes();
 
             // Debounce tìm kiếm
             let debounceTimeout;
@@ -322,7 +401,6 @@
 
                 return false;
             };
-
         });
     </script>
 @endpush

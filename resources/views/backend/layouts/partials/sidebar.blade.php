@@ -142,13 +142,38 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
-            $(".nav-item > a").click(function(e) {
-                if ($(this).next(".collapse").hasClass("show")) {
-                    return;
+            const lastMenu = localStorage.getItem('activeMenu');
+            if (lastMenu) {
+                const $collapse = $('#' + lastMenu);
+                $collapse.addClass('show');
+                $collapse.closest('.nav-item').addClass('active');
+                $("a[data-bs-target='#" + lastMenu + "']").attr('aria-expanded', 'true');
+            }
+
+            // Xử lý khi click menu cha
+            $(".nav-item > a[data-bs-toggle='collapse']").on('click', function() {
+                var targetId = $(this).attr('data-bs-target').replace('#', '');
+                var $collapse = $('#' + targetId);
+                var $parentItem = $(this).parent('.nav-item');
+
+                if ($collapse.hasClass('show')) {
+                    localStorage.removeItem('activeMenu');
+                } else {
+                    localStorage.setItem('activeMenu', targetId);
                 }
-                $(".collapse").not($(this).next(".collapse")).removeClass("show");
-                $(".nav-item").removeClass("active");
-                $(this).parent().addClass("active");
+            });
+
+            // Khi click menu con
+            $(".nav-collapse li a").on('click', function() {
+                $('.nav-collapse li').removeClass('active');
+                $(this).parent('li').addClass('active');
+            });
+            $(".nav-item > a:not([data-bs-toggle='collapse'])").on('click', function() {
+                localStorage.removeItem('activeMenu');
+                $('.collapse.show').removeClass('show');
+                $('.nav-item > a[data-bs-toggle="collapse"]').attr('aria-expanded', 'false');
+                $('.nav-item').removeClass('active');
+                $(this).parent('.nav-item').addClass('active');
             });
         });
     </script>

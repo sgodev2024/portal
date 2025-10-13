@@ -199,9 +199,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const excelFile = document.getElementById('excelFile');
             const importForm = document.getElementById('importForm');
-            const checkAll = document.getElementById('checkAll');
-            const checkItems = document.querySelectorAll('.checkItem');
-            const bulkActionBtn = document.getElementById('bulkActionDropdown');
+            const searchInput = document.getElementById('searchInput');
 
             // Upload Excel
             if (excelFile && importForm) {
@@ -215,64 +213,77 @@
                 });
             }
 
-            // Check all checkbox
-            if (checkAll) {
-                checkAll.addEventListener('change', function() {
-                    checkItems.forEach(item => {
-                        item.checked = this.checked;
+            // Hàm khởi tạo checkbox và bulk action button
+            function initCheckboxes() {
+                const checkAll = document.getElementById('checkAll');
+                const checkItems = document.querySelectorAll('.checkItem');
+                const bulkActionBtn = document.getElementById('bulkActionDropdown');
+
+                console.log('Init checkboxes - checkAll:', checkAll);
+                console.log('Init checkboxes - checkItems count:', checkItems.length);
+
+                // Xử lý checkbox "Chọn tất cả"
+                if (checkAll) {
+                    // Xóa event listener cũ bằng cách clone node
+                    const newCheckAll = checkAll.cloneNode(true);
+                    checkAll.parentNode.replaceChild(newCheckAll, checkAll);
+
+                    newCheckAll.addEventListener('change', function() {
+                        console.log('CheckAll changed:', this.checked);
+                        const currentCheckItems = document.querySelectorAll('.checkItem');
+                        currentCheckItems.forEach(item => {
+                            item.checked = this.checked;
+                        });
+                        updateBulkActionButton();
                     });
-                    toggleBulkActionBtn();
+                }
+
+                // Xử lý từng checkbox con
+                checkItems.forEach((item, index) => {
+                    // Clone để xóa event listener cũ
+                    const newItem = item.cloneNode(true);
+                    item.parentNode.replaceChild(newItem, item);
+
+                    newItem.addEventListener('change', function() {
+                        console.log('CheckItem', index, 'changed:', this.checked);
+                        updateCheckAllState();
+                        updateBulkActionButton();
+                    });
                 });
+
+                // Cập nhật trạng thái ban đầu
+                updateCheckAllState();
+                updateBulkActionButton();
             }
 
-            // Check individual items
-            checkItems.forEach(item => {
-                item.addEventListener('change', function() {
-                    const allChecked = Array.from(checkItems).every(cb => cb.checked);
-                    const someChecked = Array.from(checkItems).some(cb => cb.checked);
+            // Hàm cập nhật trạng thái checkbox "Chọn tất cả"
+            function updateCheckAllState() {
+                const checkAll = document.getElementById('checkAll');
+                const checkItems = document.querySelectorAll('.checkItem');
 
-                    if (checkAll) {
-                        checkAll.checked = allChecked;
-                        checkAll.indeterminate = someChecked && !allChecked;
-                    }
-                    toggleBulkActionBtn();
-                });
-            });
+                if (checkAll && checkItems.length > 0) {
+                    const checkedCount = document.querySelectorAll('.checkItem:checked').length;
+                    const allChecked = checkedCount === checkItems.length;
+                    const someChecked = checkedCount > 0 && checkedCount < checkItems.length;
 
-            // Toggle bulk action button
-            function toggleBulkActionBtn() {
-                const anyChecked = Array.from(checkItems).some(cb => cb.checked);
+                    checkAll.checked = allChecked;
+                    checkAll.indeterminate = someChecked;
+
+                    console.log('UpdateCheckAllState - checked:', checkedCount, 'total:', checkItems.length);
+                }
+            }
+
+            // Hàm cập nhật trạng thái nút bulk action
+            function updateBulkActionButton() {
+                const bulkActionBtn = document.getElementById('bulkActionDropdown');
+                const checkedCount = document.querySelectorAll('.checkItem:checked').length;
+
+                console.log('UpdateBulkActionButton - checked count:', checkedCount);
+
                 if (bulkActionBtn) {
-                    bulkActionBtn.disabled = !anyChecked;
+                    bulkActionBtn.disabled = checkedCount === 0;
                 }
             }
-
-            // Bulk action
-            window.applyBulkAction = function(action) {
-                const form = document.getElementById('bulkActionForm');
-                const checkedBoxes = form.querySelectorAll('.checkItem:checked');
-                const count = checkedBoxes.length;
-
-                if (count === 0) {
-                    alert('Vui lòng chọn ít nhất một nhân viên!');
-                    return false;
-                }
-
-                if (confirm(`Bạn có chắc muốn xóa ${count} nhân viên đã chọn không?`)) {
-                    form.method = 'POST';
-                    document.getElementById('actionInput').value = action;
-                    form.submit();
-                }
-
-                return false;
-            };
-
-            // Initial state
-            toggleBulkActionBtn();
-
-            // ===== TÌM KIẾM AJAX =====
-            const searchInput = document.getElementById('searchInput');
-            let debounceTimeout;
 
             // Hàm load lại bảng với AJAX
             function loadTable(params = {}) {
@@ -304,8 +315,9 @@
                     .then(data => {
                         document.getElementById('staffTableWrapper').innerHTML = data;
 
-                        // Re-bind events sau khi load AJAX
-                        rebindCheckboxEvents();
+                        // QUAN TRỌNG: Khởi tạo lại checkbox sau khi load AJAX
+                        console.log('Table loaded, reinitializing checkboxes...');
+                        initCheckboxes();
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -313,7 +325,11 @@
                     });
             }
 
+            // Khởi tạo checkbox lần đầu khi trang load
+            initCheckboxes();
+
             // Debounce tìm kiếm
+            let debounceTimeout;
             searchInput?.addEventListener('input', function() {
                 clearTimeout(debounceTimeout);
                 debounceTimeout = setTimeout(() => loadTable(), 300);
@@ -326,37 +342,37 @@
                     e.preventDefault();
                     const url = new URL(link.href);
                     const page = url.searchParams.get('page');
-                    loadTable({ page });
+                    loadTable({
+                        page
+                    });
                 }
             });
 
-            // Re-bind checkbox events sau AJAX
-            function rebindCheckboxEvents() {
-                const newCheckAll = document.getElementById('checkAll');
-                const newCheckItems = document.querySelectorAll('.checkItem');
+            // Hàm áp dụng hành động bulk
+            window.applyBulkAction = function(action) {
+                const form = document.getElementById('bulkActionForm');
+                const checkedBoxes = form.querySelectorAll('.checkItem:checked');
+                const count = checkedBoxes.length;
 
-                if (newCheckAll) {
-                    newCheckAll.addEventListener('change', function() {
-                        newCheckItems.forEach(item => {
-                            item.checked = this.checked;
-                        });
-                        toggleBulkActionBtn();
-                    });
+                console.log('Bulk Action - Số checkbox đã chọn:', count);
+
+                if (count === 0) {
+                    alert('Vui lòng chọn ít nhất một nhân viên!');
+                    return false;
                 }
 
-                newCheckItems.forEach(item => {
-                    item.addEventListener('change', function() {
-                        const allChecked = Array.from(newCheckItems).every(cb => cb.checked);
-                        const someChecked = Array.from(newCheckItems).some(cb => cb.checked);
+                if (confirm(`Bạn có chắc muốn xóa ${count} nhân viên đã chọn không?`)) {
+                    // Xóa _method nếu tồn tại (đề phòng form nào khác chèn vào)
+                    const methodInput = form.querySelector('input[name="_method"]');
+                    if (methodInput) methodInput.remove();
+                    form.method = 'POST';
+                    document.getElementById('actionInput').value = action;
 
-                        if (newCheckAll) {
-                            newCheckAll.checked = allChecked;
-                            newCheckAll.indeterminate = someChecked && !allChecked;
-                        }
-                        toggleBulkActionBtn();
-                    });
-                });
-            }
+                    form.submit();
+                }
+
+                return false;
+            };
         });
     </script>
 @endpush
