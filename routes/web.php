@@ -50,6 +50,7 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->gro
     Route::get('/chats', [ChatControllers::class, 'index'])->name('chats.index');
     Route::get('/chats/{id}', [ChatControllers::class, 'show'])->name('chats.show');
     Route::post('/chats/{id}/send', [ChatControllers::class, 'send'])->name('chats.send');
+    Route::post('/chats/{id}/mark-read', [ChatControllers::class, 'markAsRead'])->name('chats.mark-read');
     Route::get('/chats/{id}/messages', [ChatControllers::class, 'getMessages'])->name('chats.messages');
 });
 // route khách hàng

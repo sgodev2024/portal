@@ -55,6 +55,7 @@ class CustomerController extends Controller
             'username'         => 'required|string|max:50|unique:users',
             'gender'           => 'nullable|in:male,female,other',
             'birthday'         => 'nullable|date',
+            'tax_code'         => 'nullable|string|max:50',
         ]);
 
         $user = User::create([

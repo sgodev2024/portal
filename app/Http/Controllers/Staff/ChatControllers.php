@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Staff;
 use Carbon\Carbon;
 use App\Models\Chat;
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -12,12 +13,42 @@ use Illuminate\Support\Facades\Storage;
 
 class ChatControllers extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $chats = Chat::with('user')
-            ->where('staff_id', Auth::id())
-            ->orderByDesc('updated_at')
+            ->orderBy('updated_at', 'desc')
             ->get();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            $chatData = $chats->map(function ($chat) {
+                $messages = $chat->content ?? [];
+                $lastMessage = !empty($messages) ? end($messages) : null;
+
+                $preview = 'Chưa có tin nhắn';
+                if ($lastMessage) {
+                    if (($lastMessage['type'] ?? '') === 'text') {
+                        $preview = $lastMessage['content'] ?? 'Tin nhắn văn bản';
+                    } elseif (($lastMessage['type'] ?? '') === 'image') {
+                        $preview = '📷 Hình ảnh';
+                    } else {
+                        $preview = '📎 Tệp đính kèm';
+                    }
+                }
+
+                return [
+                    'id' => $chat->id,
+                    'user_name' => $chat->user->name ?? 'Khách hàng',
+                    'unread_count' => $chat->unread_count ?? 0,
+                    'last_message_time' => $lastMessage['created_at'] ?? $chat->updated_at,
+                    'last_message_preview' => Str::limit($preview, 35)
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'chats' => $chatData
+            ]);
+        }
 
         return view('backend.chatstaff.index', compact('chats'));
     }
@@ -123,5 +154,22 @@ class ChatControllers extends Controller
             'success' => true,
             'messages' => array_values($messages),
         ]);
+    }
+    public function markAsRead($id)
+    {
+        try {
+            $chat = Chat::findOrFail($id);
+            $chat->update(['unread_count' => 0]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã đánh dấu đã đọc'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra'
+            ], 500);
+        }
     }
 }

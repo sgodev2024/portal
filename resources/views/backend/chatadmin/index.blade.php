@@ -5,49 +5,58 @@
 @push('styles')
     <style>
         .chat-container {
-            height: calc(150vh - 200px);
+            height: calc(100vh - 150px);
             display: flex;
             background: #fff;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            position: relative;
         }
 
-        /* Sidebar danh sách chat */
+        /* Sidebar */
         .chat-sidebar {
             width: 360px;
             border-right: 1px solid #e4e6eb;
             display: flex;
             flex-direction: column;
+            transition: transform 0.3s ease;
+            background: white;
+            z-index: 10;
         }
 
         .chat-sidebar-header {
             padding: 16px;
             border-bottom: 1px solid #e4e6eb;
+            flex-shrink: 0;
         }
 
         .chat-sidebar-header h5 {
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
         }
 
         .chat-tabs {
             display: flex;
-            padding: 8px 16px;
+            padding: 12px 16px;
             border-bottom: 1px solid #e4e6eb;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .chat-tab {
-            padding: 8px 16px;
+            flex: 1;
+            padding: 8px 12px;
             border-radius: 20px;
-            background: #e4e6eb;
+            background: #f0f2f5;
             border: none;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 14px;
+            font-size: 13px;
+            white-space: nowrap;
+            text-align: center;
         }
 
         .chat-tab.active {
@@ -65,7 +74,7 @@
             align-items: center;
             padding: 12px 16px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
             border-bottom: 1px solid #f0f2f5;
         }
 
@@ -75,11 +84,12 @@
 
         .chat-item.active {
             background: #e7f3ff;
+            border-left: 3px solid #0084ff;
         }
 
         .chat-avatar {
-            width: 56px;
-            height: 56px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
@@ -87,7 +97,7 @@
             justify-content: center;
             color: white;
             font-weight: 600;
-            font-size: 20px;
+            font-size: 18px;
             margin-right: 12px;
             flex-shrink: 0;
         }
@@ -99,34 +109,26 @@
 
         .chat-name {
             font-weight: 600;
-            font-size: 15px;
+            font-size: 14px;
             margin-bottom: 4px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 8px;
         }
 
-        .chat-time {
-            font-size: 12px;
-            color: #65676b;
-            margin-top: 4px;
-        }
-
-        .chat-preview {
-            font-size: 13px;
-            color: #65676b;
-            white-space: nowrap;
+        .chat-name span:first-child {
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .chat-badge {
             display: inline-block;
             padding: 2px 8px;
             border-radius: 12px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            margin-left: 8px;
+            white-space: nowrap;
         }
 
         .badge-pending {
@@ -139,12 +141,26 @@
             color: #0c5460;
         }
 
-        /* Khung chat chính */
+        .chat-preview {
+            font-size: 12px;
+            color: #65676b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+
+        .chat-time {
+            font-size: 11px;
+            color: #95999d;
+        }
+
+        /* Main chat area */
         .chat-main {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #fff;
+            min-width: 0;
         }
 
         .chat-main-header {
@@ -153,11 +169,15 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-shrink: 0;
+            gap: 12px;
         }
 
         .chat-main-user {
             display: flex;
             align-items: center;
+            min-width: 0;
+            flex: 1;
         }
 
         .chat-main-avatar {
@@ -171,12 +191,21 @@
             color: white;
             font-weight: 600;
             margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .chat-main-info {
+            min-width: 0;
+            flex: 1;
         }
 
         .chat-main-info h6 {
             margin: 0;
             font-weight: 600;
             font-size: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .chat-main-status {
@@ -187,6 +216,7 @@
         .chat-actions {
             display: flex;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .btn-chat-action {
@@ -199,13 +229,14 @@
             transition: all 0.2s;
             text-decoration: none;
             color: #050505;
+            white-space: nowrap;
         }
 
         .btn-chat-action:hover {
             background: #f2f3f5;
         }
 
-        /* Khung tin nhắn */
+        /* Messages area */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -220,6 +251,8 @@
             align-items: center;
             justify-content: center;
             color: #65676b;
+            text-align: center;
+            padding: 20px;
         }
 
         .chat-empty-icon {
@@ -238,6 +271,19 @@
             margin-bottom: 12px;
             display: flex;
             align-items: flex-end;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message-avatar {
@@ -256,22 +302,26 @@
         }
 
         .message-content {
-            max-width: 60%;
+            max-width: 70%;
         }
 
         .message-bubble {
             background: white;
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-radius: 18px;
             display: inline-block;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
         }
 
         .message-bubble img {
-            max-width: 200px;
-            border-radius: 8px;
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 12px;
             display: block;
+            margin: 4px 0;
         }
 
         .message-bubble a {
@@ -298,18 +348,23 @@
             color: white;
         }
 
+        .message.sent .message-bubble a {
+            color: white;
+        }
+
         .message-time {
             font-size: 11px;
             color: #65676b;
             margin-top: 4px;
-            padding: 0 12px;
+            padding: 0 8px;
         }
 
-        /* Khung gửi tin nhắn */
+        /* Input area */
         .chat-input {
             padding: 12px 16px;
             border-top: 1px solid #e4e6eb;
             background: white;
+            flex-shrink: 0;
         }
 
         .chat-input-form {
@@ -337,6 +392,7 @@
             resize: none;
             max-height: 100px;
             font-family: inherit;
+            line-height: 1.4;
         }
 
         .file-input-wrapper {
@@ -352,6 +408,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-attach:hover {
+            opacity: 0.7;
         }
 
         .file-input-wrapper input[type="file"] {
@@ -367,18 +428,23 @@
         .file-preview {
             font-size: 12px;
             color: #65676b;
-            padding: 4px 12px;
+            padding: 8px 12px;
             background: #e7f3ff;
             border-radius: 8px;
-            display: inline-flex;
+            display: none;
             align-items: center;
             gap: 8px;
+        }
+
+        .file-preview.show {
+            display: flex;
         }
 
         .file-preview .remove-file {
             cursor: pointer;
             color: #0084ff;
             font-weight: bold;
+            margin-left: auto;
         }
 
         .btn-send {
@@ -398,11 +464,13 @@
 
         .btn-send:hover:not(:disabled) {
             background: #0073e6;
+            transform: scale(1.05);
         }
 
         .btn-send:disabled {
             background: #bcc0c4;
             cursor: not-allowed;
+            opacity: 0.6;
         }
 
         /* Assign form */
@@ -411,7 +479,7 @@
             background: #f8f9fa;
             border-radius: 12px;
             max-width: 400px;
-            margin: 0 auto;
+            margin: 20px auto;
         }
 
         .assign-form select {
@@ -439,25 +507,170 @@
         .assign-form button:hover {
             background: #0073e6;
         }
+
+        /* Mobile toggle */
+        .chat-mobile-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 24px;
+        }
+
+        /* Scrollbar */
+        .chat-list::-webkit-scrollbar,
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-list::-webkit-scrollbar-track,
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-list::-webkit-scrollbar-thumb,
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #bcc0c4;
+            border-radius: 3px;
+        }
+
+        .chat-list::-webkit-scrollbar-thumb:hover,
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #95999d;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .chat-container {
+                height: calc(100vh - 100px);
+            }
+
+            .chat-sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+            }
+
+            .chat-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .chat-mobile-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .chat-main-header {
+                padding: 8px 12px;
+            }
+
+            .chat-main-avatar {
+                width: 36px;
+                height: 36px;
+            }
+
+            .chat-main-info h6 {
+                font-size: 14px;
+            }
+
+            .message-content {
+                max-width: 80%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .chat-sidebar {
+                width: 280px;
+            }
+
+            .chat-tab {
+                font-size: 12px;
+                padding: 6px 8px;
+            }
+
+            .chat-item {
+                padding: 10px 12px;
+            }
+
+            .chat-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+
+            .chat-name {
+                font-size: 13px;
+            }
+
+            .chat-preview {
+                font-size: 11px;
+            }
+
+            .message-bubble {
+                font-size: 13px;
+            }
+
+            .btn-chat-action {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #65676b;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(3, end) infinite;
+        }
+
+        @keyframes dots {
+
+            0%,
+            20% {
+                content: '.';
+            }
+
+            40% {
+                content: '..';
+            }
+
+            60%,
+            100% {
+                content: '...';
+            }
+        }
     </style>
 @endpush
 
 @section('content')
-    {{-- <div class="page-inner"> --}}
-    {{-- <div class="page-header mb-3">
-        <h4 class="page-title">Quản lý Chat khách hàng</h4>
-    </div> --}}
-
     <div class="chat-container">
-        <!-- Sidebar danh sách chat -->
-        <div class="chat-sidebar">
+        <!-- Sidebar -->
+        <div class="chat-sidebar" id="chatSidebar">
             <div class="chat-sidebar-header">
                 <h5>Danh sách chat</h5>
             </div>
 
             <div class="chat-tabs">
                 <button class="chat-tab active" data-tab="pending">
-                    Chờ xử lý ({{ count($pendingChats) }})
+                    Chờ ({{ count($pendingChats) }})
                 </button>
                 <button class="chat-tab" data-tab="processing">
                     Đang xử lý ({{ count($processingChats) }})
@@ -465,7 +678,7 @@
             </div>
 
             <div class="chat-list">
-                <!-- Danh sách chat chờ xử lý -->
+                <!-- Pending chats -->
                 <div class="tab-content-list active" data-content="pending">
                     @forelse($pendingChats as $chat)
                         <div class="chat-item" data-chat-id="{{ $chat->id }}" data-status="pending"
@@ -478,22 +691,20 @@
                                     <span>{{ $chat->user->name ?? 'Khách hàng' }}</span>
                                     <span class="chat-badge badge-pending">Chờ</span>
                                 </div>
-                                <div class="chat-preview">
-                                    Tin nhắn mới từ khách hàng
-                                </div>
+                                <div class="chat-preview">Tin nhắn mới từ khách hàng</div>
                                 <div class="chat-time">
                                     {{ $chat->last_message_at ? \Carbon\Carbon::parse($chat->last_message_at)->diffForHumans() : 'Vừa xong' }}
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div style="padding: 32px; text-align: center; color: #65676b;">
-                            Không có chat chờ xử lý
+                        <div class="chat-empty">
+                            <p>Không có chat chờ xử lý</p>
                         </div>
                     @endforelse
                 </div>
 
-                <!-- Danh sách chat đang xử lý -->
+                <!-- Processing chats -->
                 <div class="tab-content-list" data-content="processing" style="display: none;">
                     @forelse($processingChats as $chat)
                         @php
@@ -511,30 +722,28 @@
                                     <span>{{ $chat->user->name ?? 'Khách hàng' }}</span>
                                     <span class="chat-badge badge-processing">Đang xử lý</span>
                                 </div>
-                                <div class="chat-preview">
-                                    Nhân viên: {{ $chat->staff->name ?? 'Chưa gán' }}
-                                </div>
+                                <div class="chat-preview">NV: {{ $chat->staff->name ?? 'Chưa gán' }}</div>
                                 <div class="chat-time">
                                     {{ $lastMessageAt ? \Carbon\Carbon::parse($lastMessageAt)->diffForHumans() : 'Vừa xong' }}
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div style="padding: 32px; text-align: center; color: #65676b;">
-                            Không có chat đang xử lý
+                        <div class="chat-empty">
+                            <p>Không có chat đang xử lý</p>
                         </div>
                     @endforelse
                 </div>
             </div>
         </div>
 
-        <!-- Khung chat chính -->
+        <!-- Main chat -->
         <div class="chat-main">
             <div class="chat-main-header" style="display: none;" id="chatHeader">
                 <div class="chat-main-user">
                     <div class="chat-main-avatar" id="chatUserAvatar">U</div>
                     <div class="chat-main-info">
-                        <h6 id="chatUserName">Chọn một cuộc trò chuyện</h6>
+                        <h6 id="chatUserName">Chọn cuộc trò chuyện</h6>
                         <div class="chat-main-status" id="chatStatus">Offline</div>
                     </div>
                 </div>
@@ -552,7 +761,10 @@
             <div class="chat-input" style="display: none;" id="chatInput">
                 <form class="chat-input-form" id="chatForm">
                     @csrf
-                    <div id="filePreview" style="display: none;"></div>
+                    <div id="filePreview" class="file-preview">
+                        <span id="fileName"></span>
+                        <span class="remove-file">✕</span>
+                    </div>
                     <div class="input-wrapper">
                         <div class="file-input-wrapper">
                             <button type="button" class="btn-attach" title="Đính kèm tệp">
@@ -574,26 +786,75 @@
             </div>
         </div>
     </div>
-    {{-- </div> --}}
+    <!-- Mobile toggle -->
+    <button class="chat-mobile-toggle" id="mobileChatToggle">💬</button>
 @endsection
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            let currentChatId = null;
-            let currentChatStatus = null;
-            let lastMessageAt = null;
-            let pollingInterval = null;
+        (function() {
+            'use strict';
 
-            const chatMessages = $('#chatMessages');
-            const chatForm = $('#chatForm');
-            const messageInput = $('#messageInput');
-            const fileInput = $('#fileInput');
-            const sendButton = $('#sendBtn');
-            const filePreview = $('#filePreview');
+            // Cache DOM elements
+            const elements = {
+                sidebar: $('#chatSidebar'),
+                chatMessages: $('#chatMessages'),
+                chatForm: $('#chatForm'),
+                messageInput: $('#messageInput'),
+                fileInput: $('#fileInput'),
+                sendButton: $('#sendBtn'),
+                filePreview: $('#filePreview'),
+                fileName: $('#fileName'),
+                chatHeader: $('#chatHeader'),
+                chatInput: $('#chatInput'),
+                mobileToggle: $('#mobileChatToggle')
+            };
 
-            // Xử lý tabs
-            $('.chat-tab').click(function() {
+            // State
+            let state = {
+                currentChatId: null,
+                currentChatStatus: null,
+                lastMessageAt: null,
+                pollingInterval: null,
+                isSubmitting: false
+            };
+
+            // Initialize
+            function init() {
+                bindEvents();
+                updateSendButtonState();
+            }
+
+            // Bind all events
+            function bindEvents() {
+                // Tab switching
+                $('.chat-tab').on('click', handleTabSwitch);
+
+                // Chat item click
+                $('.chat-item').on('click', handleChatItemClick);
+
+                // Message input
+                elements.messageInput.on('input', handleMessageInput);
+                elements.messageInput.on('keydown', handleMessageKeydown);
+
+                // File input
+                elements.fileInput.on('change', handleFileChange);
+                $(document).on('click', '.remove-file', handleFileRemove);
+
+                // Form submit
+                elements.chatForm.on('submit', handleFormSubmit);
+
+                // Mobile toggle
+                elements.mobileToggle.on('click', toggleSidebar);
+
+                // Close sidebar on chat selection (mobile)
+                if (window.innerWidth <= 992) {
+                    $('.chat-item').on('click', () => elements.sidebar.removeClass('show'));
+                }
+            }
+
+            // Tab switching
+            function handleTabSwitch() {
                 $('.chat-tab').removeClass('active');
                 $(this).addClass('active');
 
@@ -602,32 +863,127 @@
                 $(`.tab-content-list[data-content="${tab}"]`).show();
 
                 resetChatView();
-            });
+            }
 
-            // Xử lý click vào chat item
-            $('.chat-item').click(function() {
+            // Chat item click
+            function handleChatItemClick() {
                 $('.chat-item').removeClass('active');
                 $(this).addClass('active');
 
-                currentChatId = $(this).data('chat-id');
-                currentChatStatus = $(this).data('status');
+                state.currentChatId = $(this).data('chat-id');
+                state.currentChatStatus = $(this).data('status');
 
-                loadChatDetail(currentChatId, currentChatStatus, $(this));
-            });
+                loadChatDetail(state.currentChatId, state.currentChatStatus, $(this));
+            }
 
-            function resetChatView() {
-                currentChatId = null;
-                currentChatStatus = null;
-                lastMessageAt = null;
+            // Message input
+            function handleMessageInput() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+                updateSendButtonState();
+            }
 
-                if (pollingInterval) {
-                    clearInterval(pollingInterval);
-                    pollingInterval = null;
+            // Message keydown
+            function handleMessageKeydown(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (!elements.sendButton.prop('disabled') && !state.isSubmitting) {
+                        elements.chatForm.trigger('submit');
+                    }
+                }
+            }
+
+            // File change
+            function handleFileChange() {
+                if (this.files.length > 0) {
+                    elements.fileName.text('📎 ' + this.files[0].name);
+                    elements.filePreview.addClass('show');
+                } else {
+                    elements.filePreview.removeClass('show');
+                }
+                updateSendButtonState();
+            }
+
+            // File remove
+            function handleFileRemove() {
+                elements.fileInput.val('');
+                elements.filePreview.removeClass('show');
+                updateSendButtonState();
+            }
+
+            // Form submit
+            async function handleFormSubmit(e) {
+                e.preventDefault();
+
+                if (!state.currentChatId || state.isSubmitting) return;
+
+                const hasText = elements.messageInput.val().trim() !== '';
+                const hasFile = elements.fileInput[0].files.length > 0;
+
+                if (!hasText && !hasFile) {
+                    alert('Vui lòng nhập tin nhắn hoặc chọn tệp!');
+                    return;
                 }
 
-                $('#chatHeader').hide();
-                $('#chatInput').hide();
-                chatMessages.html(`
+                state.isSubmitting = true;
+                elements.sendButton.prop('disabled', true);
+
+                const formData = new FormData(this);
+                const staffName = $(`.chat-item[data-chat-id="${state.currentChatId}"]`).data('staff-name');
+
+                try {
+                    const response = await $.ajax({
+                        url: `/admin/chat/${state.currentChatId}/send`,
+                        method: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (response.success) {
+                        appendMessage(response.data, staffName);
+                        state.lastMessageAt = response.data.created_at;
+
+                        // Reset form
+                        elements.chatForm[0].reset();
+                        elements.messageInput.css('height', 'auto');
+                        elements.filePreview.removeClass('show');
+                        elements.messageInput.focus();
+                    } else {
+                        throw new Error(response.message || 'Gửi tin nhắn thất bại');
+                    }
+                } catch (error) {
+                    console.error('Send message error:', error);
+                    alert('Lỗi: ' + (error.responseJSON?.message || error.message || 'Không thể gửi tin nhắn'));
+                } finally {
+                    state.isSubmitting = false;
+                    updateSendButtonState();
+                }
+            }
+
+            // Toggle sidebar (mobile)
+            function toggleSidebar() {
+                elements.sidebar.toggleClass('show');
+            }
+
+            // Reset chat view
+            function resetChatView() {
+                state.currentChatId = null;
+                state.currentChatStatus = null;
+                state.lastMessageAt = null;
+
+                if (state.pollingInterval) {
+                    clearInterval(state.pollingInterval);
+                    state.pollingInterval = null;
+                }
+
+                elements.chatHeader.hide();
+                elements.chatInput.hide();
+                elements.chatMessages.html(`
             <div class="chat-empty">
                 <div class="chat-empty-icon">💬</div>
                 <h5>Chọn một cuộc trò chuyện</h5>
@@ -636,8 +992,9 @@
         `);
             }
 
+            // Load chat detail
             function loadChatDetail(chatId, status, chatItem) {
-                $('#chatHeader').show();
+                elements.chatHeader.show();
 
                 const userName = chatItem.data('user-name');
                 const userInitial = chatItem.find('.chat-avatar').text().trim();
@@ -647,19 +1004,20 @@
                 $('#chatStatus').text(status === 'pending' ? 'Chờ xử lý' : 'Đang xử lý');
 
                 if (status === 'pending') {
-                    $('#chatActions').html('');
-                    $('#chatInput').hide();
-                    showAssignFormInChat(chatId);
+                    $('#chatActions').empty();
+                    elements.chatInput.hide();
+                    showAssignForm(chatId);
                 } else {
-                    $('#chatActions').html('');
-                    $('#chatInput').show();
+                    $('#chatActions').empty();
+                    elements.chatInput.show();
                     loadMessages(chatId, chatItem.data('staff-name'));
                     startPolling(chatId, chatItem.data('staff-name'));
                 }
             }
 
-            function showAssignFormInChat(chatId) {
-                chatMessages.html(`
+            // Show assign form
+            function showAssignForm(chatId) {
+                elements.chatMessages.html(`
             <div class="chat-empty">
                 <div class="chat-empty-icon">👤</div>
                 <h5>Phân công nhân viên</h5>
@@ -679,36 +1037,41 @@
         `);
             }
 
-            function loadMessages(chatId, staffName) {
-                console.log('Loading messages for chat:', chatId);
-                $.ajax({
-                    url: `/admin/chat/${chatId}/messages`,
-                    method: 'GET',
-                    success: function(data) {
-                        console.log('Messages loaded:', data);
-                        if (data.success) {
-                            renderMessages(data.messages, staffName);
-                            if (data.messages.length > 0) {
-                                lastMessageAt = data.messages[data.messages.length - 1].created_at;
-                            }
+            // Load messages
+            async function loadMessages(chatId, staffName) {
+                elements.chatMessages.html('<div class="loading">Đang tải tin nhắn</div>');
+
+                try {
+                    const response = await $.ajax({
+                        url: `/admin/chat/${chatId}/messages`,
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
                         }
-                    },
-                    error: function(xhr) {
-                        console.error('Load messages error:', xhr);
-                        chatMessages.html(`
-                    <div class="chat-empty">
-                        <div class="chat-empty-icon">⚠️</div>
-                        <h5>Không thể tải tin nhắn</h5>
-                        <p>Vui lòng thử lại sau</p>
-                    </div>
-                `);
+                    });
+
+                    if (response.success) {
+                        renderMessages(response.messages, staffName);
+                        if (response.messages.length > 0) {
+                            state.lastMessageAt = response.messages[response.messages.length - 1].created_at;
+                        }
                     }
-                });
+                } catch (error) {
+                    console.error('Load messages error:', error);
+                    elements.chatMessages.html(`
+                <div class="chat-empty">
+                    <div class="chat-empty-icon">⚠️</div>
+                    <h5>Không thể tải tin nhắn</h5>
+                    <p>Vui lòng thử lại sau</p>
+                </div>
+            `);
+                }
             }
 
+            // Render messages
             function renderMessages(messages, staffName) {
-                if (messages.length === 0) {
-                    chatMessages.html(`
+                if (!messages || messages.length === 0) {
+                    elements.chatMessages.html(`
                 <div class="chat-empty">
                     <div class="chat-empty-icon">💬</div>
                     <h5>Chưa có tin nhắn</h5>
@@ -718,216 +1081,128 @@
                     return;
                 }
 
-                let html = '';
-                messages.forEach(msg => {
-                    const isMe = msg.sender_id == {{ auth()->id() }};
-                    const senderName = msg.sender_name || 'Người dùng';
-                    const senderInitial = senderName.charAt(0).toUpperCase();
-
-                    let content = '';
-                    if (msg.type === 'text') {
-                        content = msg.content || '';
-                    } else if (msg.type === 'image') {
-                        content = `<img src="/storage/${msg.file_path}" alt="${msg.file_name || ''}">`;
-                    } else if (msg.file_path) {
-                        content =
-                            `<a href="/storage/${msg.file_path}" target="_blank">📎 ${msg.file_name || 'Tệp đính kèm'}</a>`;
-                    }
-
-                    html += `
-                <div class="message ${isMe ? 'sent' : 'received'}" data-created-at="${msg.created_at}">
-                    <div class="message-avatar">${senderInitial}</div>
-                    <div class="message-content">
-                        <div class="message-bubble">${content}</div>
-                        <div class="message-time">${senderName} • ${formatDateTime(msg.created_at)}</div>
-                    </div>
-                </div>
-            `;
-                });
-
-                chatMessages.html(html);
+                const html = messages.map(msg => createMessageHTML(msg, staffName)).join('');
+                elements.chatMessages.html(html);
                 scrollToBottom();
             }
 
+            // Append message
             function appendMessage(msg, staffName) {
+                const html = createMessageHTML(msg, staffName);
+
+                if (elements.chatMessages.find('.chat-empty').length) {
+                    elements.chatMessages.html(html);
+                } else {
+                    elements.chatMessages.append(html);
+                }
+
+                scrollToBottom();
+            }
+
+            // Create message HTML
+            function createMessageHTML(msg, staffName) {
                 const isMe = msg.sender_id == {{ auth()->id() }};
                 const senderName = msg.sender_name || (isMe ? 'Bạn' : staffName || 'Khách hàng');
-                const senderInitial = senderName.charAt(0).toUpperCase();
+                const senderInitial = escapeHtml(senderName.charAt(0).toUpperCase());
 
                 let content = '';
                 if (msg.type === 'text') {
-                    content = msg.content || '';
-                } else if (msg.type === 'image') {
-                    content = `<img src="/storage/${msg.file_path}" alt="${msg.file_name || ''}">`;
+                    content = escapeHtml(msg.content || '');
+                } else if (msg.type === 'image' && msg.file_path) {
+                    content =
+                        `<img src="/storage/${escapeHtml(msg.file_path)}" alt="${escapeHtml(msg.file_name || 'Image')}">`;
                 } else if (msg.file_path) {
                     content =
-                        `<a href="/storage/${msg.file_path}" target="_blank">📎 ${msg.file_name || 'Tệp đính kèm'}</a>`;
+                        `<a href="/storage/${escapeHtml(msg.file_path)}" target="_blank">📎 ${escapeHtml(msg.file_name || 'Tệp đính kèm')}</a>`;
                 }
 
-                const html = `
-        <div class="message ${isMe ? 'sent' : 'received'}" data-created-at="${msg.created_at}">
-            <div class="message-avatar">${senderInitial}</div>
-            <div class="message-content">
-                <div class="message-bubble">${content}</div>
-                <div class="message-time">${senderName} • ${formatDateTime(msg.created_at)}</div>
+                return `
+            <div class="message ${isMe ? 'sent' : 'received'}" data-created-at="${msg.created_at}">
+                <div class="message-avatar">${senderInitial}</div>
+                <div class="message-content">
+                    <div class="message-bubble">${content}</div>
+                    <div class="message-time">${escapeHtml(senderName)} • ${formatDateTime(msg.created_at)}</div>
+                </div>
             </div>
-        </div>
-    `;
-
-                if (chatMessages.find('.chat-empty').length) {
-                    chatMessages.html(html);
-                } else {
-                    chatMessages.append(html);
-                }
-
-                scrollToBottom();
+        `;
             }
 
-
+            // Start polling
             function startPolling(chatId, staffName) {
-                if (pollingInterval) clearInterval(pollingInterval);
+                if (state.pollingInterval) {
+                    clearInterval(state.pollingInterval);
+                }
 
-                pollingInterval = setInterval(function() {
-                    if (currentChatId !== chatId) return;
+                state.pollingInterval = setInterval(async () => {
+                    if (state.currentChatId !== chatId) return;
 
-                    $.ajax({
-                        url: `/admin/chat/${chatId}/messages`,
-                        method: 'GET',
-                        data: {
-                            last_message_at: lastMessageAt
-                        },
-                        success: function(data) {
-                            if (data.success && data.messages.length > 0) {
-                                data.messages.forEach(msg => appendMessage(msg, staffName));
-                                lastMessageAt = data.messages[data.messages.length - 1]
-                                    .created_at;
+                    try {
+                        const response = await $.ajax({
+                            url: `/admin/chat/${chatId}/messages`,
+                            method: 'GET',
+                            data: {
+                                last_message_at: state.lastMessageAt
+                            },
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
                             }
+                        });
+
+                        if (response.success && response.messages && response.messages.length > 0) {
+                            response.messages.forEach(msg => appendMessage(msg, staffName));
+                            state.lastMessageAt = response.messages[response.messages.length - 1]
+                                .created_at;
                         }
-                    });
+                    } catch (error) {
+                        console.error('Polling error:', error);
+                    }
                 }, 3000);
             }
 
-            function scrollToBottom() {
-                chatMessages.scrollTop(chatMessages[0].scrollHeight);
-            }
-
-            function formatDateTime(dateStr) {
-                const date = new Date(dateStr);
-                return date.toLocaleString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            }
-
-            // Auto resize textarea
-            messageInput.on('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-                updateSendButtonState();
-            });
-
-            // File input change
-            fileInput.on('change', function() {
-                if (this.files.length > 0) {
-                    const fileName = this.files[0].name;
-                    filePreview.html(`
-                <div class="file-preview">
-                    📎 ${fileName}
-                    <span class="remove-file">✕</span>
-                </div>
-            `).show();
-                } else {
-                    filePreview.hide();
-                }
-                updateSendButtonState();
-            });
-
-            // Remove file
-            $(document).on('click', '.remove-file', function() {
-                fileInput.val('');
-                filePreview.hide();
-                updateSendButtonState();
-            });
-
             // Update send button state
             function updateSendButtonState() {
-                const hasText = messageInput.val().trim() !== '';
-                const hasFile = fileInput[0].files.length > 0;
-                sendButton.prop('disabled', !(hasText || hasFile));
+                const hasText = elements.messageInput.val().trim() !== '';
+                const hasFile = elements.fileInput[0]?.files.length > 0;
+                elements.sendButton.prop('disabled', !(hasText || hasFile) || state.isSubmitting);
             }
 
-            // Enter to send (Shift+Enter for new line)
-            messageInput.on('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (!sendButton.prop('disabled')) {
-                        chatForm.submit();
-                    }
+            // Scroll to bottom
+            function scrollToBottom() {
+                elements.chatMessages.scrollTop(elements.chatMessages[0].scrollHeight);
+            }
+
+            // Format datetime
+            function formatDateTime(dateStr) {
+                try {
+                    const date = new Date(dateStr);
+                    return date.toLocaleString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } catch (e) {
+                    return 'Vừa xong';
+                }
+            }
+
+            // Escape HTML
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // Cleanup on page unload
+            $(window).on('beforeunload', function() {
+                if (state.pollingInterval) {
+                    clearInterval(state.pollingInterval);
                 }
             });
 
-            // Submit form
-            chatForm.on('submit', function(e) {
-                e.preventDefault();
-
-                if (!currentChatId) {
-                    console.error('No chat selected');
-                    return;
-                }
-
-                const hasText = messageInput.val().trim() !== '';
-                const hasFile = fileInput[0].files.length > 0;
-
-                if (!hasText && !hasFile) {
-                    alert('Vui lòng nhập tin nhắn hoặc chọn tệp trước khi gửi!');
-                    return;
-                }
-
-                sendButton.prop('disabled', true);
-                const formData = new FormData(this);
-
-                const staffName = $(`.chat-item[data-chat-id="${currentChatId}"]`).data('staff-name');
-
-                console.log('Sending message to chat:', currentChatId);
-
-                $.ajax({
-                    url: `/admin/chat/${currentChatId}/send`,
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(data) {
-                        console.log('Message sent:', data);
-                        if (data.success) {
-                            appendMessage(data.data, staffName);
-                            lastMessageAt = data.data.created_at;
-                            chatForm[0].reset();
-                            messageInput.css('height', 'auto');
-                            filePreview.hide();
-                            updateSendButtonState();
-                        } else {
-                            alert('Gửi tin nhắn thất bại!');
-                        }
-                    },
-                    error: function(xhr) {
-                        console.error('Send message error:', xhr);
-                        alert('Lỗi kết nối khi gửi tin nhắn: ' + (xhr.responseJSON?.message ||
-                            'Unknown error'));
-                    },
-                    complete: function() {
-                        sendButton.prop('disabled', false);
-                    }
-                });
-            });
-
-            // Initialize
-            updateSendButtonState();
-        });
+            // Initialize on document ready
+            $(document).ready(init);
+        })();
     </script>
 @endpush
