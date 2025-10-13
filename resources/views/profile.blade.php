@@ -22,16 +22,6 @@
                         @enderror
                     </div>
 
-                    <!-- Tên đăng nhập -->
-                    <div class="form-group mb-3">
-                        <label for="username">Tên đăng nhập</label>
-                        <input type="text" name="username" id="username" value="{{ old('username', $user->username) }}"
-                            class="form-control @error('username') is-invalid @enderror">
-                        @error('username')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
                     <!-- Email -->
                     <div class="form-group mb-3">
                         <label for="email">Email</label>

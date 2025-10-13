@@ -17,7 +17,6 @@ class CustomerProfileRequest extends FormRequest
 
         return [
             'name'            => 'required|string|max:255',
-            'username'        => 'required|string|max:255|unique:users,username,' . $userId,
             'email'           => 'required|email|unique:users,email,' . $userId,
             'phone'           => 'nullable|string|max:20',
             'tax_code'        => 'nullable|string|max:50',
@@ -32,10 +31,6 @@ class CustomerProfileRequest extends FormRequest
         return [
             'name.required' => 'Vui lòng nhập họ và tên.',
             'name.max' => 'Họ và tên không được vượt quá 255 ký tự.',
-
-            'username.required' => 'Vui lòng nhập tên đăng nhập.',
-            'username.unique' => 'Tên đăng nhập đã tồn tại.',
-            'username.max' => 'Tên đăng nhập không được vượt quá 255 ký tự.',
 
             'email.required' => 'Vui lòng nhập email.',
             'email.email' => 'Email không hợp lệ.',

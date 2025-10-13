@@ -4,11 +4,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CustomerController;
-use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Customer\ChatcustomerController;
+use App\Http\Controllers\Customer\CustomerProfileController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -34,6 +35,18 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::post('/{id}/send', [ChatController::class, 'sendMessage'])->name('send');
         Route::get('/list-updates', [ChatController::class, 'getListUpdates']);
     });
+
+        // Quản lý nhân viên
+    Route::prefix('staffs')->name('admin.staffs.')->group(function () {
+        Route::get('/', [StaffController::class, 'index'])->name('index');
+        Route::get('/create', [StaffController::class, 'create'])->name('create');
+        Route::post('/store', [StaffController::class, 'store'])->name('store');
+        Route::get('/edit/{id}', [StaffController::class, 'edit'])->name('edit');
+        Route::put('/update/{id}', [StaffController::class, 'update'])->name('update');
+        Route::post('/delete-selected', [StaffController::class, 'deleteSelected'])->name('deleteSelected');
+        Route::post('/import', [StaffController::class, 'import'])->name('import');
+    });
+
 });
 // route admin, nhân viên
 Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1,2'])->group(function () {

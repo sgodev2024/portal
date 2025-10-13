@@ -87,6 +87,11 @@
                                         <span class="sub-item"><span>Thông tin công ty</span></span>
                                     </a>
                                 </li>
+                                <li class="{{ request()->routeIs('admin.staffs.*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.staffs.index') }}">
+                                        <span class="sub-item"><span>Quản lý nhân viên</span></span>
+                                    </a>
+                                </li>
                                 {{-- <li class="{{ request()->routeIs('user.index') ? 'active' : '' }}">
                                     <a href="{{ route('user.index') }}">
                                         <span class="sub-item"><span>Tài khoản nhân sự</span></span>

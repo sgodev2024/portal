@@ -65,7 +65,6 @@ class CustomerController extends Controller
             'email'            => 'required|email|unique:users',
             'phone'            => 'nullable|unique:users',
             'identity_number'  => 'nullable|unique:users',
-            'username'         => 'required|string|max:50|unique:users',
             'gender'           => 'nullable|in:male,female,other',
             'birthday'         => 'nullable|date',
             'tax_code'         => 'nullable|string|max:50',
@@ -73,7 +72,6 @@ class CustomerController extends Controller
 
         $user = User::create([
             'name'              => $request->name,
-            'username'          => $request->username,
             'email'             => $request->email,
             'phone'             => $request->phone,
             'identity_number'   => $request->identity_number,
@@ -123,7 +121,6 @@ class CustomerController extends Controller
             'email'            => 'required|email|unique:users,email,' . $id,
             'phone'            => 'nullable|unique:users,phone,' . $id,
             'identity_number'  => 'nullable|unique:users,identity_number,' . $id,
-            'username'         => 'required|string|max:50|unique:users,username,' . $id,
             'must_update_profile' => 'nullable|boolean',
             'is_active'        => 'nullable|boolean',
             'tax_code'         => 'nullable|string|max:50',
@@ -136,7 +133,6 @@ class CustomerController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'identity_number' => $request->identity_number,
-            'username' => $request->username,
             'must_update_profile' => $request->boolean('must_update_profile'),
             'is_active' => $request->boolean('is_active'),
             'tax_code' => $request->tax_code,

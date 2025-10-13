@@ -23,12 +23,6 @@
             <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}" required>
         </div>
 
-        <!-- Tên đăng nhập -->
-        <div class="form-group mb-3">
-            <label for="username">Tên đăng nhập</label>
-            <input type="text" name="username" id="username" class="form-control" value="{{ old('username') }}">
-        </div>
-
         <!-- Email -->
         <div class="form-group mb-3">
             <label for="email">Email</label>

@@ -21,10 +21,6 @@
                     <p class="mb-1 text-muted">Họ tên:</p>
                     <p class="fw-semibold">{{ $user->name }}</p>
                 </div>
-                <div class="col-md-6">
-                    <p class="mb-1 text-muted">Tên đăng nhập:</p>
-                    <p class="fw-semibold">{{ $user->username }}</p>
-                </div>
             </div>
 
             <div class="row mb-2">
