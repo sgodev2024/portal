@@ -171,6 +171,7 @@ class CustomerController extends Controller
             return redirect()->route('customers.index')->with('error', 'Import lỗi: ' . $e->getMessage());
         }
     }
+
     public function bulkAction(Request $request)
     {
         $ids = $request->input('ids', []);
@@ -184,6 +185,38 @@ class CustomerController extends Controller
             case 'delete':
                 User::whereIn('id', $ids)->delete();
                 return back()->with('success', 'Đã xóa các khách hàng được chọn.');
+
+            case 'send_reminder_mail':
+                // Lọc khách hàng đang hoạt động và chưa cập nhật hồ sơ
+                $customers = User::whereIn('id', $ids)
+                    ->where('is_active', 1)
+                    ->where('must_update_profile', 1)
+                    ->get();
+
+                if ($customers->isEmpty()) {
+                    return back()->with('error', 'Không có khách hàng nào đủ điều kiện (đang hoạt động và chưa cập nhật hồ sơ).');
+                }
+
+                $sentCount = 0;
+                $failedCount = 0;
+
+                foreach ($customers as $customer) {
+                    try {
+                        // Sử dụng NewUserMail với mật khẩu rỗng để gửi mail nhắc nhở
+                        Mail::to($customer->email)->queue(new NewUserMail($customer, null));
+                        $sentCount++;
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send reminder mail to ' . $customer->email . ': ' . $e->getMessage());
+                        $failedCount++;
+                    }
+                }
+
+                $message = "Đã gửi email nhắc nhở cho {$sentCount} khách hàng.";
+                if ($failedCount > 0) {
+                    $message .= " Có {$failedCount} email gửi thất bại.";
+                }
+
+                return back()->with('success', $message);
 
                 // case 'activate':
                 //     User::whereIn('id', $ids)->update(['is_active' => 1]);

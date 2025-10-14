@@ -27,7 +27,7 @@ class NewUserMail extends Mailable implements ShouldQueue
      *
      * @var int|array
      */
-    public $backoff = 30;
+    public $backoff = 20;
 
     /**
      * Tạo instance cho mail.

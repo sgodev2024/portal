@@ -23,6 +23,7 @@ class CustomerProfileRequest extends FormRequest
             'identity_number' => 'nullable|string|max:50',
             'gender'          => 'nullable|in:male,female,other',
             'birthday'        => 'nullable|date',
+            'password'       => 'required|string|min:6',
         ];
     }
 
@@ -45,6 +46,8 @@ class CustomerProfileRequest extends FormRequest
             'gender.in' => 'Giới tính không hợp lệ.',
 
             'birthday.date' => 'Ngày sinh không hợp lệ.',
+            'password.required' => 'Vui lòng nhập mật khẩu.',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
         ];
     }
 }

@@ -47,6 +47,15 @@
                                         <ul class="dropdown-menu" aria-labelledby="bulkActionDropdown">
                                             <li>
                                                 <a class="dropdown-item" href="#"
+                                                    onclick="applyBulkAction('send_reminder_mail'); return false;">
+                                                    <i class="fas fa-envelope text-primary"></i> Gửi mail nhắc nhở
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#"
                                                     onclick="applyBulkAction('delete'); return false;">
                                                     <i class="fas fa-trash text-danger"></i> Xóa đã chọn
                                                 </a>
@@ -387,7 +396,15 @@
                     return false;
                 }
 
-                if (confirm(`Bạn có chắc muốn xóa ${count} khách hàng đã chọn không?`)) {
+                let confirmMessage = '';
+                if (action === 'delete') {
+                    confirmMessage = `Bạn có chắc muốn xóa ${count} khách hàng đã chọn không?`;
+                } else if (action === 'send_reminder_mail') {
+                    confirmMessage =
+                        `Bạn có chắc muốn gửi mail nhắc nhở đến ${count} khách hàng đã chọn không?\n\n(Chỉ gửi cho khách hàng đang hoạt động và chưa cập nhật hồ sơ)`;
+                }
+
+                if (confirm(confirmMessage)) {
                     // Xóa _method nếu tồn tại (đề phòng form nào khác chèn vào)
                     const methodInput = form.querySelector('input[name="_method"]');
                     if (methodInput) methodInput.remove();

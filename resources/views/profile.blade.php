@@ -41,7 +41,14 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-
+                    <div class="form-group mb-3">
+                        <label for="password">Mật khẩu</label>
+                        <input type="password" name="password" id="password"
+                            class="form-control @error('password') is-invalid @enderror">
+                        @error('password')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <!-- Mã số thuế -->
                     <div class="form-group mb-3">
                         <label for="tax_code">Mã số thuế</label>
