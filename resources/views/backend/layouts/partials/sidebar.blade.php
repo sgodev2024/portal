@@ -1,3 +1,7 @@
+@php
+use App\Models\Ticket;
+@endphp
+
 <style>
     .nav-collapse {
         margin-bottom: 0px !important;
@@ -92,6 +96,7 @@
                                         <span class="sub-item"><span>Quản lý nhân viên</span></span>
                                     </a>
                                 </li>
+                                
                                 {{-- <li class="{{ request()->routeIs('user.index') ? 'active' : '' }}">
                                     <a href="{{ route('user.index') }}">
                                         <span class="sub-item"><span>Tài khoản nhân sự</span></span>
@@ -110,6 +115,18 @@
                             </ul>
                         </div>
                     </li>
+                    <li class="nav-item {{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
+    <a href="{{ route('admin.tickets.index') }}">
+        <i class="fas fa-ticket-alt"></i>
+        <p>Tickets</p>
+        @php
+            $openTickets = Ticket::where('status', 'open')->count();
+        @endphp
+        @if($openTickets > 0)
+            <span class="badge bg-danger">{{ $openTickets }}</span>
+        @endif
+    </a>
+</li>
                 @endif
                 <li
                     class="nav-item
@@ -127,7 +144,22 @@
                             <p>Chat khách hàng</p>
                         </a>
                     @endif
+                   
                 </li>
+                <li
+                    class="nav-item
+
+    {{ Auth::user()->role == 3 && request()->routeIs('customer.tickets.*') ? 'active' : '' }}
+">
+                    @if (Auth::user()->role == 3)
+                        <a href="{{ route('customer.tickets.index') }}">
+                            <i class="fas fa-ticket-alt"></i>
+                            <p>Tickets</p>
+                        </a>
+                    @endif
+                   
+                </li>
+                 
                 @if (in_array(Auth::user()->role, [1, 2]))
                     <li class="nav-item {{ request()->routeIs('customer.*') ? 'active' : '' }}">
                         <a href="{{ route('customers.index') }}">
@@ -135,6 +167,13 @@
                             <p>Quản lý khách hàng</p>
                         </a>
                     </li>
+                   
+                     {{-- <li class="nav-item {{ request()->routeIs('customer.tickets.*') ? 'active' : '' }}">
+            <a href="{{ route('customer.tickets.index') }}">
+                <i class="fas fa-ticket-alt"></i>
+                <p>Tickets</p>
+            </a>
+        </li> --}}
                 @endif
             </ul>
         </div>

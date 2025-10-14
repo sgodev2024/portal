@@ -8,8 +8,10 @@ use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Customer\TicketController;
 use App\Http\Controllers\Customer\ChatcustomerController;
 use App\Http\Controllers\Customer\CustomerProfileController;
+use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -21,6 +23,13 @@ Route::middleware('guest')->group(function () {
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 // route admin
 Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
+        Route::prefix('tickets')->name('admin.tickets.')->group(function () {
+        Route::get('/', [AdminTicketController::class, 'index'])->name('index');
+        Route::get('/{id}', [AdminTicketController::class, 'show'])->name('show');
+        Route::post('/{id}/reply', [AdminTicketController::class, 'reply'])->name('reply');
+        Route::patch('/{id}/close', [AdminTicketController::class, 'close'])->name('close');
+    });
+
     // Trang dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
@@ -36,7 +45,7 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::get('/list-updates', [ChatController::class, 'getListUpdates']);
     });
 
-        // Quản lý nhân viên
+    // Quản lý nhân viên
     Route::prefix('staffs')->name('admin.staffs.')->group(function () {
         Route::get('/', [StaffController::class, 'index'])->name('index');
         Route::get('/create', [StaffController::class, 'create'])->name('create');
@@ -46,7 +55,6 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::post('/delete-selected', [StaffController::class, 'deleteSelected'])->name('deleteSelected');
         Route::post('/import', [StaffController::class, 'import'])->name('import');
     });
-
 });
 // route admin, nhân viên
 Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1,2'])->group(function () {
@@ -76,8 +84,15 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3']
     Route::get('/chat', [ChatCustomerController::class, 'index'])->name('chatcustomer.index');
     Route::get('/chat/messages', [ChatCustomerController::class, 'getMessages'])->name('chatcustomer.messages');
     Route::post('/chat/send', [ChatCustomerController::class, 'send'])->name('chatcustomer.send');
+
+    Route::prefix('tickets')->name('tickets.')->group(function () {
+        Route::get('/', [TicketController::class, 'index'])->name('index');
+        Route::get('/create', [TicketController::class, 'create'])->name('create');
+        Route::post('/', [TicketController::class, 'store'])->name('store');
+        Route::get('/{id}', [TicketController::class, 'show'])->name('show');
+        Route::post('/{id}/reply', [TicketController::class, 'reply'])->name('reply');
+    });
 });
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3', 'must.update.profile'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
 });
