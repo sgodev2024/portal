@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
+use App\Mail\NewUserMail;
 use Illuminate\Http\Request;
 use App\Imports\CustomerImport;
 use Illuminate\Support\Facades\Log;
@@ -86,15 +87,9 @@ class CustomerController extends Controller
 
         // Gửi mail thông báo tạo tài khoản
         try {
-            Mail::send('emails.new_user', [
-                'user' => $user,
-                'default_password' => '123456',
-            ], function ($message) use ($user) {
-                $message->to($user->email)
-                    ->subject('Tài khoản của bạn đã được tạo');
-            });
+            Mail::to($user->email)->queue(new NewUserMail($user, '123456'));
         } catch (\Exception $e) {
-            Log::error('Mail error: ' . $e->getMessage());
+            Log::error('Mail queue error: ' . $e->getMessage());
         }
 
         return redirect()->route('customers.index')->with('success', 'Thêm khách hàng thành công!');
@@ -190,13 +185,13 @@ class CustomerController extends Controller
                 User::whereIn('id', $ids)->delete();
                 return back()->with('success', 'Đã xóa các khách hàng được chọn.');
 
-            // case 'activate':
-            //     User::whereIn('id', $ids)->update(['is_active' => 1]);
-            //     return back()->with('success', 'Đã kích hoạt các khách hàng được chọn.');
+                // case 'activate':
+                //     User::whereIn('id', $ids)->update(['is_active' => 1]);
+                //     return back()->with('success', 'Đã kích hoạt các khách hàng được chọn.');
 
-            // case 'deactivate':
-            //     User::whereIn('id', $ids)->update(['is_active' => 0]);
-            //     return back()->with('success', 'Đã ngừng hoạt động các khách hàng được chọn.');
+                // case 'deactivate':
+                //     User::whereIn('id', $ids)->update(['is_active' => 0]);
+                //     return back()->with('success', 'Đã ngừng hoạt động các khách hàng được chọn.');
 
             default:
                 return back()->with('error', 'Hành động không hợp lệ.');
