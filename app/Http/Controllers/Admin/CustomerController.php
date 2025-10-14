@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use App\Mail\NewUserMail;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Imports\CustomerImport;
+use App\Mail\ResetPasswordMail;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -137,6 +139,24 @@ class CustomerController extends Controller
 
         return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công!');
     }
+    public function resetPassword($id)
+    {
+        $user = User::where('role', 3)->findOrFail($id);
+        $newPassword = '123456';
+
+        $user->update([
+            'password' => Hash::make($newPassword),
+            'must_update_profile' => true,
+        ]);
+
+        try {
+            Mail::to($user->email)->queue(new ResetPasswordMail($user, $newPassword));
+            return back()->with('success', "Đã reset mật khẩu cho khách hàng {$user->name} và gửi email thông báo!");
+        } catch (\Exception $e) {
+            Log::error("Failed to send reset mail to {$user->email}: " . $e->getMessage());
+            return back()->with('warning', "Đã reset mật khẩu nhưng chưa gửi được email cho {$user->email}.");
+        }
+    }
 
     public function deleteSelected(Request $request)
     {
@@ -218,13 +238,26 @@ class CustomerController extends Controller
 
                 return back()->with('success', $message);
 
-                // case 'activate':
-                //     User::whereIn('id', $ids)->update(['is_active' => 1]);
-                //     return back()->with('success', 'Đã kích hoạt các khách hàng được chọn.');
+            case 'reset_password':
+                $customers = User::whereIn('id', $ids)->where('role', 3)->get();
+                $reset = 0;
 
-                // case 'deactivate':
-                //     User::whereIn('id', $ids)->update(['is_active' => 0]);
-                //     return back()->with('success', 'Đã ngừng hoạt động các khách hàng được chọn.');
+                foreach ($customers as $customer) {
+                    $newPassword = '123456';
+                    $customer->update([
+                        'password' => Hash::make($newPassword),
+                        'must_update_profile' => true,
+                    ]);
+
+                    try {
+                        Mail::to($customer->email)->queue(new ResetPasswordMail($customer, $newPassword));
+                        $reset++;
+                    } catch (\Exception $e) {
+                        Log::error('Reset password mail error: ' . $e->getMessage());
+                    }
+                }
+
+                return back()->with('success', "Đã reset mật khẩu mặc định (123456) cho {$reset} khách hàng và gửi mail thông báo.");
 
             default:
                 return back()->with('error', 'Hành động không hợp lệ.');

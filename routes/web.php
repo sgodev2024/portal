@@ -67,6 +67,7 @@ Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1
     Route::get('/{id}', [CustomerController::class, 'show'])->name('show');
     Route::post('/bulk-action', [CustomerController::class, 'bulkAction'])->name('bulkAction');
     Route::post('/bulk-action', [CustomerController::class, 'bulkAction'])->name('bulkAction');
+    Route::get('{id}/reset-password', [CustomerController::class, 'resetPassword'])->name('resetPassword');
 });
 // route nhân viên
 Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->group(function () {

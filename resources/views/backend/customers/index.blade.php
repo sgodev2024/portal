@@ -25,6 +25,13 @@
             </div>
         @endif
 
+        @if (session('warning'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> {{ session('warning') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <!-- Card chứa bảng -->
         <div class="card shadow-sm border-0">
             <!-- Form Bulk Action -->
@@ -49,6 +56,12 @@
                                                 <a class="dropdown-item" href="#"
                                                     onclick="applyBulkAction('send_reminder_mail'); return false;">
                                                     <i class="fas fa-envelope text-primary"></i> Gửi mail nhắc nhở
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#"
+                                                    onclick="applyBulkAction('reset_password'); return false;">
+                                                    <i class="fas fa-key text-warning"></i> Reset mật khẩu
                                                 </a>
                                             </li>
                                             <li>
@@ -402,6 +415,9 @@
                 } else if (action === 'send_reminder_mail') {
                     confirmMessage =
                         `Bạn có chắc muốn gửi mail nhắc nhở đến ${count} khách hàng đã chọn không?\n\n(Chỉ gửi cho khách hàng đang hoạt động và chưa cập nhật hồ sơ)`;
+                } else if (action === 'reset_password') {
+                    confirmMessage =
+                        `Bạn có chắc muốn reset mật khẩu về "123456" cho ${count} khách hàng đã chọn không?\n\nHệ thống sẽ gửi email thông báo mật khẩu mới đến từng khách hàng.`;
                 }
 
                 if (confirm(confirmMessage)) {

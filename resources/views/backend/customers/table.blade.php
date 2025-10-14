@@ -44,7 +44,7 @@
                             <span class="badge rounded-pill bg-success">Đã cập nhật</span>
                         @endif
                     </td>
-                    <td class="text-center">
+                    <td class="text-center d-flex justify-content-center gap-1">
                         <button type="button" class="btn btn-sm btn-info"
                                 onclick="window.location='{{ route('customers.show', $c->id) }}'"
                                 title="Xem chi tiết">
@@ -54,6 +54,11 @@
                                 onclick="window.location='{{ route('customers.edit', $c->id) }}'"
                                 title="Chỉnh sửa">
                             <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-warning"
+                                onclick="if(confirm('Bạn có chắc muốn reset mật khẩu cho {{ $c->name }}?')) window.location='{{ route('customers.resetPassword', $c->id) }}'"
+                                title="Reset mật khẩu">
+                            <i class="fas fa-key"></i>
                         </button>
                     </td>
                 </tr>
