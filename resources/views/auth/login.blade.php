@@ -244,11 +244,11 @@
 
                             <div class="form_group" style="display: block;">
                                 <div class="list_group">
-                                    <input type="text" name="name" autocomplete="off" required=""
-                                        placeholder="name" id="name" value="{{ old('name') }}">
+                                    <input type="text" name="email" autocomplete="off" required=""
+                                        placeholder="email" id="email" value="{{ old('email') }}">
                                     <figure class="feild_icon"><img
                                             src="{{ asset('auth/images/login_user_icon.png') }}"></figure>
-                                    @error('name')
+                                    @error('email')
                                         <small class="text-danger mb-2">{{ $message }}</small>
                                     @enderror
                                 </div>

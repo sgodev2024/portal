@@ -19,27 +19,27 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
+            'email' => 'required|email',
             'password' => 'required|string',
         ], [
-            'name.required' => 'Vui lòng nhập tên hoặc email.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không hợp lệ.',
             'password.required' => 'Vui lòng nhập mật khẩu.',
         ]);
-        $loginField = filter_var($request->name, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
-        $user = User::where($loginField, $request->name)->first();
+
+        $user = User::where('email', $request->email)->first();
 
         if (!$user) {
             return back()->withErrors([
-                'name' => 'Tài khoản không tồn tại.',
+                'email' => 'Email không tồn tại trong hệ thống.',
             ])->withInput();
         }
 
         if (!$user->is_active) {
             return back()->withErrors([
-                'name' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.',
+                'email' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.',
             ]);
         }
-
 
         if (!Hash::check($request->password, $user->password)) {
             return back()->withErrors([

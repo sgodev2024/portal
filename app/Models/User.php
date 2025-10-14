@@ -25,6 +25,8 @@ class User extends Authenticatable
         'identity_number',
         'must_update_profile',
         'role',
+        'is_online',
+        'last_seen',
         'is_active',
     ];
 
