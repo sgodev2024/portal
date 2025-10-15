@@ -23,12 +23,6 @@ Route::middleware('guest')->group(function () {
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 // route admin
 Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
-        Route::prefix('tickets')->name('admin.tickets.')->group(function () {
-        Route::get('/', [AdminTicketController::class, 'index'])->name('index');
-        Route::get('/{id}', [AdminTicketController::class, 'show'])->name('show');
-        Route::post('/{id}/reply', [AdminTicketController::class, 'reply'])->name('reply');
-        Route::patch('/{id}/close', [AdminTicketController::class, 'close'])->name('close');
-    });
 
     // Trang dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
@@ -57,6 +51,14 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
     });
 });
 // route admin, nhân viên
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+Route::prefix('tickets')->middleware('checkRole:1,2')->name('admin.tickets.')->group(function () {
+    Route::get('/', [AdminTicketController::class, 'index'])->name('index');
+    Route::get('/{id}', [AdminTicketController::class, 'show'])->name('show');
+    Route::post('/{id}/reply', [AdminTicketController::class, 'reply'])->name('reply');
+    Route::patch('/{id}/close', [AdminTicketController::class, 'close'])->name('close');
+});
+});
 Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1,2'])->group(function () {
     Route::get('/', [CustomerController::class, 'index'])->name('index');
     Route::get('/create', [CustomerController::class, 'create'])->name('create');

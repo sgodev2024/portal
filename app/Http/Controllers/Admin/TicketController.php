@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -12,32 +13,32 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         $status = $request->query('status');
-    $search = $request->query('search');
-    $sort = $request->query('sort', 'created_at'); 
-    $order = $request->query('order', 'desc');
+        $search = $request->query('search');
+        $sort = $request->query('sort', 'created_at');
+        $order = $request->query('order', 'desc');
 
-    $query = Ticket::with('user');
+        $query = Ticket::with('user');
 
-    if ($status) {
-        $query->where('status', $status);
-    }
+        if ($status) {
+            $query->where('status', $status);
+        }
 
-    if ($search) {
-        $query->where(function($q) use ($search) {
-            $q->where('subject', 'like', "%{$search}%")
-              ->orWhere('id', $search)
-              ->orWhereHas('user', function($q2) use ($search) {
-                  $q2->where('name', 'like', "%{$search}%")
-                     ->orWhere('email', 'like', "%{$search}%");
-              });
-        });
-    }
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('subject', 'like', "%{$search}%")
+                    ->orWhere('id', $search)
+                    ->orWhereHas('user', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
 
-    $tickets = $query->orderBy($sort, $order)
-                     ->paginate(10)
-                     ->withQueryString();
+        $tickets = $query->orderBy($sort, $order)
+            ->paginate(10)
+            ->withQueryString();
 
-    return view('backend.ticket.index', compact('tickets', 'status', 'search', 'sort', 'order'));
+        return view('backend.ticket.index', compact('tickets', 'status', 'search', 'sort', 'order'));
     }
 
     public function show($id)
