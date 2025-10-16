@@ -9,10 +9,10 @@
                 <th width="50" class="border-end">STT</th>
                 <th class="border-end">TÊN KHÁCH HÀNG</th>
                 <th class="border-end">EMAIL</th>
-                <th width="130" class="border-end">SỐ ĐIỆN THOẠI</th>
-                <th width="130" class="text-center border-end">TRẠNG THÁI</th>
-                <th width="150" class="text-center border-end">CẬP NHẬT HỒ SƠ</th>
-                <th width="150" class="text-center">HÀNH ĐỘNG</th>
+                <th width="230" class="border-end">SỐ ĐIỆN THOẠI</th>
+                <th width="160" class="text-center border-end">TRẠNG THÁI</th>
+                <th width="160" class="text-center border-end">CẬP NHẬT HỒ SƠ</th>
+                <th width="200" class="text-center">HÀNH ĐỘNG</th>
             </tr>
         </thead>
         <tbody>
