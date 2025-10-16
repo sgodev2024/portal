@@ -7,7 +7,7 @@ use App\Models\Chat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class ChatCustomerController extends Controller
+class ChatcustomerController extends Controller
 {
     /**
      * Hiển thị form chat (popup)

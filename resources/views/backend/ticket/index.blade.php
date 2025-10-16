@@ -59,34 +59,35 @@
         <!-- Filters -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-               <form method="GET" class="row g-3 align-items-end">
-    <!-- Trạng thái -->
-    <div class="col-md-4">
-        <label class="form-label fw-semibold">Trạng thái</label>
-        <select class="form-select" name="status">
-            <option value="">Tất cả</option>
-            <option value="open" {{ $status == 'open' ? 'selected' : '' }}>Chờ xử lý</option>
-            <option value="in_progress" {{ $status == 'in_progress' ? 'selected' : '' }}>Đang xử lý</option>
-            <option value="closed" {{ $status == 'closed' ? 'selected' : '' }}>Đã đóng</option>
-        </select>
-    </div>
+                <form method="GET" class="row g-3 align-items-end">
+                    <!-- Trạng thái -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Trạng thái</label>
+                        <select class="form-select" name="status">
+                            <option value="">Tất cả</option>
+                            <option value="open" {{ $status == 'open' ? 'selected' : '' }}>Chờ xử lý</option>
+                            <option value="in_progress" {{ $status == 'in_progress' ? 'selected' : '' }}>Đang xử lý</option>
+                            <option value="closed" {{ $status == 'closed' ? 'selected' : '' }}>Đã đóng</option>
+                        </select>
+                    </div>
 
-    <!-- Tìm kiếm -->
-    <div class="col-md-4">
-        <label class="form-label fw-semibold">Tìm kiếm</label>
-        <input type="text" class="form-control" name="search" placeholder="Tìm theo tiêu đề, khách hàng" value="{{ $search }}">
-    </div>
+                    <!-- Tìm kiếm -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Tìm kiếm</label>
+                        <input type="text" class="form-control" name="search" placeholder="Tìm theo tiêu đề, khách hàng"
+                            value="{{ $search }}">
+                    </div>
 
-    <!-- Nút tìm kiếm & reset -->
-    <div class="col-md-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary flex-grow-1">
-            <i class="bi bi-search me-1"></i> Tìm kiếm
-        </button>
-        <a href="{{ route('admin.tickets.index') }}" class="btn btn-outline-secondary flex-grow-1">
-            <i class="bi bi-x-circle me-1"></i> Reset
-        </a>
-    </div>
-</form>
+                    <!-- Nút tìm kiếm & reset -->
+                    <div class="col-md-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="bi bi-search me-1"></i> Tìm kiếm
+                        </button>
+                        <a href="{{ route('admin.tickets.index') }}" class="btn btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-x-circle me-1"></i> Reset
+                        </a>
+                    </div>
+                </form>
 
 
             </div>
@@ -100,7 +101,7 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                   
+
                                     <th width="22%">Khách hàng</th>
                                     <th width="35%">Tiêu đề</th>
                                     <th width="12%">Trạng thái</th>
@@ -111,7 +112,7 @@
                             <tbody>
                                 @foreach ($tickets as $ticket)
                                     <tr>
-                                
+
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-circle bg-primary text-white me-2">
