@@ -60,7 +60,13 @@
             <ul class="nav nav-secondary">
                 <!-- Dashboard -->
                 @php
-                    $dashboardRoute = auth()->user()->isAdmin() ? 'admin.dashboard' : 'staff.dashboard';
+                    if (auth()->user()->role == 1) {
+                        $dashboardRoute = 'admin.dashboard';
+                    } elseif (auth()->user()->role == 2) {
+                        $dashboardRoute = 'staff.dashboard';
+                    } else {
+                        $dashboardRoute = 'customer.dashboard';
+                    }
                 @endphp
 
                 <li class="nav-item {{ request()->routeIs($dashboardRoute) ? 'active' : '' }}">
@@ -240,10 +246,18 @@
                         var role = {{ (int) Auth::user()->role }};
                         if (role === 2) {
                             var $badge = $('#badge-notif-count-staff');
-                            if (count > 0) { $badge.text(count).removeClass('d-none'); } else { $badge.addClass('d-none'); }
+                            if (count > 0) {
+                                $badge.text(count).removeClass('d-none');
+                            } else {
+                                $badge.addClass('d-none');
+                            }
                         } else if (role === 3) {
                             var $badgeC = $('#badge-notif-count-customer');
-                            if (count > 0) { $badgeC.text(count).removeClass('d-none'); } else { $badgeC.addClass('d-none'); }
+                            if (count > 0) {
+                                $badgeC.text(count).removeClass('d-none');
+                            } else {
+                                $badgeC.addClass('d-none');
+                            }
                         }
                     }
                 });
