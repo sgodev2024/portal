@@ -46,7 +46,7 @@
                             <div class="col-lg-6 col-md-12">
                                 <div class="d-flex align-items-center flex-wrap gap-2">
                                     <div class="dropdown">
-                                        <button class="btn btn-light dropdown-toggle border" type="button"
+                                        <button class="btn btn-sm btn-light dropdown-toggle border" type="button"
                                             id="bulkActionDropdown" data-bs-toggle="dropdown" aria-expanded="false"
                                             disabled>
                                             <i class="fas fa-tasks"></i> Thao tác
@@ -76,18 +76,18 @@
                                         </ul>
                                     </div>
 
-                                    <button type="button" class="btn btn-light border" onclick="location.reload()">
+                                    <button type="button" class="btn btn-sm btn-light border" onclick="location.reload()">
                                         <i class="fas fa-sync-alt"></i>
                                     </button>
 
                                     <!-- Bộ lọc -->
-                                    <select id="filterActive" class="form-select form-select-sm" style="width:180px;">
+                                    <select id="filterActive" class="form-select form-select-sm" style="width:160px;">
                                         <option value="">Trạng thái hoạt động</option>
                                         <option value="1">Hoạt động</option>
                                         <option value="0">Ngừng hoạt động</option>
                                     </select>
 
-                                    <select id="filterProfile" class="form-select form-select-sm" style="width:180px;">
+                                    <select id="filterProfile" class="form-select form-select-sm" style="width:160px;">
                                         <option value="">Trạng thái hồ sơ</option>
                                         <option value="1">Chưa cập nhật</option>
                                         <option value="0">Đã cập nhật</option>

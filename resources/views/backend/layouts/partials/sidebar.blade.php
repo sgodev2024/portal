@@ -37,8 +37,9 @@
         <!-- Logo Header -->
         <div class="logo-header" data-background-color="white">
             <a target="_blank" href="https://sgomedia.vn/" class="logo">
-                <img style="width: 80%;" src="{{ asset('backend/SGO VIET NAM (1000 x 375 px).png') }}" alt="navbar brand"
-                    class="navbar-brand img-fluid" />
+                <img style="width: 80%;"
+                    src="{{ $company?->company_logo ? asset('storage/' . $company->company_logo) : asset('backend/SGO VIET NAM (1000 x 375 px).png') }}"
+                    alt="navbar brand" class="navbar-brand img-fluid" />
             </a>
             <div class="nav-toggle">
                 <button class="btn btn-toggle toggle-sidebar">

@@ -166,76 +166,14 @@
 <body class="form_page">
     <div id="qb_content_navi_2021">
         <div class="login_display_02 login_page">
-            <div class="ct_left">
-                <h2 class="title_login">Liên hệ với chúng tôi</h2>
-                <div class="ct_left_ct">
-                    <ul class="support-list">
-                        <li>
-                            <div class="support-item">
-                                <strong class="diff_strong">Hỗ trợ kỹ thuật:</strong>
-                                <div class="phone-wrapper">
-                                    <span>
-                                        <strong class="normal_strong">(024) 62 927 089</strong>
-                                        <p>(24/7)</p>
-                                    </span>
-                                    <span>
-                                        <strong class="normal_strong">0981 185 620</strong>
-                                        <p>(24/7)</p>
-                                    </span>
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="support-item">
-                                <strong class="diff_strong">Hỗ trợ hoá đơn:</strong>
-                                <div class="phone-wrapper">
-                                    <span>
-                                        <strong class="normal_strong">(024) 62 927 089</strong>
-                                        <p>(8h30 - 18h00)</p>
-                                    </span>
-                                    <span>
-                                        <strong class="normal_strong">0912 399 322</strong>
-                                        <p>(8h30 - 18h00)</p>
-                                    </span>
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="support-item">
-                                <strong class="diff_strong">Hỗ trợ gia hạn:</strong>
-                                <div class="phone-wrapper">
-                                    <span>
-                                        <strong class="normal_strong">(024) 62 927 089</strong>
-                                        <p>(8h30 - 18h00)</p>
-                                    </span>
-                                    <span>
-                                        <strong class="normal_strong">0981 185 620</strong>
-                                        <p>(8h30 - 18h00)</p>
-                                    </span>
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="support-item">
-                                <strong class="diff_strong">Email:</strong>
-                                <span>
-                                    <strong class="normal_strong">info@sgomedia.vn</strong>
-                                </span>
-                            </div>
-                        </li>
-                    </ul>
-
-                </div>
-            </div>
-
             <div class="ct_right">
                 <div class="ct_right_ct">
 
-
                     <figure class="logo_login">
-                        <a href="#"><img style="width: 210px !important"
-                                src="https://sgomedia.vn/wp-content/uploads/2023/11/logo-sgo-media-optimized.png"
-                                alt="logo-sgo-media"></a>
+                        <a href="{{ url('/') }}" class="logo">
+                            <img src="{{ $company?->company_logo ? asset('storage/' . $company->company_logo) : asset('backend/default-logo.png') }}"
+                                alt="Company Logo" class="navbar-brand" />
+                        </a>
                     </figure>
 
                     <div class="login_form" id="login_form" style="display: block">
@@ -245,7 +183,7 @@
                             <div class="form_group" style="display: block;">
                                 <div class="list_group">
                                     <input type="text" name="email" autocomplete="off" required=""
-                                        placeholder="email" id="email" value="{{ old('email') }}">
+                                        placeholder="Email" id="email" value="{{ old('email') }}">
                                     <figure class="feild_icon"><img
                                             src="{{ asset('auth/images/login_user_icon.png') }}"></figure>
                                     @error('email')
