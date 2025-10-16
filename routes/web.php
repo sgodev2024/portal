@@ -9,6 +9,7 @@ use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Customer\TicketController;
+use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Customer\ChatcustomerController;
 use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
@@ -49,15 +50,20 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::post('/delete-selected', [StaffController::class, 'deleteSelected'])->name('deleteSelected');
         Route::post('/import', [StaffController::class, 'import'])->name('import');
     });
+    Route::prefix('email-templates')->name('admin.email_templates.')->group(function () {
+        Route::resource('/', EmailTemplateController::class)->parameters([
+            '' => 'email_template'
+        ]);
+    });
 });
 // route admin, nhân viên
 Route::prefix('admin')->middleware(['auth'])->group(function () {
-Route::prefix('tickets')->middleware('checkRole:1,2')->name('admin.tickets.')->group(function () {
-    Route::get('/', [AdminTicketController::class, 'index'])->name('index');
-    Route::get('/{id}', [AdminTicketController::class, 'show'])->name('show');
-    Route::post('/{id}/reply', [AdminTicketController::class, 'reply'])->name('reply');
-    Route::patch('/{id}/close', [AdminTicketController::class, 'close'])->name('close');
-});
+    Route::prefix('tickets')->middleware('checkRole:1,2')->name('admin.tickets.')->group(function () {
+        Route::get('/', [AdminTicketController::class, 'index'])->name('index');
+        Route::get('/{id}', [AdminTicketController::class, 'show'])->name('show');
+        Route::post('/{id}/reply', [AdminTicketController::class, 'reply'])->name('reply');
+        Route::patch('/{id}/close', [AdminTicketController::class, 'close'])->name('close');
+    });
 });
 Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1,2'])->group(function () {
     Route::get('/', [CustomerController::class, 'index'])->name('index');

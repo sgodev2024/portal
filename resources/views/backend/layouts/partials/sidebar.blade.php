@@ -97,21 +97,11 @@
                                     </a>
                                 </li>
 
-                                {{-- <li class="{{ request()->routeIs('user.index') ? 'active' : '' }}">
-                                    <a href="{{ route('user.index') }}">
-                                        <span class="sub-item"><span>Tài khoản nhân sự</span></span>
+                                <li class="{{ request()->routeIs('admin.email_templates.*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.email_templates.index') }}">
+                                        <span class="sub-item"><span>Quản lý Email</span></span>
                                     </a>
                                 </li>
-                                <li class="{{ request()->routeIs('smtp.email', 'smtp.template') ? 'active' : '' }}">
-                                    <a href="{{ route('smtp.email') }}">
-                                        <span class="sub-item"><span>SMTP</span></span>
-                                    </a>
-                                </li>
-                                <li class="{{ request()->routeIs('config_bank.*') ? 'active' : '' }}">
-                                    <a href="{{ route('config_bank.index') }}">
-                                        <span class="sub-item"><span>Thông tin thanh toán</span></span>
-                                    </a>
-                                </li> --}}
                             </ul>
                         </div>
                     </li>

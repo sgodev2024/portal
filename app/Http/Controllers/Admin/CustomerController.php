@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
-use App\Mail\NewUserMail;
+use App\Mail\GenericMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\EmailTemplate;
 use App\Imports\CustomerImport;
-use App\Mail\ResetPasswordMail;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -46,16 +46,12 @@ class CustomerController extends Controller
         return view('backend.customers.index', compact('customers'));
     }
 
-
     public function show($id)
     {
         $user = User::where('role', 3)->findOrFail($id);
         return view('backend.customers.show', compact('user'));
     }
 
-    /**
-     * Form thêm khách hàng
-     */
     public function create()
     {
         return view('backend.customers.create');
@@ -72,13 +68,14 @@ class CustomerController extends Controller
             'birthday'         => 'nullable|date',
             'tax_code'         => 'nullable|string|max:50',
         ]);
+        $password = '123456';
 
         $user = User::create([
             'name'              => $request->name,
             'email'             => $request->email,
             'phone'             => $request->phone,
             'identity_number'   => $request->identity_number,
-            'password'          => Hash::make('123456'), // mật khẩu mặc định
+            'password'          => Hash::make($password),
             'role'              => 3,
             'is_active'         => true,
             'must_update_profile' => true,
@@ -87,28 +84,36 @@ class CustomerController extends Controller
             'tax_code'          => $request->tax_code,
         ]);
 
-        // Gửi mail thông báo tạo tài khoản
-        try {
-            Mail::to($user->email)->queue(new NewUserMail($user, '123456'));
-        } catch (\Exception $e) {
-            Log::error('Mail queue error: ' . $e->getMessage());
+        $template = EmailTemplate::where('code', 'new_user')
+            ->where('is_active', true)
+            ->first();
+
+        if ($template) {
+            try {
+                Mail::to($user->email)->queue(new GenericMail(
+                    $template,
+                    [
+                        'user_name'   => $user->name,
+                        'user_email'  => $user->email,
+                        'new_password' => $password,
+                        'login_link'  => route('login'),
+                        'app_name'    => config('app.name'),
+                    ]
+                ));
+            } catch (\Exception $e) {
+                Log::error('Mail gửi thất bại: ' . $e->getMessage());
+            }
         }
 
-        return redirect()->route('customers.index')->with('success', 'Thêm khách hàng thành công!');
+        return redirect()->route('customers.index')->with('success', 'Thêm khách hàng thành công và gửi email thông báo!');
     }
 
-    /**
-     * Form sửa khách hàng
-     */
     public function edit($id)
     {
         $user = User::findOrFail($id);
         return view('backend.customers.edit', compact('user'));
     }
 
-    /**
-     * Cập nhật thông tin khách hàng
-     */
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -139,6 +144,7 @@ class CustomerController extends Controller
 
         return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công!');
     }
+
     public function resetPassword($id)
     {
         $user = User::where('role', 3)->findOrFail($id);
@@ -150,10 +156,28 @@ class CustomerController extends Controller
         ]);
 
         try {
-            Mail::to($user->email)->queue(new ResetPasswordMail($user, $newPassword));
-            return back()->with('success', "Đã reset mật khẩu cho khách hàng {$user->name} và gửi email thông báo!");
+            $template = EmailTemplate::where('code', 'reset_password')
+                ->where('is_active', true)
+                ->first();
+
+            if (!$template) {
+                return back()->with('error', 'Không tìm thấy mẫu email "reset_password".');
+            }
+
+            Mail::to($user->email)->queue(new GenericMail(
+                $template,
+                [
+                    'user_name'    => $user->name,
+                    'user_email'   => $user->email,
+                    'new_password' => $newPassword,
+                    'login_link'   => route('login'),
+                    'app_name'     => config('app.name'),
+                ]
+            ));
+
+            return back()->with('success', "Đã reset mật khẩu cho {$user->name} và gửi email thông báo!");
         } catch (\Exception $e) {
-            Log::error("Failed to send reset mail to {$user->email}: " . $e->getMessage());
+            Log::error("Mail gửi thất bại: " . $e->getMessage());
             return back()->with('warning', "Đã reset mật khẩu nhưng chưa gửi được email cho {$user->email}.");
         }
     }
@@ -171,10 +195,6 @@ class CustomerController extends Controller
         return back()->with('success', 'Đã xóa thành công ' . count($ids) . ' khách hàng!');
     }
 
-
-    /**
-     * Import file Excel
-     */
     public function import(Request $request)
     {
         $request->validate([
@@ -207,7 +227,6 @@ class CustomerController extends Controller
                 return back()->with('success', 'Đã xóa các khách hàng được chọn.');
 
             case 'send_reminder_mail':
-                // Lọc khách hàng đang hoạt động và chưa cập nhật hồ sơ
                 $customers = User::whereIn('id', $ids)
                     ->where('is_active', 1)
                     ->where('must_update_profile', 1)
@@ -217,13 +236,27 @@ class CustomerController extends Controller
                     return back()->with('error', 'Không có khách hàng nào đủ điều kiện (đang hoạt động và chưa cập nhật hồ sơ).');
                 }
 
+                $template = EmailTemplate::where('code', 'reminder_mail')
+                    ->where('is_active', true)
+                    ->first();
+
+                if (!$template) {
+                    return back()->with('error', 'Không tìm thấy mẫu email "reminder_mail".');
+                }
+
                 $sentCount = 0;
                 $failedCount = 0;
 
                 foreach ($customers as $customer) {
                     try {
-                        // Sử dụng NewUserMail với mật khẩu rỗng để gửi mail nhắc nhở
-                        Mail::to($customer->email)->queue(new NewUserMail($customer, null));
+                        Mail::to($customer->email)->queue(new GenericMail(
+                            $template,
+                            [
+                                'user_name'  => $customer->name,
+                                'login_link' => route('login'),
+                                'app_name'   => config('app.name'),
+                            ]
+                        ));
                         $sentCount++;
                     } catch (\Exception $e) {
                         Log::error('Failed to send reminder mail to ' . $customer->email . ': ' . $e->getMessage());
@@ -240,6 +273,15 @@ class CustomerController extends Controller
 
             case 'reset_password':
                 $customers = User::whereIn('id', $ids)->where('role', 3)->get();
+
+                $template = EmailTemplate::where('code', 'reset_password')
+                    ->where('is_active', true)
+                    ->first();
+
+                if (!$template) {
+                    return back()->with('error', 'Không tìm thấy mẫu email "reset_password".');
+                }
+
                 $reset = 0;
 
                 foreach ($customers as $customer) {
@@ -250,10 +292,19 @@ class CustomerController extends Controller
                     ]);
 
                     try {
-                        Mail::to($customer->email)->queue(new ResetPasswordMail($customer, $newPassword));
+                        Mail::to($customer->email)->queue(new GenericMail(
+                            $template,
+                            [
+                                'user_name'    => $customer->name,
+                                'user_email'   => $customer->email,
+                                'new_password' => $newPassword,
+                                'login_link'   => route('login'),
+                                'app_name'     => config('app.name'),
+                            ]
+                        ));
                         $reset++;
                     } catch (\Exception $e) {
-                        Log::error('Reset password mail error: ' . $e->getMessage());
+                        Log::error('Reset password mail error for ' . $customer->email . ': ' . $e->getMessage());
                     }
                 }
 
