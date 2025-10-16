@@ -113,9 +113,9 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->gro
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3'])->group(function () {
     Route::get('/profile/edit', [CustomerProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [CustomerProfileController::class, 'update'])->name('profile.update');
-    Route::get('/chat', [ChatCustomerController::class, 'index'])->name('chatcustomer.index');
-    Route::get('/chat/messages', [ChatCustomerController::class, 'getMessages'])->name('chatcustomer.messages');
-    Route::post('/chat/send', [ChatCustomerController::class, 'send'])->name('chatcustomer.send');
+    Route::get('/chat', [ChatcustomerController::class, 'index'])->name('chatcustomer.index');
+    Route::get('/chat/messages', [ChatcustomerController::class, 'getMessages'])->name('chatcustomer.messages');
+    Route::post('/chat/send', [ChatcustomerController::class, 'send'])->name('chatcustomer.send');
 });
 // route khách hàng
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3', 'must.update.profile'])->group(function () {
