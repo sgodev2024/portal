@@ -11,7 +11,10 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Customer\TicketController;
 use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Customer\ChatcustomerController;
+use App\Http\Controllers\Customer\CustomerNotificationController;
+use App\Http\Controllers\NotificationCounterController;
 use App\Http\Controllers\Admin\AdminNotificationController;
+use App\Http\Controllers\Staff\StaffNotificationController;
 use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 
@@ -23,6 +26,8 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 });
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
+// Notifications unread count (for authenticated users)
+Route::get('/notifications/unread-count', [NotificationCounterController::class, 'unreadCount'])->middleware('auth')->name('notifications.unread_count');
 // route admin
 Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
 
@@ -96,6 +101,13 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->gro
     Route::post('/chats/{id}/send', [ChatControllers::class, 'send'])->name('chats.send');
     Route::post('/chats/{id}/mark-read', [ChatControllers::class, 'markAsRead'])->name('chats.mark-read');
     Route::get('/chats/{id}/messages', [ChatControllers::class, 'getMessages'])->name('chats.messages');
+    Route::prefix('notifications')
+        ->name('notifications.')
+        ->group(function () {
+            Route::get('/', [StaffNotificationController::class, 'index'])->name('index');
+            Route::get('/{id}', [StaffNotificationController::class, 'show'])->name('show');
+            Route::get('/datatable/data', [StaffNotificationController::class, 'data'])->name('data');
+        });
 });
 
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3'])->group(function () {
@@ -115,4 +127,11 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
         Route::get('/{id}', [TicketController::class, 'show'])->name('show');
         Route::post('/{id}/reply', [TicketController::class, 'reply'])->name('reply');
     });
+    Route::prefix('notifications')
+        ->name('notifications.')
+        ->group(function () {
+            Route::get('/', [CustomerNotificationController::class, 'index'])->name('index');
+            Route::get('/{id}', [CustomerNotificationController::class, 'show'])->name('show');
+            Route::get('/datatable/data', [CustomerNotificationController::class, 'data'])->name('data');
+        });
 });

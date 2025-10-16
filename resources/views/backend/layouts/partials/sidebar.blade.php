@@ -106,18 +106,20 @@
                             </ul>
                         </div>
                     </li>
-                    @php
-                        $unreadCount = NotificationModel::where('is_sent', true)
-                            ->where('created_by', auth()->id())
-                            ->count();
-                    @endphp
                     <li class="nav-item {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
                         <a href="{{ route('admin.notifications.index') }}">
                             <i class="fas fa-bell"></i>
                             <p>Thông báo</p>
-                            @if ($unreadCount > 0)
-                                <span class="badge bg-danger">{{ $unreadCount }}</span>
-                            @endif
+                        </a>
+                    </li>
+                @endif
+                {{-- Thông báo cho nhân viên --}}
+                @if (Auth::user()->role == 2)
+                    <li class="nav-item {{ request()->routeIs('staff.notifications.*') ? 'active' : '' }}">
+                        <a href="{{ route('staff.notifications.index') }}">
+                            <i class="fas fa-bell"></i>
+                            <p>Thông báo</p>
+                            <span class="badge bg-danger d-none" id="badge-notif-count-staff">0</span>
                         </a>
                     </li>
                 @endif
@@ -127,8 +129,7 @@
         {{ Auth::user()->role == 1 && request()->routeIs('admin.tickets.*') ? 'active' : '' }}
         {{ Auth::user()->role == 2 && request()->routeIs('staff.tickets.*') ? 'active' : '' }}
     ">
-                        <a
-                            href="{{ Auth::user()->role == 1 ? route('admin.tickets.index') : route('staff.tickets.index') }}">
+                        <a href="{{ route('admin.tickets.index') }}">
                             <i class="fas fa-ticket-alt"></i>
                             <p>Tickets</p>
                             @php
@@ -158,6 +159,15 @@
                     @endif
 
                 </li>
+                @if (Auth::user()->role == 3)
+                    <li class="nav-item {{ request()->routeIs('customer.notifications.*') ? 'active' : '' }}">
+                        <a href="{{ route('customer.notifications.index') }}">
+                            <i class="fas fa-bell"></i>
+                            <p>Thông báo</p>
+                            <span class="badge bg-danger d-none" id="badge-notif-count-customer">0</span>
+                        </a>
+                    </li>
+                @endif
                 <li
                     class="nav-item
 
@@ -219,6 +229,27 @@
                 $('.nav-item').removeClass('active');
                 $(this).parent('.nav-item').addClass('active');
             });
+            // Poll unread notifications count for staff/customer
+            function updateUnreadBadge() {
+                $.ajax({
+                    url: "{{ route('notifications.unread_count') }}",
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(res) {
+                        var count = res.count || 0;
+                        var role = {{ (int) Auth::user()->role }};
+                        if (role === 2) {
+                            var $badge = $('#badge-notif-count-staff');
+                            if (count > 0) { $badge.text(count).removeClass('d-none'); } else { $badge.addClass('d-none'); }
+                        } else if (role === 3) {
+                            var $badgeC = $('#badge-notif-count-customer');
+                            if (count > 0) { $badgeC.text(count).removeClass('d-none'); } else { $badgeC.addClass('d-none'); }
+                        }
+                    }
+                });
+            }
+            updateUnreadBadge();
+            setInterval(updateUnreadBadge, 15000);
         });
     </script>
 
