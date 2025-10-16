@@ -10,7 +10,7 @@ class EmailTemplateSeeder extends Seeder
     public function run(): void
     {
         // Email wrapper template với màu xanh dương #0056b3
-        $emailWrapper = function($content) {
+        $emailWrapper = function ($content) {
             return '
 <!DOCTYPE html>
 <html lang="vi">
@@ -265,6 +265,60 @@ class EmailTemplateSeeder extends Seeder
                     </p>
                 '),
                 'from_name' => 'Hỗ trợ khách hàng',
+                'is_active' => true,
+                'created_by' => 1,
+            ]
+        );
+        // Thêm vào EmailTemplateSeeder.php
+
+        // 4. Thông báo chung
+        EmailTemplate::updateOrCreate(
+            ['code' => 'notification'],
+            [
+                'name' => 'Thông báo chung từ hệ thống',
+                'subject' => 'Thông báo mới',
+                'body_html' => $emailWrapper('
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #0056b3, #0069d9); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">🔔</span>
+                </div>
+            </div>
+
+            <h2 style="color: #0056b3; font-size: 24px; margin: 0 0 20px 0; text-align: center;">
+                Xin chào, {user_name}!
+            </h2>
+
+            <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 15px 0;">
+                Bạn có một thông báo mới từ <strong style="color: #0056b3;">{app_name}</strong>:
+            </p>
+
+            <div style="background-color: #e6f2ff; border-left: 4px solid #0056b3; padding: 25px; margin: 25px 0; border-radius: 8px;">
+                <h3 style="color: #0056b3; font-size: 18px; margin: 0 0 15px 0;">
+                    {notification_title}
+                </h3>
+                <div style="color: #334155; font-size: 15px; line-height: 1.8; white-space: pre-wrap;">
+                    {notification_content}
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{notification_link}" style="display: inline-block; background: linear-gradient(135deg, #0056b3, #0069d9); color: #ffffff; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);">
+                    Xem chi tiết
+                </a>
+            </div>
+
+            <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                <p style="margin: 0; color: #065f46; font-size: 13px;">
+                    💡 Đăng nhập vào hệ thống để xem đầy đủ nội dung và tương tác với thông báo.
+                </p>
+            </div>
+
+            <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
+                Trân trọng,<br>
+                <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
+            </p>
+        '),
+                'from_name' => 'Support Team',
                 'is_active' => true,
                 'created_by' => 1,
             ]

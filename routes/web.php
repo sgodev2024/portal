@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Customer\TicketController;
 use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\Customer\ChatcustomerController;
+use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 
@@ -55,6 +56,16 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
             '' => 'email_template'
         ]);
     });
+    Route::resource('notifications', AdminNotificationController::class)
+        ->names([
+            'index' => 'admin.notifications.index',
+            'create' => 'admin.notifications.create',
+            'store' => 'admin.notifications.store',
+            'show' => 'admin.notifications.show',
+            'edit' => 'admin.notifications.edit',
+            'update' => 'admin.notifications.update',
+            'destroy' => 'admin.notifications.destroy',
+        ]);
 });
 // route admin, nhân viên
 Route::prefix('admin')->middleware(['auth'])->group(function () {

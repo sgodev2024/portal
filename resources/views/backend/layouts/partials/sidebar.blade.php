@@ -1,5 +1,6 @@
 @php
     use App\Models\Ticket;
+    use App\Models\Notification as NotificationModel;
 @endphp
 
 <style>
@@ -104,6 +105,20 @@
                                 </li>
                             </ul>
                         </div>
+                    </li>
+                    @php
+                        $unreadCount = NotificationModel::where('is_sent', true)
+                            ->where('created_by', auth()->id())
+                            ->count();
+                    @endphp
+                    <li class="nav-item {{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.notifications.index') }}">
+                            <i class="fas fa-bell"></i>
+                            <p>Thông báo</p>
+                            @if ($unreadCount > 0)
+                                <span class="badge bg-danger">{{ $unreadCount }}</span>
+                            @endif
+                        </a>
                     </li>
                 @endif
                 @if (in_array(Auth::user()->role, [1, 2]))
