@@ -22,10 +22,7 @@
                                         $companyFields = [
                                             ['id' => 'company_name', 'label' => 'Tên công ty', 'type' => 'text', 'icon' => 'building', 'col' => 12],
                                             ['id' => 'company_address', 'label' => 'Địa chỉ', 'type' => 'text', 'icon' => 'map-marker-alt', 'col' => 12],
-                                            ['id' => 'company_phone', 'label' => 'Số điện thoại', 'type' => 'text', 'icon' => 'phone', 'col' => 6],
                                             ['id' => 'company_email', 'label' => 'Email', 'type' => 'email', 'icon' => 'envelope', 'col' => 6],
-                                            ['id' => 'company_website', 'label' => 'Website', 'type' => 'url', 'icon' => 'globe', 'col' => 6],
-                                            ['id' => 'tax_id', 'label' => 'Mã số thuế', 'type' => 'text', 'icon' => 'file-invoice', 'col' => 6],
                                         ];
                                     @endphp
 
@@ -41,35 +38,13 @@
                                                     id="{{ $field['id'] }}"
                                                     name="{{ $field['id'] }}"
                                                     placeholder="Nhập {{ strtolower($field['label']) }}"
-                                                    value="{{ old($field['id'], $company->{$field['id']} ?? '') }}"
-                                                    @if (in_array($field['id'], ['company_phone', 'tax_id']))
-                                                        oninput="formatNumberInput(this)"
-                                                        onpaste="handlePaste(event, this)"
-                                                    @endif />
+                                                    value="{{ old($field['id'], $company->{$field['id']} ?? '') }}" />
                                                 @error($field['id'])
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                         </div>
                                     @endforeach
-
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="vat_rate" class="form-label">
-                                                <i class="fas fa-percent me-1"></i>Tỷ lệ VAT (%)
-                                            </label>
-                                            <input type="number"
-                                                class="form-control @error('vat_rate') is-invalid @enderror"
-                                                id="vat_rate"
-                                                name="vat_rate"
-                                                placeholder="Ví dụ: 10"
-                                                step="0.01"
-                                                value="{{ old('vat_rate', $company->vat_rate ?? '10') }}" />
-                                            @error('vat_rate')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
 
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -112,48 +87,6 @@
                                 </div>
                             </div>
 
-                            <hr class="my-4">
-
-                            <!-- Representative Information -->
-                            <div class="section-wrapper mb-4">
-                                <h5 class="section-title">
-                                    <i class="fas fa-user-tie me-2"></i>Thông tin người đại diện
-                                </h5>
-                                <div class="row g-3">
-                                    @php
-                                        $representativeFields = [
-                                            ['id' => 'representative_name', 'label' => 'Họ và tên', 'type' => 'text', 'icon' => 'user', 'col' => 6],
-                                            ['id' => 'representative_position', 'label' => 'Chức vụ', 'type' => 'text', 'icon' => 'id-badge', 'col' => 6],
-                                            ['id' => 'representative_phone', 'label' => 'Số điện thoại', 'type' => 'text', 'icon' => 'phone', 'col' => 6],
-                                            ['id' => 'representative_email', 'label' => 'Email', 'type' => 'email', 'icon' => 'envelope', 'col' => 6],
-                                        ];
-                                    @endphp
-
-                                    @foreach ($representativeFields as $field)
-                                        <div class="col-md-{{ $field['col'] }}">
-                                            <div class="form-group">
-                                                <label for="{{ $field['id'] }}" class="form-label">
-                                                    <i class="fas fa-{{ $field['icon'] }} me-1"></i>{{ $field['label'] }}
-                                                </label>
-                                                <input type="{{ $field['type'] }}"
-                                                    class="form-control @error($field['id']) is-invalid @enderror"
-                                                    id="{{ $field['id'] }}"
-                                                    name="{{ $field['id'] }}"
-                                                    placeholder="Nhập {{ strtolower($field['label']) }}"
-                                                    value="{{ old($field['id'], $company->{$field['id']} ?? '') }}"
-                                                    @if ($field['id'] === 'representative_phone')
-                                                        oninput="formatNumberInput(this)"
-                                                        onpaste="handlePaste(event, this)"
-                                                    @endif />
-                                                @error($field['id'])
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-
                             <!-- Action Buttons -->
                             <div class="d-flex justify-content-end mt-4 pt-3 border-top">
                                 <button type="submit" class="btn btn-success">
@@ -186,20 +119,11 @@
             border-radius: 8px;
         }
         .section-titles {
-            /* font-size: 1.1rem; */
             font-weight: 600;
             color: #333;
             margin-bottom: 1.5rem;
             padding-bottom: 0.5rem;
             border-bottom: 1px solid #e9ecef;
-        }
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #e9ecef;
         }
 
         .form-label {
@@ -303,18 +227,6 @@
 @push('scripts')
     <script>
         const BASE_URL = "{{ url('/') }}";
-    </script>
-
-    <script>
-        function formatNumberInput(input) {
-            input.value = input.value.replace(/\D/g, "");
-        }
-
-        function handlePaste(event, input) {
-            event.preventDefault();
-            let pastedData = (event.clipboardData || window.clipboardData).getData("text");
-            input.value = pastedData.replace(/\D/g, "");
-        }
     </script>
 
     <script>
