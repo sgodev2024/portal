@@ -20,7 +20,8 @@ class ChatCustomerController extends Controller
             [
                 'status' => 'pending',
                 'content' => [],
-                'last_message_at' => now(),
+                // Không set last_message_at khi chỉ mở khung chat
+                'last_message_at' => null,
             ]
         );
 
@@ -32,13 +33,18 @@ class ChatCustomerController extends Controller
      */
     public function getMessages(Request $request)
     {
-        $chat = Chat::where('user_id', Auth::id())->firstOrFail();
+        $customerId = Auth::id();
+        $chat = Chat::where('user_id', $customerId)->firstOrFail();
         $messages = $chat->content ?? [];
 
         // Bổ sung phòng trường hợp tin cũ chưa có sender_name
         foreach ($messages as &$msg) {
             if (empty($msg['sender_name']) && !empty($msg['sender_id'])) {
                 $msg['sender_name'] = optional(\App\Models\User::find($msg['sender_id']))->name ?? 'Ẩn danh';
+            }
+            // Hiển thị phía khách hàng: mọi tin nhắn không phải của khách hàng đều gắn nhãn "Nhân viên"
+            if (!empty($msg['sender_id']) && $msg['sender_id'] != $customerId) {
+                $msg['sender_name'] = 'Nhân viên';
             }
         }
 

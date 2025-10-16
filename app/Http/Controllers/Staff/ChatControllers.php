@@ -92,7 +92,7 @@ class ChatControllers extends Controller
             'sender_id' => Auth::id(),
             'sender_name' => Auth::user()->name,
             'type' => 'text',
-            'content' => $request->message,
+            'content' => $request->message, // giữ lại làm caption nếu có file
             'file_path' => null,
             'file_name' => null,
             'created_at' => now()->toDateTimeString(),
@@ -104,7 +104,7 @@ class ChatControllers extends Controller
             $newMessage['type'] = str_starts_with($file->getMimeType(), 'image/') ? 'image' : 'file';
             $newMessage['file_path'] = $path;
             $newMessage['file_name'] = $file->getClientOriginalName();
-            $newMessage['content'] = null;
+            // Không xóa content để giữ chú thích
         }
 
         $messages[] = $newMessage;

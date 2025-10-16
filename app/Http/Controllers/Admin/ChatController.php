@@ -8,6 +8,7 @@ use App\Models\ChatLog;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ChatController extends Controller
 {
@@ -26,7 +27,11 @@ class ChatController extends Controller
                     ->orWhere('id', 'like', "%{$search}%")
             );
 
-        $pendingChats = (clone $baseQuery)->where('status', 'pending')->orderByDesc('last_message_at')->get();
+        $pendingChats = (clone $baseQuery)
+            ->where('status', 'pending')
+            ->whereNotNull('last_message_at')
+            ->orderByDesc('last_message_at')
+            ->get();
         $processingChats = (clone $baseQuery)->where('status', 'processing')->orderByDesc('last_message_at')->get();
 
         return view('backend.chatadmin.index', compact('pendingChats', 'processingChats', 'search', 'staffs'));
@@ -88,6 +93,7 @@ class ChatController extends Controller
         if ($tab === 'pending') {
             $chats = Chat::where('status', 'pending')
                 ->with('user')
+                ->whereNotNull('last_message_at')
                 ->latest('last_message_at')
                 ->get();
         } else {
@@ -99,11 +105,14 @@ class ChatController extends Controller
 
         return response()->json([
             'success' => true,
-            'chats' => $chats->map(function ($chat) {
+            'chats' => $chats->map(function ($chat) use ($tab) {
                 return [
                     'id' => $chat->id,
                     'last_message_at' => $chat->last_message_at,
-                    'has_new_message' => $chat->hasNewMessages()
+                    'has_new_message' => $chat->last_message_at ? Carbon::parse($chat->last_message_at)->gt(now()->subSeconds(10)) : false,
+                    'user_name' => optional($chat->user)->name ?? 'Khách hàng',
+                    'staff_name' => optional($chat->staff)->name,
+                    'status' => $tab, // 'pending' or 'processing'
                 ];
             })
         ]);
@@ -131,7 +140,7 @@ class ChatController extends Controller
             'sender_name' => $user->name,
             'sender_role' => $roleLabel,
             'type'        => 'text',
-            'content'     => $request->message,
+            'content'     => $request->message, // giữ lại làm caption khi có file
             'file_path'   => null,
             'file_name'   => null,
             'created_at'  => now()->toDateTimeString(),
@@ -143,7 +152,7 @@ class ChatController extends Controller
             $newMessage['type'] = str_starts_with($file->getMimeType(), 'image/') ? 'image' : 'file';
             $newMessage['file_path'] = $path;
             $newMessage['file_name'] = $file->getClientOriginalName();
-            $newMessage['content'] = null;
+            // Không xóa content để hiển thị ảnh + chú thích
         }
 
         $messages[] = $newMessage;

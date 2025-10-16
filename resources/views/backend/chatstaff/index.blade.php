@@ -426,11 +426,41 @@
 
             // Hàm cập nhật chat item
             function updateChatItem(chatData) {
-                const $chatItem = $(`.chat-item[data-chat-id="${chatData.id}"]`);
+                let $chatItem = $(`.chat-item[data-chat-id="${chatData.id}"]`);
 
+                // Nếu chưa có trong danh sách, tạo mới
                 if ($chatItem.length === 0) {
-                    console.log('Chat item không tồn tại:', chatData.id);
-                    return false;
+                    const href = `{{ route('staff.chats.show', ':id') }}`.replace(':id', chatData.id);
+                    const initials = (chatData.user_name || 'U').charAt(0).toUpperCase();
+                    const unreadHtml = (chatData.unread_count && chatData.unread_count > 0)
+                        ? `<span class="unread-badge">${chatData.unread_count}</span>`
+                        : '';
+                    const itemHtml = `
+                        <a href="${href}"
+                           class="chat-item ${chatData.unread_count > 0 ? 'unread new-message' : ''}"
+                           data-chat-id="${chatData.id}"
+                           data-last-time="${chatData.last_message_time}">
+                            <div class="chat-avatar">${initials}</div>
+                            <div class="chat-info">
+                                <div class="chat-name">
+                                    <span>${chatData.user_name || 'Khách hàng'}</span>
+                                    <div style="display: flex; align-items: center; gap: 4px;">
+                                        ${unreadHtml}
+                                        <span class="chat-time">${formatTime(chatData.last_message_time)}</span>
+                                    </div>
+                                </div>
+                                <div class="chat-preview">${chatData.last_message_preview || 'Chưa có tin nhắn'}</div>
+                            </div>
+                        </a>`;
+                    // Remove any empty placeholder rows
+                    const $empty = $('#chatList').find('.chat-empty, div:contains("Chưa có cuộc trò chuyện nào")');
+                    if ($empty.length) { $empty.remove(); }
+                    $('#chatList').prepend(itemHtml);
+                    // Bỏ hiệu ứng sau 1s
+                    setTimeout(function(){
+                        $(`.chat-item[data-chat-id="${chatData.id}"]`).removeClass('new-message');
+                    }, 1000);
+                    return true;
                 }
 
                 const oldTime = $chatItem.attr('data-last-time');

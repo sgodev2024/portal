@@ -351,15 +351,13 @@
                     </div>
                     <div class="message-content">
                         <div class="message-bubble">
-                            @if (($msg['type'] ?? '') === 'text')
-                                {{ $msg['content'] ?? '' }}
-                            @elseif(($msg['type'] ?? '') === 'image')
-                                <img src="{{ asset('storage/' . ($msg['file_path'] ?? '')) }}"
-                                    alt="{{ $msg['file_name'] ?? '' }}">
+                            @if(($msg['type'] ?? '') === 'image' && !empty($msg['file_path']))
+                                <img src="{{ asset('storage/' . ($msg['file_path'] ?? '')) }}" alt="{{ $msg['file_name'] ?? '' }}">
                             @elseif(isset($msg['file_path']))
-                                <a href="{{ asset('storage/' . $msg['file_path']) }}" target="_blank">
-                                    📎 {{ $msg['file_name'] ?? 'Tệp đính kèm' }}
-                                </a>
+                                <a href="{{ asset('storage/' . $msg['file_path']) }}" target="_blank">📎 {{ $msg['file_name'] ?? 'Tệp đính kèm' }}</a>
+                            @endif
+                            @if(!empty($msg['content']))
+                                <div style="margin-top:6px; white-space:pre-line;">{{ $msg['content'] }}</div>
                             @endif
                         </div>
                         <div class="message-time">
@@ -435,6 +433,15 @@
             // Get last message timestamp
             const lastMessageEl = chatBox.querySelector('.message:last-child');
             let lastMessageAt = lastMessageEl?.dataset.createdAt || null;
+            const processedKeys = new Set();
+            const recentKeys = new Map(); // normalized -> timestamp
+            // seed keys from current DOM
+            chatBox.querySelectorAll('.message').forEach(el => {
+                const createdAt = el.dataset.createdAt || '';
+                const senderId = el.dataset.senderId || '';
+                const text = el.querySelector('.message-bubble')?.innerText || '';
+                processedKeys.add(senderId + '|' + createdAt + '|' + text);
+            });
             let isSubmitting = false;
 
             // Scroll to bottom
@@ -564,6 +571,7 @@
 
             // Polling: lấy tin mới mỗi 3s
             const pollingInterval = setInterval(async () => {
+                if (isSubmitting) return; // tránh đúp khi đang gửi
                 try {
                     const url = "{{ route('staff.chats.messages', $chat->id) }}";
                     const params = lastMessageAt ?
@@ -615,6 +623,14 @@
                             `<a href="/storage/${escapeHtml(msg.file_path)}" target="_blank">📎 ${escapeHtml(msg.file_name || 'Tệp đính kèm')}</a>`;
                     }
 
+                    // Duplicate guard by composite key + time window
+                    const key = (msg.sender_id || '') + '|' + (msg.created_at || '') + '|' + (msg.file_path || '') + '|' + (msg.content || '');
+                    if (processedKeys.has(key)) return;
+                    const normalized = (msg.sender_id || '') + '|' + (msg.file_path || '') + '|' + String(msg.content || '').trim();
+                    const nowMs = Date.now();
+                    const lastMs = recentKeys.get(normalized);
+                    if (lastMs && (nowMs - lastMs) < 8000) return;
+
                     // Format time
                     let timeStr = 'Vừa xong';
                     try {
@@ -632,7 +648,7 @@
 
                     // Create message HTML
                     const messageHtml = `
-                <div class="message ${isMe ? 'sent' : 'received'}" data-created-at="${msg.created_at}">
+                <div class="message ${isMe ? 'sent' : 'received'}" data-created-at="${msg.created_at}" data-sender-id="${msg.sender_id || ''}">
                     <div class="message-avatar">${senderInitial}</div>
                     <div class="message-content">
                         <div class="message-bubble">${content}</div>
@@ -642,6 +658,8 @@
             `;
 
                     chatBox.insertAdjacentHTML('beforeend', messageHtml);
+                    processedKeys.add(key);
+                    recentKeys.set(normalized, nowMs);
                 });
 
                 // Update last message timestamp

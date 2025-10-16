@@ -830,7 +830,9 @@
                 pollingInterval: null,
                 listPollingInterval: null,
                 isSubmitting: false,
-                processedMessageIds: new Set()
+                processedMessageIds: new Set(),
+                processedMessageKeys: new Set(),
+                recentMessageKeys: new Map() // key -> timestamp ms
             };
 
             // Initialize
@@ -1130,27 +1132,48 @@
             // Render messages
             function renderMessages(messages, staffName) {
                 if (!messages || messages.length === 0) {
-                    elements.chatMessages.html(`
-                        <div class="chat-empty">
-                            <div class="chat-empty-icon">💬</div>
-                            <h5>Chưa có tin nhắn</h5>
-                            <p>Bắt đầu cuộc trò chuyện</p>
-                        </div>
-                    `);
+                    elements.chatMessages.html('');
                     return;
                 }
 
                 const html = messages.map(msg => createMessageHTML(msg, staffName)).join('');
                 elements.chatMessages.html(html);
+                // Initialize processed keys to avoid duplicates on polling
+                try {
+                    state.processedMessageKeys.clear();
+                    messages.forEach(m => {
+                        const key = (m.id ?? '') + '|' + (m.sender_id ?? '') + '|' + (m.created_at ?? '') + '|' + (m.file_path ?? '') + '|' + (m.content ?? '');
+                        state.processedMessageKeys.add(key);
+                    });
+                    state.lastMessageAt = messages[messages.length - 1]?.created_at || state.lastMessageAt;
+                } catch(e) {}
                 scrollToBottom();
             }
 
             // Append message - FIXED: Check for duplicates
             function appendMessage(msg, staffName) {
                 // Check if message already exists
-                if (msg.id && state.processedMessageIds.has(msg.id)) {
-                    return; // Skip duplicate
+                const key = (msg.id ?? '') + '|' + (msg.sender_id ?? '') + '|' + (msg.created_at ?? '') + '|' + (msg.file_path ?? '') + '|' + (msg.content ?? '');
+                if (state.processedMessageIds.has(msg.id) || state.processedMessageKeys.has(key)) return;
+
+                // Additional guard: same sender + same content/file within 8s
+                const normalized = (msg.sender_id ?? '') + '|' + (msg.file_path ?? '') + '|' + String(msg.content ?? '').trim();
+                const nowMs = Date.now();
+                const lastMs = state.recentMessageKeys.get(normalized);
+                if (lastMs && (nowMs - lastMs) < 8000) {
+                    return;
                 }
+
+                // DOM guard: if an element with same sender_id + created_at already exists, skip
+                try {
+                    const selector = `[data-created-at="${msg.created_at}"][data-sender-id="${msg.sender_id || ''}"]`;
+                    if (elements.chatMessages.find(selector).length) {
+                        state.processedMessageKeys.add(key);
+                        state.recentMessageKeys.set(normalized, nowMs);
+                        state.lastMessageAt = msg.created_at || state.lastMessageAt;
+                        return;
+                    }
+                } catch(e) {}
 
                 const html = createMessageHTML(msg, staffName);
 
@@ -1161,9 +1184,10 @@
                 }
 
                 // Add to processed set
-                if (msg.id) {
-                    state.processedMessageIds.add(msg.id);
-                }
+                if (msg.id) state.processedMessageIds.add(msg.id);
+                state.processedMessageKeys.add(key);
+                state.lastMessageAt = msg.created_at || state.lastMessageAt;
+                state.recentMessageKeys.set(normalized, nowMs);
 
                 scrollToBottom();
             }
@@ -1174,17 +1198,19 @@
                 const senderName = msg.sender_name || (isMe ? 'Bạn' : staffName || 'Khách hàng');
                 const senderInitial = escapeHtml(senderName.charAt(0).toUpperCase());
 
-                let content = '';
-                if (msg.type === 'text') {
-                    content = escapeHtml(msg.content || '');
-                } else if (msg.type === 'image' && msg.file_path) {
-                    content = `<img src="/storage/${escapeHtml(msg.file_path)}" alt="${escapeHtml(msg.file_name || 'Image')}">`;
+                let parts = [];
+                if (msg.type === 'image' && msg.file_path) {
+                    parts.push(`<img src="/storage/${escapeHtml(msg.file_path)}" alt="${escapeHtml(msg.file_name || 'Image')}" style="max-width:260px;border-radius:8px;display:block;margin-bottom:6px;">`);
                 } else if (msg.file_path) {
-                    content = `<a href="/storage/${escapeHtml(msg.file_path)}" target="_blank">📎 ${escapeHtml(msg.file_name || 'Tệp đính kèm')}</a>`;
+                    parts.push(`<a href="/storage/${escapeHtml(msg.file_path)}" target="_blank">📎 ${escapeHtml(msg.file_name || 'Tệp đính kèm')}</a>`);
                 }
+                if (msg.content) {
+                    parts.push(`<div>${escapeHtml(msg.content)}</div>`);
+                }
+                const content = parts.join('');
 
                 return `
-                    <div class="message ${isMe ? 'sent' : 'received'}" data-message-id="${msg.id || ''}" data-created-at="${msg.created_at}">
+                    <div class="message ${isMe ? 'sent' : 'received'}" data-message-id="${msg.id || ''}" data-created-at="${msg.created_at}" data-sender-id="${msg.sender_id || ''}">
                         <div class="message-avatar">${senderInitial}</div>
                         <div class="message-content">
                             <div class="message-bubble">${content}</div>
@@ -1243,19 +1269,17 @@
 
                 state.listPollingInterval = setInterval(async () => {
                     try {
-                        const activeTab = $('.chat-tab.active').data('tab');
-
-                        const response = await $.ajax({
-                            url: '/admin/chat/list-updates',
-                            method: 'GET',
-                            data: { tab: activeTab },
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
+                        // Poll both tabs to ensure new items appear even if tab not active
+                        for (const tab of ['pending', 'processing']) {
+                            const resp = await $.ajax({
+                                url: '/admin/chat/list-updates',
+                                method: 'GET',
+                                data: { tab },
+                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            });
+                            if (resp.success && resp.chats) {
+                                updateChatList(resp.chats, tab);
                             }
-                        });
-
-                        if (response.success && response.chats) {
-                            updateChatList(response.chats, activeTab);
                         }
                     } catch (error) {
                         console.error('List polling error:', error);
@@ -1274,9 +1298,11 @@
             // Update chat list - NEW FEATURE
             function updateChatList(chats, tab) {
                 const targetList = $(`.tab-content-list[data-content="${tab}"]`);
+                // Debug: log polling result size
+                try { console.debug('[LIST-POLL]', tab, 'items:', chats.length); } catch(e) {}
 
                 chats.forEach(chat => {
-                    const existingItem = targetList.find(`.chat-item[data-chat-id="${chat.id}"]`);
+                    let existingItem = targetList.find(`.chat-item[data-chat-id="${chat.id}"]`);
 
                     if (existingItem.length) {
                         // Update time
@@ -1291,6 +1317,26 @@
                         if (chat.has_new_message) {
                             existingItem.prependTo(targetList);
                         }
+                    } else {
+                        // If not exists and tab is pending, create new item so it appears without reload
+                        const initials = (chat.user_name || 'U').charAt(0).toUpperCase();
+                        const itemHtml = `
+                            <div class="chat-item highlight-new" data-chat-id="${chat.id}" data-status="${tab}" data-user-name="${chat.user_name || 'Khách hàng'}">
+                                <div class="chat-avatar">${initials}</div>
+                                <div class="chat-info">
+                                    <div class="chat-name">
+                                        <span>${chat.user_name || 'Khách hàng'}</span>
+                                        <span class="chat-badge ${tab === 'pending' ? 'badge-pending' : 'badge-processing'}">${tab === 'pending' ? 'Chờ' : 'Đang xử lý'}</span>
+                                    </div>
+                                    <div class="chat-preview">Tin nhắn mới từ khách hàng</div>
+                                    <div class="chat-time">${chat.last_message_at ? formatTimeAgo(chat.last_message_at) : 'Vừa xong'}</div>
+                                </div>
+                            </div>`;
+                        // Remove empty placeholder if exists
+                        const emptyEl = targetList.find('.chat-empty');
+                        if (emptyEl.length) { emptyEl.remove(); }
+                        targetList.prepend(itemHtml);
+                        setTimeout(() => { targetList.find(`.chat-item[data-chat-id="${chat.id}"]`).removeClass('highlight-new'); }, 1500);
                     }
                 });
 
