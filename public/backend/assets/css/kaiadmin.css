@@ -2533,7 +2533,7 @@ label {
 .input-group-sm > .input-group-prepend > .input-group-text {
   padding: 0.25rem 0.5rem !important;
   font-size: 0.875rem !important;
-  line-height: 1.5; }
+  line-height: 1.8; }
 
 .form-control::-webkit-input-placeholder {
   color: inherit;
