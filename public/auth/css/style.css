@@ -2262,9 +2262,17 @@ top: 10px;
 }
 
 .login_page .ct_right .ct_right_ct .login_form .form_group>.list_group:nth-child(2) input {
-  padding: 0px 134px 0px 46px;
+  padding: 0px 0px 0px 46px;
+}
+/* Cho input mật khẩu mới */
+.login_page .ct_right .ct_right_ct .login_form .form_group>.list_group:nth-child(3) input {
+    padding: 0px 0px 0px 46px;
 }
 
+/* Cho input xác nhận mật khẩu */
+.login_page .ct_right .ct_right_ct .login_form .form_group>.list_group:nth-child(4) input {
+    padding: 0px 0px 0px 46px;
+}
 .login_page .ct_right .ct_right_ct .login_form .list_group input:focus {
   border: none;
   outline: none;

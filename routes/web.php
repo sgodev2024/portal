@@ -24,6 +24,10 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+    Route::get('forgot-password', [LoginController::class, 'showForgotForm'])->name('password.request');
+    Route::post('forgot-password', [LoginController::class, 'sendResetLink'])->name('password.email');
+    Route::get('reset-password/{token}', [LoginController::class, 'showResetForm'])->name('password.reset');
+    Route::post('reset-password', [LoginController::class, 'resetPassword'])->name('password.update');
 });
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 // Notifications unread count (for authenticated users)

@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html>
-
-
-<!-- Mirrored from id.tenten.vn/loginNavi by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 04 Dec 2024 01:24:10 GMT -->
-<!-- Added by HTTrack -->
-<meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
-
 <head>
-    <title>Login</title>
-    <!-- css -->
+    <title>Quên mật khẩu</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
@@ -36,8 +29,8 @@
     <script src="{{ asset('auth/js/api.js') }}" async defer></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
 </head>
+
 <style type="text/css">
     .error_txt {
         color: red;
@@ -72,6 +65,26 @@
         cursor: no-drop;
     }
 
+    /* Icon styles */
+    .list_group {
+        position: relative;
+    }
+
+    .list_group i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 16px;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .list_group input {
+        padding-left: 45px !important;
+    }
+
     @media (min-width: 768px) {
         .login_page .ct_left {
             min-height: 625px;
@@ -86,10 +99,9 @@
             text-align: right;
         }
 
-        .add_phone:first,
-        {
-        padding: 0px 26px !important;
-    }
+        .add_phone:first {
+            padding: 0px 26px !important;
+        }
     }
 
     @media (min-width: 375px) and (max-width: 550px) {
@@ -106,13 +118,11 @@
         .add_phone {
             display: block;
             text-align: right;
-            /* padding: 0px 29px; */
         }
 
-        .add_phone:nth-of-type(1),
-        {
-        padding: 0px 29px;
-    }
+        .add_phone:nth-of-type(1) {
+            padding: 0px 29px;
+        }
     }
 
     .support-list {
@@ -123,9 +133,7 @@
 
     .support-item {
         display: flex;
-        /* justify-content: space-between; */
         align-items: center;
-        /* margin-bottom: 20px; */
     }
 
     .diff_strong {
@@ -139,16 +147,12 @@
         display: flex;
         flex-direction: column;
         text-align: right;
-        /* Căn phải */
     }
 
     .phone-wrapper span {
-        /* display: flex; */
         justify-content: flex-end;
-        /* Căn nội dung số điện thoại và chú thích bên phải */
         align-items: center;
         gap: 10px;
-        /* Khoảng cách giữa số và chú thích */
     }
 
     .normal_strong {
@@ -162,27 +166,74 @@
         color: #ddd;
     }
 
-    .forgot-password-link {
-        margin-top: 15px;
-        margin-bottom: 0;
-        text-align: left;
+    /* CSS cho trang Quên mật khẩu */
+    .login_form h4 {
+        color: #6b4423;
+        font-weight: 600;
+        font-size: 22px;
+        margin-bottom: 12px;
     }
 
-    .forgot-password-link {
-        margin-top: 15px;
-        margin-bottom: 0;
+    .login_form p.text-muted {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .text-danger {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #dc3545;
+    }
+
+    .text-success {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #155724;
+        background: #d4edda;
+        padding: 10px 12px;
+        border-radius: 6px;
+        border-left: 3px solid #28a745;
+    }
+
+    /* Link quay lại đăng nhập */
+    .back-to-login {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
         text-align: center;
     }
 
-    .forgot-password-link {
-        margin-top: 15px;
-        margin-bottom: 0;
-        text-align: right;
+    .back-to-login a {
+        color: #007bff;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
     }
 
-    .forgot-password-link a {
-        display: inline-block;
-        padding: 5px 0;
+    .back-to-login a:hover {
+        background: rgba(0, 123, 255, 0.08);
+        color: #0056b3;
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+        .login_form h4 {
+            font-size: 20px;
+        }
+
+        .login_form p.text-muted {
+            font-size: 13px;
+        }
     }
 </style>
 
@@ -191,7 +242,6 @@
         <div class="login_display_02 login_page">
             <div class="ct_right">
                 <div class="ct_right_ct">
-
                     <figure class="logo_login">
                         <a href="{{ url('/') }}" class="logo">
                             <img src="{{ $company?->company_logo ? asset('storage/' . $company->company_logo) : asset('backend/default-logo.png') }}"
@@ -199,57 +249,50 @@
                         </a>
                     </figure>
 
-                    <div class="login_form" id="login_form" style="display: block">
-                        <form method="post" accept-charset="utf-8" id="form-login" action="{{ route('login.post') }}">
+                    <div class="login_form" id="forgot_form" style="display: block">
+                        <form method="POST" action="{{ route('password.email') }}">
                             @csrf
-
                             <div class="form_group" style="display: block;">
+                                <h4 class="text-center mb-3">
+                                    Quên mật khẩu
+                                </h4>
+                                <p class="text-center text-muted mb-4">
+                                    Nhập email đã đăng ký để nhận liên kết đặt lại mật khẩu.
+                                </p>
+
                                 <div class="list_group">
-                                    <input type="text" name="email" autocomplete="off" required=""
-                                        placeholder="Email" id="email" value="{{ old('email') }}">
-                                    <figure class="feild_icon"><img
-                                            src="{{ asset('auth/images/login_user_icon.png') }}"></figure>
+                                    <i class="fas fa-envelope"></i>
+                                    <input type="email" name="email" autocomplete="off" required
+                                        placeholder="Nhập email của bạn" id="email" value="{{ old('email') }}">
                                     @error('email')
-                                        <small class="text-danger mb-2">{{ $message }}</small>
+                                        <small class="text-danger mb-2">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </small>
                                     @enderror
+                                    @if(session('success'))
+                                        <small class="text-success mb-2">
+                                            <i class="fas fa-check-circle me-1"></i>{{ session('success') }}
+                                        </small>
+                                    @endif
                                 </div>
 
-                                <div class="list_group">
-                                    <input type="password" name="password" autocomplete="off" required=""
-                                        placeholder="Password" id="password" value="{{ old('password') }}">
-                                    <figure class="feild_icon"><img
-                                            src="{{ asset('auth/images/login_padlock_icon.png') }}"></figure>
-                                    @error('password')
-                                        <small class="text-danger mb-2">{{ $message }}</small>
-                                    @enderror
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="form-check my-3">
-                                        <input class="form-check-input" name="remember" type="checkbox" id="remember">
-                                        <label class="form-check-label" for="remember">
-                                            Lưu mật khẩu
-                                        </label>
-                                    </div>
-                                </div>
                                 <div class="btn">
-                                    <button type="submit" name="button"
-                                        class="loginButton loginButtonGg remove-msg before-login " id="submitBtn">Đăng
-                                        nhập</button>
+                                    <button type="submit" class="loginButton w-100" id="submitBtn">
+                                        Gửi liên kết đặt lại
+                                    </button>
                                 </div>
-                                <div class="forgot-password-link">
-                                    <a href="{{ route('password.request') }}" class="text-decoration-none"
-                                        style="color:#007bff;">Quên mật khẩu?</a>
+
+                                <div class="back-to-login">
+                                    <a href="{{ route('login') }}">
+                                        <i class="fas fa-arrow-left"></i> Quay lại đăng nhập
+                                    </a>
                                 </div>
                             </div>
-
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 </body>
-
 </html>

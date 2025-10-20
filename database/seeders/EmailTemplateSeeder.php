@@ -323,5 +323,52 @@ class EmailTemplateSeeder extends Seeder
                 'created_by' => 1,
             ]
         );
+        // 5. Quên mật khẩu - Gửi link đặt lại
+        EmailTemplate::updateOrCreate(
+            ['code' => 'forgot_password'],
+            [
+                'name' => 'Quên mật khẩu',
+                'subject' => 'Yêu cầu khôi phục mật khẩu của bạn',
+                'body_html' => $emailWrapper('
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #0056b3, #0069d9); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 40px;">📩</span>
+                </div>
+            </div>
+
+            <h2 style="color: #0056b3; font-size: 24px; margin: 0 0 20px 0; text-align: center;">
+                Xin chào, {user_name}!
+            </h2>
+
+            <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 15px 0;">
+                Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn tại <strong style="color: #0056b3;">{app_name}</strong>.
+            </p>
+
+            <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 25px 0;">
+                Nếu bạn là người gửi yêu cầu này, vui lòng nhấn vào nút bên dưới để tạo mật khẩu mới:
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{reset_link}" style="display: inline-block; background: linear-gradient(135deg, #0056b3, #0069d9); color: #ffffff; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);">
+                    Đặt lại mật khẩu
+                </a>
+            </div>
+
+            <div style="background-color: #fff7ed; border-left: 4px solid #f59e0b; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                <p style="margin: 0; color: #78350f; font-size: 13px;">
+                    ⚠️ <strong>Lưu ý:</strong> Liên kết này chỉ có hiệu lực trong 60 phút. Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.
+                </p>
+            </div>
+
+            <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
+                Trân trọng,<br>
+                <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
+            </p>
+        '),
+                'from_name' => 'Hỗ trợ khách hàng',
+                'is_active' => true,
+                'created_by' => 1,
+            ]
+        );
     }
 }

@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <html>
-
-
-<!-- Mirrored from id.tenten.vn/loginNavi by HTTrack Website Copier/3.x [XR&CO'2014], Wed, 04 Dec 2024 01:24:10 GMT -->
-<!-- Added by HTTrack -->
-<meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
-
 <head>
     <title>Login</title>
-    <!-- css -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
@@ -36,7 +29,6 @@
     <script src="{{ asset('auth/js/api.js') }}" async defer></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
 </head>
 <style type="text/css">
     .error_txt {
@@ -72,6 +64,58 @@
         cursor: no-drop;
     }
 
+    /* Icon styles */
+    .list_group {
+        position: relative;
+    }
+
+    .list_group i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 16px;
+        pointer-events: none;
+    }
+
+    .list_group input {
+        padding-left: 45px !important;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+        font-size: 16px;
+        z-index: 10;
+    }
+
+    .password-toggle:hover {
+        color: #495057;
+    }
+
+    .back-to-login {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .back-to-login a {
+        color: #007bff;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 14px;
+    }
+
+    .back-to-login a:hover {
+        text-decoration: underline;
+    }
+
     @media (min-width: 768px) {
         .login_page .ct_left {
             min-height: 625px;
@@ -85,11 +129,6 @@
             display: block;
             text-align: right;
         }
-
-        .add_phone:first,
-        {
-        padding: 0px 26px !important;
-    }
     }
 
     @media (min-width: 375px) and (max-width: 550px) {
@@ -106,13 +145,7 @@
         .add_phone {
             display: block;
             text-align: right;
-            /* padding: 0px 29px; */
         }
-
-        .add_phone:nth-of-type(1),
-        {
-        padding: 0px 29px;
-    }
     }
 
     .support-list {
@@ -123,9 +156,7 @@
 
     .support-item {
         display: flex;
-        /* justify-content: space-between; */
         align-items: center;
-        /* margin-bottom: 20px; */
     }
 
     .diff_strong {
@@ -139,16 +170,12 @@
         display: flex;
         flex-direction: column;
         text-align: right;
-        /* Căn phải */
     }
 
     .phone-wrapper span {
-        /* display: flex; */
         justify-content: flex-end;
-        /* Căn nội dung số điện thoại và chú thích bên phải */
         align-items: center;
         gap: 10px;
-        /* Khoảng cách giữa số và chú thích */
     }
 
     .normal_strong {
@@ -165,19 +192,7 @@
     .forgot-password-link {
         margin-top: 15px;
         margin-bottom: 0;
-        text-align: left;
-    }
-
-    .forgot-password-link {
-        margin-top: 15px;
-        margin-bottom: 0;
         text-align: center;
-    }
-
-    .forgot-password-link {
-        margin-top: 15px;
-        margin-bottom: 0;
-        text-align: right;
     }
 
     .forgot-password-link a {
@@ -200,49 +215,60 @@
                     </figure>
 
                     <div class="login_form" id="login_form" style="display: block">
-                        <form method="post" accept-charset="utf-8" id="form-login" action="{{ route('login.post') }}">
+                        <form method="POST" action="{{ route('password.update') }}">
                             @csrf
+                            <input type="hidden" name="token" value="{{ $token }}">
 
                             <div class="form_group" style="display: block;">
+                                <h4 class="text-center mb-3">
+                                    </i>Đặt lại mật khẩu
+                                </h4>
+
                                 <div class="list_group">
-                                    <input type="text" name="email" autocomplete="off" required=""
-                                        placeholder="Email" id="email" value="{{ old('email') }}">
-                                    <figure class="feild_icon"><img
-                                            src="{{ asset('auth/images/login_user_icon.png') }}"></figure>
+                                    <i class="fas fa-envelope"></i>
+                                    <input type="email" name="email" autocomplete="off" required
+                                        placeholder="Nhập email của bạn" id="email" value="{{ old('email') }}">
                                     @error('email')
                                         <small class="text-danger mb-2">{{ $message }}</small>
                                     @enderror
+                                    @if (session('success'))
+                                        <small class="text-success mb-2">{{ session('success') }}</small>
+                                    @endif
                                 </div>
 
                                 <div class="list_group">
-                                    <input type="password" name="password" autocomplete="off" required=""
-                                        placeholder="Password" id="password" value="{{ old('password') }}">
-                                    <figure class="feild_icon"><img
-                                            src="{{ asset('auth/images/login_padlock_icon.png') }}"></figure>
+                                    <i class="fas fa-key"></i>
+                                    <input type="password" name="password" autocomplete="off" required
+                                        placeholder="Mật khẩu mới" id="password">
+                                    <i class="fas fa-eye password-toggle" onclick="togglePassword('password', this)"></i>
                                     @error('password')
                                         <small class="text-danger mb-2">{{ $message }}</small>
                                     @enderror
                                 </div>
 
-                                <div class="form-group">
-                                    <div class="form-check my-3">
-                                        <input class="form-check-input" name="remember" type="checkbox" id="remember">
-                                        <label class="form-check-label" for="remember">
-                                            Lưu mật khẩu
-                                        </label>
-                                    </div>
+                                <div class="list_group">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <input type="password" name="password_confirmation" autocomplete="off" required
+                                        placeholder="Xác nhận mật khẩu" id="password_confirmation">
+                                    <i class="fas fa-eye password-toggle" onclick="togglePassword('password_confirmation', this)"></i>
                                 </div>
+
+                                @if (session('status'))
+                                    <small class="text-success mb-2">{{ session('status') }}</small>
+                                @endif
+
                                 <div class="btn">
-                                    <button type="submit" name="button"
-                                        class="loginButton loginButtonGg remove-msg before-login " id="submitBtn">Đăng
-                                        nhập</button>
+                                    <button type="submit" class="loginButton w-100" id="submitBtn">
+                                        Cập nhật mật khẩu
+                                    </button>
                                 </div>
-                                <div class="forgot-password-link">
-                                    <a href="{{ route('password.request') }}" class="text-decoration-none"
-                                        style="color:#007bff;">Quên mật khẩu?</a>
+
+                                <div class="back-to-login">
+                                    <a href="{{ route('login') }}">
+                                        <i class="fas fa-arrow-left"></i> Quay lại đăng nhập
+                                    </a>
                                 </div>
                             </div>
-
                         </form>
                     </div>
                 </div>
@@ -250,6 +276,19 @@
         </div>
     </div>
 
+    <script>
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
-
 </html>
