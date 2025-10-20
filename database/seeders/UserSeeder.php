@@ -15,8 +15,8 @@ class UserSeeder extends Seeder
     {
         User::create([
             'name' => 'Admin',
+            'account_id' => '0900000001',
             'email' => 'admin@gmail.com',
-            'phone' => '0900000001',
             'password' => Hash::make('123456'),
             'role' => 1,
             'is_active' => true,
@@ -24,8 +24,8 @@ class UserSeeder extends Seeder
 
         User::create([
             'name' => 'Nhân viên',
+            'account_id' => '0900000002',
             'email' => 'staff@gmail.com',
-            'phone' => '0900000002',
             'password' => Hash::make('123456'),
             'role' => 2,
             'is_active' => true,
@@ -33,8 +33,8 @@ class UserSeeder extends Seeder
 
         User::create([
             'name' => 'Người dùng',
+            'account_id' => '0900000003',
             'email' => 'user@gmail.com',
-            'phone' => '0900000003',
             'password' => Hash::make('123456'),
             'role' => 3,
             'is_active' => true,

@@ -5,48 +5,47 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
-    /**
-     * Các cột được phép gán hàng loạt (mass assignable).
-     */
     protected $fillable = [
+        'id',
+        'account_id',
         'name',
         'email',
-        'phone',
-        'gender',
-        'birthday',
-        'tax_code',
+        'company',
+        'department',
+        'position',
+        'address',
         'password',
-        'identity_number',
-        'must_update_profile',
         'role',
-        'is_online',
-        'last_seen',
         'is_active',
+        'must_update_profile',
     ];
 
-    /**
-     * Các cột sẽ bị ẩn khi chuyển sang JSON.
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
     /**
-     * Các cột cần ép kiểu.
+     * Quan hệ: user có thể thuộc nhiều nhóm khách hàng
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'is_active' => 'boolean',
-        'must_update_profile' => 'boolean',
-    ];
+    public function groups()
+    {
+        return $this->belongsToMany(CustomerGroup::class, 'customer_group_user', 'user_id', 'customer_group_id');
+    }
+
+    /**
+     * Quan hệ: user có thể có nhiều thuộc tính khách hàng
+     */
+    public function attributes()
+    {
+        return $this->belongsToMany(CustomerAttribute::class, 'customer_attribute_user', 'user_id', 'customer_attribute_id');
+    }
+
 
     /**
      * Lấy tên vai trò (role name).

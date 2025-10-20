@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\LoginLog;
 use App\Mail\GenericMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -56,7 +57,16 @@ class LoginController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
-
+        try {
+            LoginLog::create([
+                'user_id'    => $user->id,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'login_at'   => now(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Không thể ghi log đăng nhập: ' . $e->getMessage());
+        }
         if ($user->role == 3 && $user->must_update_profile) {
             return redirect()->route('customer.profile.edit')
                 ->with('info', 'Vui lòng cập nhật thông tin tài khoản trước khi tiếp tục.');

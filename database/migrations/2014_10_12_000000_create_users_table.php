@@ -13,16 +13,17 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('account_id')->unique()->comment('Mã tài khoản = Số điện thoại, hiển thị toàn hệ thống');
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('phone')->unique()->nullable();
-            $table->string('tax_code')->nullable()->comment('Mã số thuế');
+            $table->string('company')->nullable();
+            $table->string('department')->nullable();
+            $table->string('position')->nullable();
+            $table->string('address')->nullable();
             $table->string('password');
-            $table->string('identity_number')->unique()->nullable();
-            $table->boolean('must_update_profile')->default(true);
-            $table->enum('role', [1, 2, 3])->default(3)->comment('1 = Admin, 2 = Nhân viên, 3 = User');
+            $table->unsignedTinyInteger('role')->default(3)->comment('1=Admin, 2=Nhân viên, 3=Khách hàng');
             $table->boolean('is_active')->default(true);
+            $table->boolean('must_update_profile')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });
