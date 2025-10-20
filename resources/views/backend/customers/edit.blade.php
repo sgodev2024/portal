@@ -4,102 +4,132 @@
 
 @section('content')
     <div class="page-inner">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title">Thông tin khách hàng</h4>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-edit me-2"></i> Cập nhật thông tin khách hàng
+                </h4>
+                <a href="{{ route('customers.index') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại
+                </a>
             </div>
-            <div class="card-body">
-                <form action="{{ route('customers.update', $user->id) }}" method="POST">
+
+            <div class="card-body p-4">
+
+                {{-- Thông báo lỗi --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger rounded-3 shadow-sm">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li><i class="fas fa-exclamation-circle me-1"></i> {{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('customers.update', $user->id) }}" method="POST" class="needs-validation"
+                    novalidate>
                     @csrf
                     @method('PUT')
 
-                    <!-- Họ và tên -->
-                    <div class="form-group mb-3">
-                        <label for="name">Họ và tên</label>
-                        <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}"
-                            class="form-control @error('name') is-invalid @enderror">
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                    <div class="row g-3">
+                        {{-- Họ tên --}}
+                        <div class="col-md-6">
+                            <label for="name" class="form-label fw-semibold">Họ và tên <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}"
+                                class="form-control @error('name') is-invalid @enderror"
+                                placeholder="Nhập họ tên khách hàng" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- Email --}}
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold">Email <span
+                                    class="text-danger">*</span></label>
+                            <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}"
+                                class="form-control @error('email') is-invalid @enderror" placeholder="example@email.com"
+                                required>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- SĐT --}}
+                        <div class="col-md-6">
+                            <label for="account_id" class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="text" name="account_id" id="account_id"
+                                value="{{ old('account_id', $user->account_id ?? '') }}" class="form-control"
+                                placeholder="Nhập số điện thoại">
+                        </div>
+
+                        {{-- Công ty --}}
+                        <div class="col-md-6">
+                            <label for="company" class="form-label fw-semibold">Công ty</label>
+                            <input type="text" name="company" id="company"
+                                value="{{ old('company', $user->company ?? '') }}" class="form-control"
+                                placeholder="Tên công ty (nếu có)">
+                        </div>
+
+                        {{-- Địa chỉ --}}
+                        <div class="col-md-6">
+                            <label for="address" class="form-label fw-semibold">Địa chỉ</label>
+                            <input type="text" name="address" id="address"
+                                value="{{ old('address', $user->address ?? '') }}" class="form-control"
+                                placeholder="Nhập địa chỉ khách hàng">
+                        </div>
+
+                        {{-- Nhóm --}}
+                        <div class="col-md-4">
+                            <label for="group" class="form-label fw-semibold">Nhóm khách hàng</label>
+                            <input type="text" name="group" id="group"
+                                value="{{ old('group', $user->group ?? '') }}" class="form-control"
+                                placeholder="VD: VIP, Mới, Thường...">
+                        </div>
+
+                        {{-- Trạng thái --}}
+                        <div class="col-md-2 d-flex align-items-center">
+                            <div class="form-check form-switch mt-3">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                                    value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-semibold" for="is_active">
+                                    {{ old('is_active', $user->is_active) ? 'Đang hoạt động' : 'Đang bị khóa' }}
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Email -->
-                    <div class="form-group mb-3">
-                        <label for="email">Email</label>
-                        <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}"
-                            class="form-control @error('email') is-invalid @enderror">
-                        @error('email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                    {{-- Nút hành động --}}
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-2"></i> Cập nhật khách hàng
+                        </button>
                     </div>
-
-                    <!-- Số điện thoại -->
-                    <div class="form-group mb-3">
-                        <label for="phone">Số điện thoại</label>
-                        <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}"
-                            class="form-control @error('phone') is-invalid @enderror">
-                        @error('phone')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <!-- Mã số thuế -->
-                    <div class="form-group mb-3">
-                        <label for="tax_code">Mã số thuế</label>
-                        <input type="text" name="tax_code" id="tax_code" value="{{ old('tax_code', $user->tax_code) }}"
-                            class="form-control @error('tax_code') is-invalid @enderror">
-                        @error('tax_code')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <!-- Số CMND/CCCD -->
-                    <div class="form-group mb-3">
-                        <label for="identity_number">Số CMND/CCCD</label>
-                        <input type="text" name="identity_number" id="identity_number"
-                            value="{{ old('identity_number', $user->identity_number) }}"
-                            class="form-control @error('identity_number') is-invalid @enderror">
-                        @error('identity_number')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    <!-- Giới tính -->
-                    <div class="form-group mb-3">
-                        <label for="gender">Giới tính</label>
-                        <select name="gender" id="gender" class="form-control">
-                            <option value="">Chọn giới tính</option>
-                            <option value="male" {{ old('gender', $user->gender) == 'male' ? 'selected' : '' }}>Nam
-                            </option>
-                            <option value="female" {{ old('gender', $user->gender) == 'female' ? 'selected' : '' }}>Nữ
-                            </option>
-                            <option value="other" {{ old('gender', $user->gender) == 'other' ? 'selected' : '' }}>Khác
-                            </option>
-                        </select>
-                    </div>
-
-                    <!-- Ngày sinh -->
-                    <div class="form-group mb-3">
-                        <label for="birthday">Ngày sinh</label>
-                        <input type="date" name="birthday" id="birthday"
-                            value="{{ old('birthday', $user->birthday ? date('Y-m-d', strtotime($user->birthday)) : '') }}"
-                            class="form-control">
-                    </div>
-
-                    <!-- Trạng thái hoạt động -->
-                    <div class="form-check form-switch mb-3">
-                        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1"
-                            {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="is_active">
-                            {{ old('is_active', $user->is_active) ? 'Tài khoản đang hoạt động' : 'Tài khoản bị khóa' }}
-                        </label>
-                    </div>
-
-
-                    <button type="submit" class="btn btn-primary">Cập nhật</button>
-                    <a href="{{ route('customers.index') }}" class="btn btn-secondary">Hủy</a>
                 </form>
             </div>
         </div>
     </div>
+
+    {{-- Style bổ sung nhẹ --}}
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(90deg, #0052cc, #007bff);
+        }
+
+        .form-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        input.form-control {
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.8rem;
+        }
+
+        .btn-primary {
+            border-radius: 0.5rem;
+        }
+    </style>
 @endsection

@@ -25,7 +25,7 @@ class CustomerController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('account_id', 'like', "%{$search}%");
             });
         }
 
@@ -59,31 +59,46 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name'             => 'required|string|max:255',
-            'email'            => 'required|email|unique:users',
-            'phone'            => 'nullable|unique:users',
-            'identity_number'  => 'nullable|unique:users',
-            'gender'           => 'nullable|in:male,female,other',
-            'birthday'         => 'nullable|date',
-            'tax_code'         => 'nullable|string|max:50',
+        $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'email'      => 'required|email|unique:users',
+            'account_id'      => 'required|string|max:20|unique:users',
+            'company'    => 'required|string|max:255',
+            'address'    => 'nullable|string|max:500',
+            'groups'     => 'nullable|array',
+            'groups.*'   => 'exists:customer_groups,id',
+        ], [
+            'name.required'    => 'Họ tên không được để trống.',
+            'email.required'   => 'Email không được để trống.',
+            'email.unique'     => 'Email này đã được sử dụng.',
+            'account_id.required'   => 'Số điện thoại không được để trống.',
+            'account_id.unique'     => 'Số điện thoại này đã được sử dụng.',
+            'company.required' => 'Tên công ty không được để trống.',
         ]);
+
+        // Mật khẩu mặc định
         $password = '123456';
 
+        // Tạo người dùng mới
         $user = User::create([
-            'name'              => $request->name,
-            'email'             => $request->email,
-            'phone'             => $request->phone,
-            'identity_number'   => $request->identity_number,
+            'name'              => $validated['name'],
+            'email'             => $validated['email'],
+            'account_id'             => $validated['account_id'],
+            'account_id'        => $validated['account_id'], // Mã ID = Số điện thoại
+            'company'           => $validated['company'],
+            'address'           => $validated['address'] ?? null,
             'password'          => Hash::make($password),
             'role'              => 3,
             'is_active'         => true,
             'must_update_profile' => true,
-            'gender'            => $request->gender,
-            'birthday'          => $request->birthday,
-            'tax_code'          => $request->tax_code,
         ]);
 
+        // Gán nhóm cho khách hàng (nếu có)
+        if (!empty($validated['groups'])) {
+            $user->groups()->sync($validated['groups']);
+        }
+
+        // Gửi email thông báo tạo tài khoản
         $template = EmailTemplate::where('code', 'new_user')
             ->where('is_active', true)
             ->first();
@@ -93,11 +108,11 @@ class CustomerController extends Controller
                 Mail::to($user->email)->queue(new GenericMail(
                     $template,
                     [
-                        'user_name'   => $user->name,
-                        'user_email'  => $user->email,
+                        'user_name'    => $user->name,
+                        'user_email'   => $user->email,
                         'new_password' => $password,
-                        'login_link'  => route('login'),
-                        'app_name'    => config('app.name'),
+                        'login_link'   => route('login'),
+                        'app_name'     => config('app.name'),
                     ]
                 ));
             } catch (\Exception $e) {
@@ -119,28 +134,32 @@ class CustomerController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'             => 'required|string|max:255',
-            'email'            => 'required|email|unique:users,email,' . $id,
-            'phone'            => 'nullable|unique:users,phone,' . $id,
-            'identity_number'  => 'nullable|unique:users,identity_number,' . $id,
-            'must_update_profile' => 'nullable|boolean',
-            'is_active'        => 'nullable|boolean',
-            'tax_code'         => 'nullable|string|max:50',
-            'gender'           => 'nullable|in:male,female,other',
-            'birthday'         => 'nullable|date',
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|email|unique:users,email,' . $id,
+            'account_id'     => 'required|string|max:20|unique:users,account_id,' . $id,
+            'company'   => 'nullable|string|max:255',
+            'address'   => 'nullable|string|max:255',
+            'group_ids' => 'nullable|array',
+            'is_active' => 'nullable|boolean',
         ]);
 
+        // Gán lại account_id = account_id
+        $accountId = $request->account_id;
+
         $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'identity_number' => $request->identity_number,
-            'must_update_profile' => $request->boolean('must_update_profile'),
-            'is_active' => $request->boolean('is_active'),
-            'tax_code' => $request->tax_code,
-            'gender' => $request->gender,
-            'birthday' => $request->birthday,
+            'name'       => $request->name,
+            'email'      => $request->email,
+            'account_id'      => $request->account_id,
+            'company'    => $request->company,
+            'address'    => $request->address,
+            'account_id' => $accountId,
+            'is_active'  => $request->boolean('is_active'),
         ]);
+
+        // Cập nhật nhóm (nếu có)
+        if ($request->has('group_ids')) {
+            $user->groups()->sync($request->group_ids);
+        }
 
         return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công!');
     }

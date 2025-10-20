@@ -19,17 +19,14 @@ class CustomerImport implements ToModel, WithHeadingRow
         $rawPassword = $row['password'] ?? '123456';
 
         return new User([
-            'name' => $row['name'] ?? null,
-            'email' => $row['email'] ?? null,
-            'phone' => $row['phone'] ?? null,
-            'identity_number' => $row['identity_number'] ?? null,
-            'password' => Hash::make($rawPassword),
-            'role' => 3,
-            'must_update_profile' => true,
-            'is_active' => true,
-            'tax_code' => $row['tax_code'] ?? null,
-            'gender' => $row['gender'] ?? null,
-            'birthday' => isset($row['birthday']) ? date('Y-m-d', strtotime($row['birthday'])) : null,
+            'name'       => $row['name'] ?? null,
+            'email'      => $row['email'] ?? null,
+            'account_id' => $row['account_id'] ?? null,
+            'company'    => $row['company'] ?? null,
+            'address'    => $row['address'] ?? null,
+            'password'   => Hash::make($rawPassword),
+            'role'       => 3,
+            'is_active'  => true,
         ]);
     }
 }

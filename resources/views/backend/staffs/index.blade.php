@@ -67,7 +67,7 @@
                                             id="searchInput">
                                     </div>
 
-                                    <!-- Nút Import Excel - CHỈ TRIGGER -->
+                                    <!-- Nút Import Excel -->
                                     <button type="button" class="btn btn-sm btn-light border"
                                         onclick="document.getElementById('excelFile').click()">
                                         <i class="fas fa-file-import"></i> Import
@@ -90,11 +90,11 @@
         </div>
     </div>
 
-    <!-- Form Import Excel - TÁCH RIÊNG BÊN NGOÀI -->
+    <!-- Form Import Excel -->
     <form id="importForm" action="{{ route('admin.staffs.import') }}" method="POST" enctype="multipart/form-data"
         style="display:none;">
         @csrf
-        <input type="file" name="file" id="excelFile" accept=".xlsx,.xls" required>
+        <input type="file" name="file" id="excelFile" accept=".xlsx,.xls,.csv" required>
     </form>
 @endsection
 
@@ -224,7 +224,6 @@
 
                 // Xử lý checkbox "Chọn tất cả"
                 if (checkAll) {
-                    // Xóa event listener cũ bằng cách clone node
                     const newCheckAll = checkAll.cloneNode(true);
                     checkAll.parentNode.replaceChild(newCheckAll, checkAll);
 
@@ -240,7 +239,6 @@
 
                 // Xử lý từng checkbox con
                 checkItems.forEach((item, index) => {
-                    // Clone để xóa event listener cũ
                     const newItem = item.cloneNode(true);
                     item.parentNode.replaceChild(newItem, item);
 
@@ -251,7 +249,6 @@
                     });
                 });
 
-                // Cập nhật trạng thái ban đầu
                 updateCheckAllState();
                 updateBulkActionButton();
             }
@@ -292,7 +289,6 @@
                     page: params.page || 1
                 });
 
-                // Xóa các tham số rỗng
                 for (let [key, value] of [...query.entries()]) {
                     if (value === '' || value === null || value === undefined) {
                         query.delete(key);
@@ -314,8 +310,6 @@
                     })
                     .then(data => {
                         document.getElementById('staffTableWrapper').innerHTML = data;
-
-                        // QUAN TRỌNG: Khởi tạo lại checkbox sau khi load AJAX
                         console.log('Table loaded, reinitializing checkboxes...');
                         initCheckboxes();
                     })
@@ -325,7 +319,7 @@
                     });
             }
 
-            // Khởi tạo checkbox lần đầu khi trang load
+            // Khởi tạo checkbox lần đầu
             initCheckboxes();
 
             // Debounce tìm kiếm
@@ -362,7 +356,6 @@
                 }
 
                 if (confirm(`Bạn có chắc muốn xóa ${count} nhân viên đã chọn không?`)) {
-                    // Xóa _method nếu tồn tại (đề phòng form nào khác chèn vào)
                     const methodInput = form.querySelector('input[name="_method"]');
                     if (methodInput) methodInput.remove();
                     form.method = 'POST';

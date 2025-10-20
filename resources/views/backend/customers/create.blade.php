@@ -1,81 +1,131 @@
 @extends('backend.layouts.master')
 
+@section('title', 'Thêm khách hàng')
+
 @section('content')
-    <div class="container">
-        <h2>Thêm Khách Hàng</h2>
-
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form action="{{ route('customers.store') }}" method="POST">
-            @csrf
-
-            <!-- Họ và tên -->
-            <div class="form-group mb-3">
-                <label for="name">Họ và tên</label>
-                <input type="text" name="name" id="name" class="form-control" value="{{ old('name') }}" required>
+    <div class="page-inner">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i> Thêm khách hàng mới
+                </h4>
+                <a href="{{ route('customers.index') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i> Quay lại
+                </a>
             </div>
 
-            <!-- Email -->
-            <div class="form-group mb-3">
-                <label for="email">Email</label>
-                <input type="email" name="email" id="email" class="form-control" value="{{ old('email') }}"
-                    required>
-            </div>
+            <div class="card-body p-4">
 
-            <!-- Số điện thoại -->
-            <div class="form-group mb-3">
-                <label for="phone">Số điện thoại</label>
-                <input type="text" name="phone" id="phone" class="form-control" value="{{ old('phone') }}">
-            </div>
+                {{-- Hiển thị lỗi --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger rounded-3 shadow-sm">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li><i class="fas fa-exclamation-circle me-1"></i> {{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
-            <!-- Mã số thuế -->
-            <div class="form-group mb-3">
-                <label for="tax_code">Mã số thuế</label>
-                <input type="text" name="tax_code" id="tax_code" class="form-control" value="{{ old('tax_code') }}">
-            </div>
+                <form action="{{ route('customers.store') }}" method="POST" class="needs-validation" novalidate>
+                    @csrf
 
-            <!-- Số CMND/CCCD -->
-            <div class="form-group mb-3">
-                <label for="identity_number">Số CMND/CCCD</label>
-                <input type="text" name="identity_number" id="identity_number" class="form-control"
-                    value="{{ old('identity_number') }}">
-            </div>
+                    <div class="row g-3">
+                        {{-- Họ tên --}}
+                        <div class="col-md-6">
+                            <label for="name" class="form-label fw-semibold">Họ và tên <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="name" id="name" value="{{ old('name') }}"
+                                class="form-control @error('name') is-invalid @enderror"
+                                placeholder="Nhập họ tên khách hàng" required>
+                            @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
-            <!-- Giới tính -->
-            <div class="form-group mb-3">
-                <label for="gender">Giới tính</label>
-                <select name="gender" id="gender" class="form-control">
-                    <option value="">Chọn giới tính</option>
-                    <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Nam</option>
-                    <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Nữ</option>
-                    <option value="other" {{ old('gender') == 'other' ? 'selected' : '' }}>Khác</option>
-                </select>
-            </div>
+                        {{-- Email --}}
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold">Email <span
+                                    class="text-danger">*</span></label>
+                            <input type="email" name="email" id="email" value="{{ old('email') }}"
+                                class="form-control @error('email') is-invalid @enderror" placeholder="example@email.com"
+                                required>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
-            <!-- Ngày sinh -->
-            <div class="form-group mb-3">
-                <label for="birthday">Ngày sinh</label>
-                <input type="date" name="birthday" id="birthday" class="form-control" value="{{ old('birthday') }}">
-            </div>
+                        {{-- SĐT --}}
+                        <div class="col-md-6">
+                            <label for="account_id" class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="text" name="account_id" id="account_id" value="{{ old('account_id') }}"
+                                class="form-control @error('account_id') is-invalid @enderror"
+                                placeholder="Nhập số điện thoại">
+                            @error('account_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
-            <!-- Trạng thái hoạt động -->
-            <div class="form-group mb-3">
-                <label for="is_active">Trạng thái hoạt động</label>
-                <select name="is_active" id="is_active" class="form-control">
-                    <option value="1" {{ old('is_active', 1) == 1 ? 'selected' : '' }}>Hoạt động</option>
-                    <option value="0" {{ old('is_active', 1) == 0 ? 'selected' : '' }}>Khóa</option>
-                </select>
-            </div>
+                        {{-- Công ty --}}
+                        <div class="col-md-6">
+                            <label for="company" class="form-label fw-semibold">Công ty</label>
+                            <input type="text" name="company" id="company" value="{{ old('company') }}"
+                                class="form-control" placeholder="Tên công ty (nếu có)">
+                        </div>
 
-            <button type="submit" class="btn btn-primary">Thêm Khách Hàng</button>
-        </form>
+                        {{-- Địa chỉ --}}
+                        <div class="col-md-6">
+                            <label for="address" class="form-label fw-semibold">Địa chỉ</label>
+                            <input type="text" name="address" id="address" value="{{ old('address') }}"
+                                class="form-control" placeholder="Nhập địa chỉ khách hàng">
+                        </div>
+
+                        {{-- Nhóm --}}
+                        <div class="col-md-4">
+                            <label for="group" class="form-label fw-semibold">Nhóm khách hàng</label>
+                            <input type="text" name="group" id="group" value="{{ old('group') }}"
+                                class="form-control" placeholder="VD: VIP, Mới, Thường...">
+                        </div>
+
+                        {{-- Trạng thái --}}
+                        <div class="col-md-2 d-flex align-items-center">
+                            <div class="form-check form-switch mt-3">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                                    value="1" checked>
+                                <label class="form-check-label fw-semibold" for="is_active">Đang hoạt động</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Nút hành động --}}
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-2"></i> Lưu khách hàng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+
+    {{-- Style bổ sung nhẹ --}}
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(90deg, #0052cc, #007bff);
+        }
+
+        .form-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        input.form-control {
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.8rem;
+        }
+
+        .btn-primary {
+            border-radius: 0.5rem;
+        }
+    </style>
 @endsection

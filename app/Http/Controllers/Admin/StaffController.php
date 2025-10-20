@@ -21,7 +21,9 @@ class StaffController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
                     ->orWhere('email', 'LIKE', "%{$search}%")
-                    ->orWhere('phone', 'LIKE', "%{$search}%");
+                    ->orWhere('account_id', 'LIKE', "%{$search}%")
+                    ->orWhere('department', 'LIKE', "%{$search}%")
+                    ->orWhere('position', 'LIKE', "%{$search}%");
             });
         }
 
@@ -43,41 +45,40 @@ class StaffController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'nullable|email|unique:users,email',
-            'phone'    => 'nullable|string|max:20|unique:users,phone',
-            'password' => 'nullable|string|min:6',
-            'gender'   => 'nullable|in:male,female',
-            'birthday' => 'nullable|date',
+            'name'       => 'required|string|max:255',
+            'account_id' => 'required|string|max:20|unique:users,account_id',
+            'email'      => 'required|email|unique:users,email',
+            'department' => 'required|string|max:255',
+            'position'   => 'required|string|max:255',
+            'password'   => 'nullable|string|min:6',
         ], [
-            'name.required'     => 'Tên nhân viên không được để trống.',
-            'name.string'       => 'Tên nhân viên phải là chuỗi ký tự.',
-            'email.email'       => 'Email không hợp lệ.',
-            'email.unique'      => 'Email này đã được sử dụng.',
-            'phone.unique'      => 'Số điện thoại này đã tồn tại.',
-            'phone.max'         => 'Số điện thoại không được vượt quá 20 ký tự.',
-            'password.min'      => 'Mật khẩu phải có ít nhất 6 ký tự.',
-            'birthday.date'     => 'Ngày sinh không hợp lệ.',
-            'gender.in'         => 'Giới tính không hợp lệ.',
+            'name.required'       => 'Họ tên không được để trống.',
+            'account_id.required' => 'Mã nhân viên không được để trống.',
+            'account_id.unique'   => 'Mã nhân viên này đã tồn tại.',
+            'account_id.max'      => 'Mã nhân viên không được vượt quá 20 ký tự.',
+            'email.required'      => 'Email công ty không được để trống.',
+            'email.email'         => 'Email không hợp lệ.',
+            'email.unique'        => 'Email này đã được sử dụng.',
+            'department.required' => 'Phòng ban không được để trống.',
+            'position.required'   => 'Chức vụ không được để trống.',
+            'password.min'        => 'Mật khẩu phải có ít nhất 6 ký tự.',
         ]);
 
-        $password = isset($validated['password']) ? Hash::make($validated['password']) : Hash::make('123456');
-        $gender = $validated['gender'] ?? null;
+        $password = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make('123456');
 
         User::create([
-            'name'      => $validated['name'],
-            'email'     => $validated['email'] ?? null,
-            'phone'     => $validated['phone'] ?? null,
-            'password'  => $password,
-            'role'      => 2,
-            'is_active' => true,
-            'gender'    => $gender,
-            'birthday'  => $validated['birthday'] ?? null,
+            'name'       => $validated['name'],
+            'account_id' => $validated['account_id'],
+            'email'      => $validated['email'],
+            'department' => $validated['department'],
+            'position'   => $validated['position'],
+            'password'   => $password,
+            'role'       => 2,
+            'is_active'  => true,
         ]);
 
         return redirect()->route('admin.staffs.index')->with('success', 'Thêm nhân viên thành công!');
     }
-
 
     // Form sửa nhân viên
     public function edit($id)
@@ -92,33 +93,35 @@ class StaffController extends Controller
         $staff = User::where('role', 2)->findOrFail($id);
 
         $validated = $request->validate([
-            'name'                => 'required|string|max:255',
-            'email'               => 'nullable|email|unique:users,email,' . $staff->id,
-            'phone'               => 'nullable|string|max:20|unique:users,phone,' . $staff->id,
-            'password'            => 'nullable|string|min:6',
-            'gender'              => 'nullable|string',
-            'birthday'            => 'nullable|date',
-            'is_active'           => 'nullable|boolean'
+            'name'       => 'required|string|max:255',
+            'account_id' => 'required|string|max:20|unique:users,account_id,' . $staff->id,
+            'email'      => 'required|email|unique:users,email,' . $staff->id,
+            'department' => 'required|string|max:255',
+            'position'   => 'required|string|max:255',
+            'password'   => 'nullable|string|min:6',
+            'is_active'  => 'nullable|boolean'
         ], [
-            'name.required' => 'Tên nhân viên không được để trống.',
-            'email.email'   => 'Email không hợp lệ.',
-            'email.unique'  => 'Email này đã được sử dụng.',
-            'phone.unique'  => 'Số điện thoại này đã tồn tại.',
-            'password.min'  => 'Mật khẩu phải có ít nhất 6 ký tự.',
-            'is_active.required' => 'Vui lòng chọn trạng thái hoạt động.',
+            'name.required'       => 'Họ tên không được để trống.',
+            'account_id.required' => 'Mã nhân viên không được để trống.',
+            'account_id.unique'   => 'Mã nhân viên này đã tồn tại.',
+            'account_id.max'      => 'Mã nhân viên không được vượt quá 20 ký tự.',
+            'email.required'      => 'Email công ty không được để trống.',
+            'email.email'         => 'Email không hợp lệ.',
+            'email.unique'        => 'Email này đã được sử dụng.',
+            'department.required' => 'Phòng ban không được để trống.',
+            'position.required'   => 'Chức vụ không được để trống.',
+            'password.min'        => 'Mật khẩu phải có ít nhất 6 ký tự.',
         ]);
 
-        // Chuẩn bị dữ liệu update
         $updateData = [
-            'name'                => $validated['name'],
-            'email'               => $validated['email'] ?? $staff->email,
-            'phone'               => $validated['phone'] ?? $staff->phone,
-            'gender'              => $validated['gender'] ?? $staff->gender,
-            'birthday'            => $validated['birthday'] ?? $staff->birthday,
-            'is_active'           => $request->has('is_active') ? 1 : 0,
+            'name'       => $validated['name'],
+            'account_id' => $validated['account_id'],
+            'email'      => $validated['email'],
+            'department' => $validated['department'],
+            'position'   => $validated['position'],
+            'is_active'  => $request->has('is_active') ? 1 : 0,
         ];
 
-        // Chỉ update password nếu có nhập
         if (!empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);
         }

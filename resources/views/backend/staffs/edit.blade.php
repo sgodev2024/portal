@@ -15,19 +15,19 @@
 
                     <!-- Họ và tên -->
                     <div class="form-group mb-3">
-                        <label for="name">Họ và tên</label>
+                        <label for="name">Họ tên <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name', $staff->name) }}"
-                            class="form-control @error('name') is-invalid @enderror">
+                            class="form-control @error('name') is-invalid @enderror" required>
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <!-- Email -->
+                    <!-- Email công ty -->
                     <div class="form-group mb-3">
-                        <label for="email">Email</label>
+                        <label for="email">Email công ty <span class="text-danger">*</span></label>
                         <input type="email" name="email" id="email" value="{{ old('email', $staff->email) }}"
-                            class="form-control @error('email') is-invalid @enderror">
+                            class="form-control @error('email') is-invalid @enderror" required>
                         @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -35,34 +35,33 @@
 
                     <!-- Số điện thoại -->
                     <div class="form-group mb-3">
-                        <label for="phone">Số điện thoại</label>
-                        <input type="text" name="phone" id="phone" value="{{ old('phone', $staff->phone) }}"
-                            class="form-control @error('phone') is-invalid @enderror">
-                        @error('phone')
+                        <label for="account_id">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="text" name="account_id" id="account_id" value="{{ old('account_id', $staff->account_id) }}"
+                            class="form-control @error('account_id') is-invalid @enderror" required>
+                        @error('account_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    <!-- Giới tính -->
+                    <!-- Phòng ban -->
                     <div class="form-group mb-3">
-                        <label for="gender">Giới tính</label>
-                        <select name="gender" id="gender" class="form-control">
-                            <option value="">Chọn giới tính</option>
-                            <option value="male" {{ old('gender', $staff->gender) == 'male' ? 'selected' : '' }}>Nam
-                            </option>
-                            <option value="female" {{ old('gender', $staff->gender) == 'female' ? 'selected' : '' }}>Nữ
-                            </option>
-                            <option value="other" {{ old('gender', $staff->gender) == 'other' ? 'selected' : '' }}>Khác
-                            </option>
-                        </select>
+                        <label for="department">Phòng ban <span class="text-danger">*</span></label>
+                        <input type="text" name="department" id="department"
+                            value="{{ old('department', $staff->department) }}"
+                            class="form-control @error('department') is-invalid @enderror" required>
+                        @error('department')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
-                    <!-- Ngày sinh -->
+                    <!-- Chức vụ -->
                     <div class="form-group mb-3">
-                        <label for="birthday">Ngày sinh</label>
-                        <input type="date" name="birthday" id="birthday"
-                            value="{{ old('birthday', $staff->birthday ? date('Y-m-d', strtotime($staff->birthday)) : '') }}"
-                            class="form-control">
+                        <label for="position">Chức vụ <span class="text-danger">*</span></label>
+                        <input type="text" name="position" id="position" value="{{ old('position', $staff->position) }}"
+                            class="form-control @error('position') is-invalid @enderror" required>
+                        @error('position')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <!-- Trạng thái hoạt động -->
@@ -70,12 +69,18 @@
                         <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1"
                             {{ old('is_active', $staff->is_active) ? 'checked' : '' }}>
                         <label class="form-check-label" for="is_active">
-                            {{ old('is_active', $staff->is_active) ? 'Tài khoản đang hoạt động' : 'Tài khoản bị khóa' }}
+                            Tài khoản đang hoạt động
                         </label>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Cập nhật</button>
-                    <a href="{{ route('admin.staffs.index') }}" class="btn btn-secondary">Hủy</a>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Cập nhật
+                        </button>
+                        <a href="{{ route('admin.staffs.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>

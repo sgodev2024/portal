@@ -7,9 +7,11 @@
                     <input type="checkbox" class="form-check-input" id="checkAll">
                 </th>
                 <th class="text-center" style="width: 60px;">STT</th>
-                <th style="min-width: 180px;">TÊN NHÂN VIÊN</th>
-                <th style="min-width: 200px;">EMAIL</th>
-                <th style="min-width: 130px;">ĐIỆN THOẠI</th>
+                <th style="min-width: 180px;">HỌ TÊN</th>
+                <th style="min-width: 150px;">EMAIL CÔNG TY</th>
+                <th style="min-width: 130px;">SỐ ĐIỆN THOẠI</th>
+                <th style="min-width: 140px;">PHÒNG BAN</th>
+                <th style="min-width: 140px;">CHỨC VỤ</th>
                 <th style="min-width: 130px;">TRẠNG THÁI</th>
                 <th style="min-width: 120px;">NGÀY TẠO</th>
                 <th style="width: 110px;" class="text-center">HÀNH ĐỘNG</th>
@@ -26,7 +28,9 @@
                     </td>
                     <td><strong>{{ $staff->name }}</strong></td>
                     <td>{{ $staff->email ?? '-' }}</td>
-                    <td>{{ $staff->phone ?? '-' }}</td>
+                    <td>{{ $staff->account_id ?? '-' }}</td>
+                    <td>{{ $staff->department ?? '-' }}</td>
+                    <td>{{ $staff->position ?? '-' }}</td>
                     <td>
                         @if($staff->is_active)
                             <span class="badge bg-success">Đang hoạt động</span>
@@ -43,7 +47,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="text-center text-muted py-4">
+                    <td colspan="10" class="text-center text-muted py-4">
                         <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
                         Chưa có nhân viên nào
                     </td>

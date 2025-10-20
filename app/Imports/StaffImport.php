@@ -14,15 +14,14 @@ class StaffImport implements ToModel, WithHeadingRow
         $rawPassword = $row['password'] ?? '123456';
 
         return new User([
-            'name'            => $row['name'] ?? null,
-            'email'           => $row['email'] ?? null,
-            'phone'           => $row['phone'] ?? null,
-            'identity_number' => $row['identity_number'] ?? null,
-            'password'        => Hash::make($rawPassword),
-            'role'            => 2,
-            'is_active'       => true,
-            'gender'          => $row['gender'] ?? null,
-            'birthday'        => isset($row['birthday']) ? date('Y-m-d', strtotime($row['birthday'])) : null,
+            'name'       => $row['name'] ?? null,
+            'account_id'      => $row['account_id'] ?? null,
+            'email'      => $row['email'] ?? null,
+            'department' => $row['department'] ?? null,
+            'position'   => $row['position'] ?? null,
+            'password'   => Hash::make($rawPassword),
+            'role'       => 2,
+            'is_active'  => true,
         ]);
     }
 }
