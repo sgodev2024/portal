@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Mail\GenericMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Models\CustomerGroup;
 use App\Models\EmailTemplate;
 use App\Imports\CustomerImport;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +19,7 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('role', 3);
+        $query = User::where('role', 3)->with('groups');
 
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
@@ -48,13 +49,14 @@ class CustomerController extends Controller
 
     public function show($id)
     {
-        $user = User::where('role', 3)->findOrFail($id);
+        $user = User::where('role', 3)->with('groups')->findOrFail($id);
         return view('backend.customers.show', compact('user'));
     }
 
     public function create()
     {
-        return view('backend.customers.create');
+        $groups = CustomerGroup::orderBy('name')->get();
+        return view('backend.customers.create', compact('groups'));
     }
 
     public function store(Request $request)
@@ -62,18 +64,19 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
-            'account_id'      => 'required|string|max:20|unique:users',
+            'account_id' => 'required|string|max:20|unique:users',
             'company'    => 'required|string|max:255',
             'address'    => 'nullable|string|max:500',
             'groups'     => 'nullable|array',
             'groups.*'   => 'exists:customer_groups,id',
         ], [
-            'name.required'    => 'Họ tên không được để trống.',
-            'email.required'   => 'Email không được để trống.',
-            'email.unique'     => 'Email này đã được sử dụng.',
-            'account_id.required'   => 'Số điện thoại không được để trống.',
-            'account_id.unique'     => 'Số điện thoại này đã được sử dụng.',
-            'company.required' => 'Tên công ty không được để trống.',
+            'name.required'       => 'Họ tên không được để trống.',
+            'email.required'      => 'Email không được để trống.',
+            'email.unique'        => 'Email này đã được sử dụng.',
+            'account_id.required' => 'Số điện thoại không được để trống.',
+            'account_id.unique'   => 'Số điện thoại này đã được sử dụng.',
+            'company.required'    => 'Tên công ty không được để trống.',
+            'groups.*.exists'     => 'Nhóm khách hàng không hợp lệ.',
         ]);
 
         // Mật khẩu mặc định
@@ -81,15 +84,14 @@ class CustomerController extends Controller
 
         // Tạo người dùng mới
         $user = User::create([
-            'name'              => $validated['name'],
-            'email'             => $validated['email'],
-            'account_id'             => $validated['account_id'],
-            'account_id'        => $validated['account_id'], // Mã ID = Số điện thoại
-            'company'           => $validated['company'],
-            'address'           => $validated['address'] ?? null,
-            'password'          => Hash::make($password),
-            'role'              => 3,
-            'is_active'         => true,
+            'name'                => $validated['name'],
+            'email'               => $validated['email'],
+            'account_id'          => $validated['account_id'],
+            'company'             => $validated['company'],
+            'address'             => $validated['address'] ?? null,
+            'password'            => Hash::make($password),
+            'role'                => 3,
+            'is_active'           => $request->has('is_active'),
             'must_update_profile' => true,
         ]);
 
@@ -125,41 +127,43 @@ class CustomerController extends Controller
 
     public function edit($id)
     {
-        $user = User::findOrFail($id);
-        return view('backend.customers.edit', compact('user'));
+        $user = User::with('groups')->findOrFail($id);
+        $groups = CustomerGroup::orderBy('name')->get();
+        return view('backend.customers.edit', compact('user', 'groups'));
     }
 
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
-        $request->validate([
-            'name'      => 'required|string|max:255',
-            'email'     => 'required|email|unique:users,email,' . $id,
-            'account_id'     => 'required|string|max:20|unique:users,account_id,' . $id,
-            'company'   => 'nullable|string|max:255',
-            'address'   => 'nullable|string|max:255',
-            'group_ids' => 'nullable|array',
-            'is_active' => 'nullable|boolean',
+        $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'email'      => 'required|email|unique:users,email,' . $id,
+            'account_id' => 'required|string|max:20|unique:users,account_id,' . $id,
+            'company'    => 'nullable|string|max:255',
+            'address'    => 'nullable|string|max:255',
+            'groups'     => 'nullable|array',
+            'groups.*'   => 'exists:customer_groups,id',
+        ], [
+            'name.required'       => 'Họ tên không được để trống.',
+            'email.required'      => 'Email không được để trống.',
+            'email.unique'        => 'Email này đã được sử dụng.',
+            'account_id.required' => 'Số điện thoại không được để trống.',
+            'account_id.unique'   => 'Số điện thoại này đã được sử dụng.',
+            'groups.*.exists'     => 'Nhóm khách hàng không hợp lệ.',
         ]);
-
-        // Gán lại account_id = account_id
-        $accountId = $request->account_id;
 
         $user->update([
-            'name'       => $request->name,
-            'email'      => $request->email,
-            'account_id'      => $request->account_id,
-            'company'    => $request->company,
-            'address'    => $request->address,
-            'account_id' => $accountId,
-            'is_active'  => $request->boolean('is_active'),
+            'name'       => $validated['name'],
+            'email'      => $validated['email'],
+            'account_id' => $validated['account_id'],
+            'company'    => $validated['company'],
+            'address'    => $validated['address'],
+            'is_active'  => $request->has('is_active'),
         ]);
 
-        // Cập nhật nhóm (nếu có)
-        if ($request->has('group_ids')) {
-            $user->groups()->sync($request->group_ids);
-        }
+        // Cập nhật nhóm (sync sẽ thay thế hoàn toàn)
+        $user->groups()->sync($validated['groups'] ?? []);
 
         return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công!');
     }

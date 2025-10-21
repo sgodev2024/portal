@@ -9,13 +9,14 @@ use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Customer\TicketController;
+use App\Http\Controllers\Admin\CustomerGroupController;
 use App\Http\Controllers\Admin\EmailTemplateController;
-use App\Http\Controllers\Customer\ChatCustomerController;
-use App\Http\Controllers\Customer\CustomerNotificationController;
 use App\Http\Controllers\NotificationCounterController;
+use App\Http\Controllers\Customer\ChatCustomerController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Staff\StaffNotificationController;
 use App\Http\Controllers\Customer\CustomerProfileController;
+use App\Http\Controllers\Customer\CustomerNotificationController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 
 Route::get('/', function () {
@@ -41,7 +42,15 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
     // Quản lý thông tin công ty
     Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
     Route::post('/company', [CompanyController::class, 'store'])->name('company.store');
-
+    Route::resource('customer-groups', CustomerGroupController::class)->names([
+        'index'   => 'admin.customer-groups.index',
+        'create'  => 'admin.customer-groups.create',
+        'store'   => 'admin.customer-groups.store',
+        'show'    => 'admin.customer-groups.show',
+        'edit'    => 'admin.customer-groups.edit',
+        'update'  => 'admin.customer-groups.update',
+        'destroy' => 'admin.customer-groups.destroy',
+    ]);
     Route::prefix('chat')->name('chat.')->group(function () {
         Route::get('/', [ChatController::class, 'index'])->name('index');
         Route::get('/{id}/messages', [ChatController::class, 'getMessages'])->name('messages');

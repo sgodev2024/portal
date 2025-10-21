@@ -1,13 +1,13 @@
 @extends('backend.layouts.master')
 
-@section('title', 'Sửa khách hàng')
+@section('title', 'Chỉnh sửa khách hàng')
 
 @section('content')
     <div class="page-inner">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">
-                    <i class="fas fa-user-edit me-2"></i> Cập nhật thông tin khách hàng
+                    <i class="fas fa-user-edit me-2"></i> Chỉnh sửa: {{ $user->name }}
                 </h4>
                 <a href="{{ route('customers.index') }}" class="btn btn-light btn-sm">
                     <i class="fas fa-arrow-left me-1"></i> Quay lại
@@ -16,7 +16,7 @@
 
             <div class="card-body p-4">
 
-                {{-- Thông báo lỗi --}}
+                {{-- Hiển thị lỗi --}}
                 @if ($errors->any())
                     <div class="alert alert-danger rounded-3 shadow-sm">
                         <ul class="mb-0">
@@ -27,8 +27,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('customers.update', $user->id) }}" method="POST" class="needs-validation"
-                    novalidate>
+                <form action="{{ route('customers.update', $user->id) }}" method="POST" class="needs-validation" novalidate>
                     @csrf
                     @method('PUT')
 
@@ -59,44 +58,74 @@
 
                         {{-- SĐT --}}
                         <div class="col-md-6">
-                            <label for="account_id" class="form-label fw-semibold">Số điện thoại</label>
-                            <input type="text" name="account_id" id="account_id"
-                                value="{{ old('account_id', $user->account_id ?? '') }}" class="form-control"
-                                placeholder="Nhập số điện thoại">
+                            <label for="account_id" class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="text" name="account_id" id="account_id" value="{{ old('account_id', $user->account_id) }}"
+                                class="form-control @error('account_id') is-invalid @enderror"
+                                placeholder="Nhập số điện thoại" required>
+                            @error('account_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         {{-- Công ty --}}
                         <div class="col-md-6">
                             <label for="company" class="form-label fw-semibold">Công ty</label>
-                            <input type="text" name="company" id="company"
-                                value="{{ old('company', $user->company ?? '') }}" class="form-control"
-                                placeholder="Tên công ty (nếu có)">
+                            <input type="text" name="company" id="company" value="{{ old('company', $user->company) }}"
+                                class="form-control @error('company') is-invalid @enderror" placeholder="Tên công ty">
+                            @error('company')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         {{-- Địa chỉ --}}
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label for="address" class="form-label fw-semibold">Địa chỉ</label>
-                            <input type="text" name="address" id="address"
-                                value="{{ old('address', $user->address ?? '') }}" class="form-control"
-                                placeholder="Nhập địa chỉ khách hàng">
+                            <input type="text" name="address" id="address" value="{{ old('address', $user->address) }}"
+                                class="form-control" placeholder="Nhập địa chỉ khách hàng">
                         </div>
 
-                        {{-- Nhóm --}}
-                        <div class="col-md-4">
-                            <label for="group" class="form-label fw-semibold">Nhóm khách hàng</label>
-                            <input type="text" name="group" id="group"
-                                value="{{ old('group', $user->group ?? '') }}" class="form-control"
-                                placeholder="VD: VIP, Mới, Thường...">
+                        {{-- Nhóm khách hàng --}}
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Nhóm khách hàng</label>
+                            <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto; background-color: #f8f9fa;">
+                                @php
+                                    $userGroupIds = old('groups', $user->groups->pluck('id')->toArray());
+                                @endphp
+                                @if(isset($groups) && $groups->count() > 0)
+                                    @foreach($groups as $group)
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" name="groups[]"
+                                                value="{{ $group->id }}" id="group_{{ $group->id }}"
+                                                {{ in_array($group->id, $userGroupIds) ? 'checked' : '' }}
+                                                {{ !$group->is_active ? 'disabled' : '' }}>
+                                            <label class="form-check-label" for="group_{{ $group->id }}">
+                                                <strong>{{ $group->name }}</strong>
+                                                @if(!$group->is_active)
+                                                    <span class="badge bg-secondary ms-1">Không hoạt động</span>
+                                                @endif
+                                                @if($group->description)
+                                                    <small class="text-muted d-block mt-1">{{ $group->description }}</small>
+                                                @endif
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Chưa có nhóm khách hàng.
+                                        <a href="{{ route('admin.customer-groups.create') }}" target="_blank" class="text-primary">Tạo nhóm mới</a>
+                                    </p>
+                                @endif
+                            </div>
+                            <small class="text-muted"><i class="fas fa-lightbulb me-1"></i>Có thể chọn nhiều nhóm cho khách hàng</small>
                         </div>
 
                         {{-- Trạng thái --}}
-                        <div class="col-md-2 d-flex align-items-center">
-                            <div class="form-check form-switch mt-3">
+                        <div class="col-md-12">
+                            <div class="form-check form-switch">
                                 <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
                                     value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
-                                <label class="form-check-label fw-semibold" for="is_active">
-                                    {{ old('is_active', $user->is_active) ? 'Đang hoạt động' : 'Đang bị khóa' }}
-                                </label>
+                                <label class="form-check-label fw-semibold" for="is_active">Đang hoạt động</label>
                             </div>
                         </div>
                     </div>
@@ -130,6 +159,10 @@
 
         .btn-primary {
             border-radius: 0.5rem;
+        }
+
+        .form-check-input:disabled ~ .form-check-label {
+            opacity: 0.5;
         }
     </style>
 @endsection

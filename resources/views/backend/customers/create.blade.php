@@ -57,10 +57,11 @@
 
                         {{-- SĐT --}}
                         <div class="col-md-6">
-                            <label for="account_id" class="form-label fw-semibold">Số điện thoại</label>
+                            <label for="account_id" class="form-label fw-semibold">Số điện thoại <span
+                                    class="text-danger">*</span></label>
                             <input type="text" name="account_id" id="account_id" value="{{ old('account_id') }}"
                                 class="form-control @error('account_id') is-invalid @enderror"
-                                placeholder="Nhập số điện thoại">
+                                placeholder="Nhập số điện thoại" required>
                             @error('account_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -68,28 +69,63 @@
 
                         {{-- Công ty --}}
                         <div class="col-md-6">
-                            <label for="company" class="form-label fw-semibold">Công ty</label>
+                            <label for="company" class="form-label fw-semibold">Công ty <span
+                                    class="text-danger">*</span></label>
                             <input type="text" name="company" id="company" value="{{ old('company') }}"
-                                class="form-control" placeholder="Tên công ty (nếu có)">
+                                class="form-control @error('company') is-invalid @enderror" placeholder="Tên công ty"
+                                required>
+                            @error('company')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         {{-- Địa chỉ --}}
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label for="address" class="form-label fw-semibold">Địa chỉ</label>
                             <input type="text" name="address" id="address" value="{{ old('address') }}"
                                 class="form-control" placeholder="Nhập địa chỉ khách hàng">
                         </div>
 
-                        {{-- Nhóm --}}
-                        <div class="col-md-4">
-                            <label for="group" class="form-label fw-semibold">Nhóm khách hàng</label>
-                            <input type="text" name="group" id="group" value="{{ old('group') }}"
-                                class="form-control" placeholder="VD: VIP, Mới, Thường...">
+                        {{-- Nhóm khách hàng --}}
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Nhóm khách hàng</label>
+                            <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                                @if (isset($groups) && $groups->count() > 0)
+                                    <div class="row">
+                                        @foreach ($groups as $group)
+                                            <div class="col-md-6 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="groups[]"
+                                                        value="{{ $group->id }}" id="group_{{ $group->id }}"
+                                                        {{ in_array($group->id, old('groups', [])) ? 'checked' : '' }}
+                                                        {{ !$group->is_active ? 'disabled' : '' }}>
+                                                    <label class="form-check-label" for="group_{{ $group->id }}">
+                                                        <strong>{{ $group->name }}</strong>
+                                                        @if (!$group->is_active)
+                                                            <span class="badge bg-secondary ms-1">Không hoạt động</span>
+                                                        @endif
+                                                        @if ($group->description)
+                                                            <small
+                                                                class="text-muted d-block mt-1">{{ $group->description }}</small>
+                                                        @endif
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Chưa có nhóm khách hàng.
+                                        <a href="{{ route('admin.customer-groups.create') }}" target="_blank"
+                                            class="text-primary">Tạo nhóm mới</a>
+                                    </p>
+                                @endif
+                            </div>
                         </div>
-
                         {{-- Trạng thái --}}
-                        <div class="col-md-2 d-flex align-items-center">
-                            <div class="form-check form-switch mt-3">
+                        <div class="col-md-12">
+                            <div class="form-check form-switch">
                                 <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
                                     value="1" checked>
                                 <label class="form-check-label fw-semibold" for="is_active">Đang hoạt động</label>
@@ -126,6 +162,10 @@
 
         .btn-primary {
             border-radius: 0.5rem;
+        }
+
+        .form-check-input:disabled~.form-check-label {
+            opacity: 0.5;
         }
     </style>
 @endsection

@@ -189,12 +189,34 @@
 
                 </li>
 
-                @if (in_array(Auth::user()->role, [1, 2]))
-                    <li class="nav-item {{ request()->routeIs('customer.*') ? 'active' : '' }}">
-                        <a href="{{ route('customers.index') }}">
+                @if (Auth::user()->role == 1)
+                    <!-- Quản lý khách hàng -->
+                    <li
+                        class="nav-item {{ request()->routeIs('customers.*', 'customer-groups.*') ? 'active' : '' }}">
+                        <a data-bs-toggle="collapse" href="#customerMenu"
+                            aria-expanded="{{ request()->routeIs('customers.*', 'customer-groups.*') ? 'true' : 'false' }}">
                             <i class="fas fa-users"></i>
                             <p>Quản lý khách hàng</p>
+                            <span class="caret"></span>
                         </a>
+                        <div class="collapse {{ request()->routeIs('customers.*', 'customer-groups.*') ? 'show' : '' }}"
+                            id="customerMenu">
+                            <ul class="nav nav-collapse">
+
+                                <li class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">
+                                    <a href="{{ route('customers.index') }}">
+                                        <span class="sub-item"><span>Danh sách khách hàng</span></span>
+                                    </a>
+                                </li>
+
+                                <li class="{{ request()->routeIs('admin.customer-groups.*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.customer-groups.index') }}">
+                                        <span class="sub-item"><span>Nhóm khách hàng</span></span>
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
                     </li>
                 @endif
             </ul>

@@ -38,14 +38,6 @@ class User extends Authenticatable
         return $this->belongsToMany(CustomerGroup::class, 'customer_group_user', 'user_id', 'customer_group_id');
     }
 
-    /**
-     * Quan hệ: user có thể có nhiều thuộc tính khách hàng
-     */
-    public function attributes()
-    {
-        return $this->belongsToMany(CustomerAttribute::class, 'customer_attribute_user', 'user_id', 'customer_attribute_id');
-    }
-
 
     /**
      * Lấy tên vai trò (role name).
