@@ -91,7 +91,7 @@ class CustomerController extends Controller
             'address'             => $validated['address'] ?? null,
             'password'            => Hash::make($password),
             'role'                => 3,
-            'is_active'           => $request->has('is_active'),
+            'is_active' => $request->boolean('is_active'),
             'must_update_profile' => true,
         ]);
 

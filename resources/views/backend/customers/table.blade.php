@@ -47,7 +47,7 @@
                         @if ($c->is_active)
                             <span class="badge rounded-pill bg-success">Kích hoạt</span>
                         @else
-                            <span class="badge rounded-pill bg-secondary">Ngừng</span>
+                            <span class="badge rounded-pill bg-secondary">Chưa kích hoạt</span>
                         @endif
                     </td>
 

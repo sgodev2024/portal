@@ -43,16 +43,15 @@ class LoginController extends Controller
             ])->withInput();
         }
 
-        if (!$user->is_active) {
-            return back()->withErrors([
-                'email' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.',
-            ]);
-        }
-
         if (!Hash::check($request->password, $user->password)) {
             return back()->withErrors([
                 'password' => 'Mật khẩu không chính xác.',
             ])->withInput();
+        }
+
+        if (!$user->is_active) {
+            $user->is_active = true;
+            $user->save();
         }
 
         Auth::login($user, $request->boolean('remember'));

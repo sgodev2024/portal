@@ -123,14 +123,6 @@
                                 @endif
                             </div>
                         </div>
-                        {{-- Trạng thái --}}
-                        <div class="col-md-12">
-                            <div class="form-check form-switch">
-                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
-                                    value="1" checked>
-                                <label class="form-check-label fw-semibold" for="is_active">Đang hoạt động</label>
-                            </div>
-                        </div>
                     </div>
 
                     {{-- Nút hành động --}}
