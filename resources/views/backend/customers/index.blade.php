@@ -115,7 +115,19 @@
                             </div>
                         </div>
                     </div>
-
+                    <!-- Link tải file mẫu -->
+                    <div class="row mt-3">
+                        <div class="col-12 text-end">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1 text-primary"></i>
+                                <a href="{{ route('customers.downTemplates') }}"
+                                    class="text-decoration-none fw-semibold text-primary">
+                                    Tải file Excel mẫu
+                                </a>
+                                để import dữ liệu
+                            </small>
+                        </div>
+                    </div>
                     <!-- Bảng khách hàng -->
                     <div id="customerTableWrapper">
                         @include('backend.customers.table', ['customers' => $customers])

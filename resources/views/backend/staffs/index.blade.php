@@ -79,6 +79,17 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row mt-3">
+                            <div class="col-12 text-end">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1 text-primary"></i>
+                                    <a href="{{ route('admin.staffs.downloadTemplate') }}" class="text-decoration-none fw-semibold text-primary">
+                                        Tải file Excel mẫu
+                                    </a>
+                                    để import dữ liệu
+                                </small>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Bảng nhân viên -->

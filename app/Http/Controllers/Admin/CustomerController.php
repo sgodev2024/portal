@@ -337,4 +337,14 @@ class CustomerController extends Controller
                 return back()->with('error', 'Hành động không hợp lệ.');
         }
     }
+    public function downTemplates()
+    {
+        $filePath = storage_path('app/public/templates/customer_import_template.xlsx');
+
+        if (!file_exists($filePath)) {
+            return back()->with('error', 'File mẫu không tồn tại.');
+        }
+
+        return response()->download($filePath, 'customer_import_template.xlsx');
+    }
 }

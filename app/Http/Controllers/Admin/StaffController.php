@@ -98,6 +98,7 @@ class StaffController extends Controller
             'email'      => 'required|email|unique:users,email,' . $staff->id,
             'department' => 'required|string|max:255',
             'position'   => 'required|string|max:255',
+            'role'       => 'required|integer|in:1,2,3',
             'password'   => 'nullable|string|min:6',
             'is_active'  => 'nullable|boolean'
         ], [
@@ -110,6 +111,8 @@ class StaffController extends Controller
             'email.unique'        => 'Email này đã được sử dụng.',
             'department.required' => 'Phòng ban không được để trống.',
             'position.required'   => 'Chức vụ không được để trống.',
+            'role.required'       => 'Vai trò không được để trống.',
+            'role.in'             => 'Vai trò không hợp lệ.',
             'password.min'        => 'Mật khẩu phải có ít nhất 6 ký tự.',
         ]);
 
@@ -119,6 +122,7 @@ class StaffController extends Controller
             'email'      => $validated['email'],
             'department' => $validated['department'],
             'position'   => $validated['position'],
+            'role'       => $validated['role'],
             'is_active'  => $request->has('is_active') ? 1 : 0,
         ];
 
@@ -160,5 +164,15 @@ class StaffController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('admin.staffs.index')->with('error', 'Import thất bại: ' . $e->getMessage());
         }
+    }
+    public function downloadTemplate()
+    {
+        $filePath = storage_path('app/public/templates/staff_import_template.xlsx');
+
+        if (!file_exists($filePath)) {
+            return back()->with('error', 'File mẫu không tồn tại.');
+        }
+
+        return response()->download($filePath, 'staff_import_template.xlsx');
     }
 }

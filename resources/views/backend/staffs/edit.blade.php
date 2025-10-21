@@ -64,6 +64,19 @@
                         @enderror
                     </div>
 
+                    <!-- Vai trò -->
+                    <div class="form-group mb-3">
+                        <label for="role">Vai trò <span class="text-danger">*</span></label>
+                        <select name="role" id="role" class="form-control @error('role') is-invalid @enderror" required>
+                            <option value="">-- Chọn vai trò --</option>
+                            <option value="1" {{ old('role', $staff->role) == 1 ? 'selected' : '' }}>Admin</option>
+                            <option value="2" {{ old('role', $staff->role) == 2 ? 'selected' : '' }}>Nhân viên</option>
+                        </select>
+                        @error('role')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <!-- Trạng thái hoạt động -->
                     <div class="form-check form-switch mb-3">
                         <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1"
