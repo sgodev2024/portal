@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\CustomerProfileRequest;
 
 class CustomerProfileController extends Controller
@@ -35,6 +36,11 @@ class CustomerProfileController extends Controller
         }
 
         $data = $request->validated();
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']);
+        }
         /** @var User $user */
         $user->update(array_merge($data, [
             'must_update_profile' => false,

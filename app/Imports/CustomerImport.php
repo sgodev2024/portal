@@ -27,6 +27,7 @@ class CustomerImport implements ToModel, WithHeadingRow
             'password'   => Hash::make($rawPassword),
             'role'       => 3,
             'is_active'  => isset($row['is_active']) ? (bool)$row['is_active'] : false,
+            'must_update_profile' => true,
         ]);
     }
 }
