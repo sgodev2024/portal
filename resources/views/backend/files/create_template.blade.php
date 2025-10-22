@@ -15,20 +15,20 @@
                         </a>
                     </div>
                 </div>
-                @if($errors->any())
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.files.store') }}" enctype="multipart/form-data">
+                    @if($errors->any())
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Có lỗi xảy ra:</h6>
+                        <ul class="mb-0">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
 
-                        <div class="alert alert-danger">
-    <h6><i class="fas fa-exclamation-triangle"></i> Có lỗi xảy ra:</h6>
-    <ul class="mb-0">
-        @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
+                    <form method="POST" action="{{ route('admin.files.store') }}" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="file_category" value="template">
                         
@@ -93,14 +93,3 @@
     </div>
 </div>
 @endsection
-@if($errors->any())
-<div class="alert alert-danger">
-    <h6><i class="fas fa-exclamation-triangle"></i> Có lỗi xảy ra:</h6>
-    <ul class="mb-0">
-        @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
-

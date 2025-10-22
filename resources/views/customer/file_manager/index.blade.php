@@ -13,13 +13,13 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ route('customer.files.index') }}">
+                        <a href="{{ route('customer.file_manager.index') }}">
                             <i class="fas fa-home"></i> Thư mục gốc
                         </a>
                     </li>
                     @foreach($breadcrumb as $folder)
                         <li class="breadcrumb-item">
-                            <a href="{{ route('customer.files.index', ['folder' => $folder->id]) }}">
+                            <a href="{{ route('customer.file_manager.index', ['folder' => $folder->id]) }}">
                                 {{ $folder->name }}
                             </a>
                         </li>
@@ -34,7 +34,7 @@
             <button class="btn btn-success" onclick="document.getElementById('fileInput').click()">
                 <i class="fas fa-upload me-1"></i>Upload File
             </button>
-            <a href="{{ route('customer.files.activities') }}" class="btn btn-info">
+            <a href="{{ route('customer.file_manager.activities') }}" class="btn btn-info">
                 <i class="fas fa-history me-1"></i>Lịch sử
             </a>
         </div>
@@ -155,7 +155,7 @@
                                     <td>{{ $file->created_at->format('d/m/Y H:i') }}</td>
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('customer.files.download', $file->id) }}" 
+                                            <a href="{{ route('customer.file_manager.download', $file->id) }}" 
                                                class="btn btn-success" 
                                                title="Tải xuống">
                                                 <i class="fas fa-download"></i>
@@ -195,7 +195,7 @@
 <div class="modal fade" id="createFolderModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('customer.files.create_folder') }}" method="POST">
+            <form action="{{ route('customer.file_manager.create_folder') }}" method="POST">
                 @csrf
                 <input type="hidden" name="parent_id" value="{{ $currentFolder->id ?? '' }}">
                 <div class="modal-header bg-primary text-white">
@@ -335,7 +335,7 @@ function uploadFiles(files) {
     `;
     document.body.appendChild(progressDiv);
 
-    fetch('{{ route("customer.files.upload") }}', {
+    fetch('{{ route("customer.file_manager.upload") }}', {
         method: 'POST',
         body: formData,
         headers: {
@@ -358,7 +358,7 @@ function uploadFiles(files) {
 }
 
 function openFolder(id) {
-    window.location.href = '{{ route("customer.files.index") }}?folder=' + id;
+    window.location.href = '{{ route("customer.file_manager.index") }}?folder=' + id;
 }
 
 function deleteFile(id, name) {

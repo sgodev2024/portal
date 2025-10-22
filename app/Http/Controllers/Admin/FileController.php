@@ -80,29 +80,41 @@ class FileController extends Controller
     }
 
     // Form tạo file mới
-    public function create(Request $request)
-    {
-        $type = $request->get('type', 'report');
-        
-        if ($type === 'report' || $request->routeIs('admin.files.create_report')) {
-            // Lấy danh sách khách hàng và nhóm
-            $customers = User::where('role', 3)
-                ->where('is_active', 1)
-                ->orderBy('name')
-                ->get();
+   // Form tạo file mới
+public function create(Request $request)
+{
+    if ($request->routeIs('admin.files.create_template')) {
+        return view('backend.files.create_template');
+    }
+    
+    if ($request->routeIs('admin.files.create_report')) {
+        $customers = User::where('role', 3)
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get();
 
-            $groups = CustomerGroup::orderBy('name')->get();
+        $groups = CustomerGroup::orderBy('name')->get();
 
-            return view('backend.files.create_report', compact('customers', 'groups'));
-        } else {
-            return view('backend.files.create_template');
-        }
+        return view('backend.files.create_report', compact('customers', 'groups'));
+    }
+    $type = $request->get('type', 'report');
+    
+    if ($type === 'template') {
+        return view('backend.files.create_template');
     }
 
-    // Xử lý lưu file
+    $customers = User::where('role', 3)
+        ->where('is_active', 1)
+        ->orderBy('name')
+        ->get();
+
+    $groups = CustomerGroup::orderBy('name')->get();
+
+    return view('backend.files.create_report', compact('customers', 'groups'));
+}
+
  public function store(Request $request)
 {
-    // Log để debug
     Log::info('File upload attempt', [
         'category' => $request->file_category,
         'has_file' => $request->hasFile('file'),
@@ -110,7 +122,6 @@ class FileController extends Controller
         'recipient_groups' => $request->recipient_group_ids
     ]);
 
-    // Validation cơ bản
     $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'nullable|string|max:1000',
