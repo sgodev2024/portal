@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\CustomerProfileRequest;
 
 class CustomerProfileController extends Controller
@@ -36,11 +37,20 @@ class CustomerProfileController extends Controller
         }
 
         $data = $request->validated();
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        }
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']);
         }
+        unset($data['current_password']);
+        unset($data['password_confirmation']);
+
         /** @var User $user */
         $user->update(array_merge($data, [
             'must_update_profile' => false,

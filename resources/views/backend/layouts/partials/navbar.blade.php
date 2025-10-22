@@ -94,12 +94,17 @@
             <li class="nav-item topbar-user dropdown hidden-caret">
                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                     <div class="avatar-sm">
-                        <img src="{{ asset('backend/assets/img/jm_denis.jpg') }}" alt="..."
-                            class="avatar-img rounded-circle" />
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar"
+                                class="avatar-img rounded-circle" />
+                        @else
+                            <img src="{{ asset('backend/assets/img/jm_denis.jpg') }}" alt="Default Avatar"
+                                class="avatar-img rounded-circle" />
+                        @endif
                     </div>
                     <span class="profile-username">
                         <span class="op-7">Hi,</span>
-                        <span class="fw-bold">{{ Auth::user()->full_name }}</span>
+                        <span class="fw-bold">{{ Auth::user()->name }}</span>
                     </span>
                 </a>
                 <ul class="dropdown-menu dropdown-user animated fadeIn" style="width: 287px">
@@ -107,20 +112,30 @@
                         <li>
                             <div class="user-box">
                                 <div class="avatar-lg">
-                                    <img src="{{ asset('backend/assets/img/jm_denis.jpg') }}" alt="image profile"
-                                        class="avatar-img rounded" />
+                                    @if(Auth::user()->avatar)
+                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar"
+                                            class="avatar-img rounded" />
+                                    @else
+                                        <img src="{{ asset('backend/assets/img/jm_denis.jpg') }}" alt="Default Avatar"
+                                            class="avatar-img rounded" />
+                                    @endif
                                 </div>
                                 <div class="u-text">
                                     <h4>{{ Auth::user()->name }}</h4>
                                     <p class="text-muted">{{ Auth::user()->email }}</p>
-                                    {{-- <a href="{{ route('profile') }}">
-                                        View Profile</a> --}}
                                 </div>
                             </div>
                         </li>
                         <li>
-
-                            <a class="dropdown-item" href="{{ route('logout') }}">Logout</a>
+                            <div class="dropdown-divider"></div>
+                            @if(Auth::user()->role_id == 3)
+                                <a class="dropdown-item" href="{{ route('customer.profile.edit') }}">
+                                    <i class="fas fa-user-cog"></i> Cập nhật thông tin
+                                </a>
+                            @endif
+                            <a class="dropdown-item" href="{{ route('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            </a>
                         </li>
                     </div>
                 </ul>

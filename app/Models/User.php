@@ -20,6 +20,7 @@ class User extends Authenticatable
         'position',
         'address',
         'password',
+        'avatar',
         'role',
         'is_active',
         'must_update_profile',
