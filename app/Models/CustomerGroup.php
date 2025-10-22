@@ -22,4 +22,12 @@ class CustomerGroup extends Model
     {
         return $this->belongsToMany(User::class, 'customer_group_user', 'customer_group_id', 'user_id');
     }
+
+    /**
+     * Scope: chỉ lấy nhóm active
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
+    }
 }
