@@ -86,11 +86,18 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        /** @var User|null $user */
+        $user = Auth::user();
+
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         Cookie::queue(Cookie::forget('laravel_session'));
+        if ($user && $user->role == 2 && $user->is_active) {
+            $user->is_active = false;
+            $user->save();
+        }
 
         return redirect()->route('login')->with('success', 'Đăng xuất thành công!');
     }

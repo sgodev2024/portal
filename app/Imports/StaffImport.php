@@ -21,7 +21,7 @@ class StaffImport implements ToModel, WithHeadingRow
             'position'   => $row['position'] ?? null,
             'password'   => Hash::make($rawPassword),
             'role'       => 2,
-            'is_active'  => true,
+            'is_active'  => isset($row['is_active']) ? (bool)$row['is_active'] : false,
         ]);
     }
 }

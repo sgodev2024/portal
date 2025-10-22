@@ -66,14 +66,6 @@
                         @enderror
                     </div>
 
-                    <!-- Trạng thái hoạt động -->
-                    <div class="form-check form-switch mb-3">
-                        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1"
-                            {{ old('is_active', 1) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="is_active">
-                            Tài khoản đang hoạt động
-                        </label>
-                    </div>
 
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">

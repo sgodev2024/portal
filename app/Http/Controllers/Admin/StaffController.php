@@ -74,7 +74,7 @@ class StaffController extends Controller
             'position'   => $validated['position'],
             'password'   => $password,
             'role'       => 2,
-            'is_active'  => true,
+            'is_active'  => false,
         ]);
 
         return redirect()->route('admin.staffs.index')->with('success', 'Thêm nhân viên thành công!');

@@ -35,7 +35,7 @@
                         @if($staff->is_active)
                             <span class="badge bg-success">Đang hoạt động</span>
                         @else
-                            <span class="badge bg-danger">Bị khóa</span>
+                            <span class="badge bg-danger">Chưa hoạt động</span>
                         @endif
                     </td>
                     <td>{{ $staff->created_at->format('d/m/Y') }}</td>
