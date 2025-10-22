@@ -63,6 +63,7 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::put('/update/{id}', [StaffController::class, 'update'])->name('update');
         Route::post('/delete-selected', [StaffController::class, 'deleteSelected'])->name('deleteSelected');
         Route::post('/import', [StaffController::class, 'import'])->name('import');
+        Route::get('/download-template', [StaffController::class, 'downloadTemplate'])->name('downloadTemplate');
     });
     Route::prefix('email-templates')->name('admin.email_templates.')->group(function () {
         Route::resource('/', EmailTemplateController::class)->parameters([
@@ -103,26 +104,30 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::get('/create-template', [FileController::class, 'create'])->name('create_template');
         Route::post('/', [FileController::class, 'store'])->name('store');
         // Tìm kiếm khách hàng/nhóm cho chọn người nhận
-        Route::get('/recipients/search', function(\Illuminate\Http\Request $request) {
+        Route::get('/recipients/search', function (\Illuminate\Http\Request $request) {
             $term = trim($request->get('q', ''));
             $users = \App\Models\User::where('role', 3)
                 ->where('is_active', 1)
-                ->when($term, function($q) use ($term) {
-                    $q->where(function($qq) use ($term) {
+                ->when($term, function ($q) use ($term) {
+                    $q->where(function ($qq) use ($term) {
                         $qq->where('name', 'like', "%{$term}%")
-                           ->orWhere('email', 'like', "%{$term}%");
+                            ->orWhere('email', 'like', "%{$term}%");
                     });
                 })
                 ->limit(20)
-                ->get(['id','name','email'])
-                ->map(function($u){ return ['id' => $u->id, 'text' => $u->name.' ('.$u->email.')']; });
+                ->get(['id', 'name', 'email'])
+                ->map(function ($u) {
+                    return ['id' => $u->id, 'text' => $u->name . ' (' . $u->email . ')'];
+                });
 
-            $groups = \App\Models\CustomerGroup::when($term, function($q) use ($term) {
-                    $q->where('name', 'like', "%{$term}%");
-                })
+            $groups = \App\Models\CustomerGroup::when($term, function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%");
+            })
                 ->limit(20)
-                ->get(['id','name'])
-                ->map(function($g){ return ['id' => $g->id, 'text' => $g->name]; });
+                ->get(['id', 'name'])
+                ->map(function ($g) {
+                    return ['id' => $g->id, 'text' => $g->name];
+                });
 
             return response()->json([
                 'users' => $users,
@@ -152,6 +157,8 @@ Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1
     Route::get('/edit/{id}', [CustomerController::class, 'edit'])->name('edit');
     Route::put('/update/{id}', [CustomerController::class, 'update'])->name('update');
     Route::post('/import', [CustomerController::class, 'import'])->name('import');
+    Route::get('/downTemplates', [CustomerController::class, 'downTemplates'])
+        ->name('downTemplates');
     Route::get('/{id}', [CustomerController::class, 'show'])->name('show');
     Route::post('/bulk-action', [CustomerController::class, 'bulkAction'])->name('bulkAction');
     Route::post('/bulk-action', [CustomerController::class, 'bulkAction'])->name('bulkAction');
@@ -194,7 +201,7 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
     //     Route::get('/templates/{id}/download', [FileCustomerController::class, 'downloadTemplate'])->name('download_template');
     //     Route::get('/my-downloads', [FileCustomerController::class, 'myDownloads'])->name('my_downloads');
     // });
-     Route::prefix('files')->name('files.')->group(function () {
+    Route::prefix('files')->name('files.')->group(function () {
         Route::get('/reports', [FileCustomerController::class, 'reports'])->name('reports');
         Route::get('/reports/{id}', [FileCustomerController::class, 'showReport'])->name('show_report');
         Route::get('/reports/{id}/download', [FileCustomerController::class, 'downloadReport'])->name('download_report');
@@ -214,7 +221,7 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
     //     Route::post('/{id}/move', [FileManagerController::class, 'moveFile'])->name('move');
     //     Route::get('/activities/list', [FileManagerController::class, 'activities'])->name('activities');
     // });
-        Route::prefix('file-manager')->name('file_manager.')->group(function () {
+    Route::prefix('file-manager')->name('file_manager.')->group(function () {
         Route::get('/', [FileManagerController::class, 'index'])->name('index');
         Route::post('/upload', [FileManagerController::class, 'upload'])->name('upload');
         Route::post('/create-folder', [FileManagerController::class, 'createFolder'])->name('create_folder');
@@ -224,7 +231,7 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
         Route::post('/{id}/move', [FileManagerController::class, 'moveFile'])->name('move');
         Route::get('/activities/list', [FileManagerController::class, 'activities'])->name('activities');
     });
-    
+
     Route::prefix('folders')->name('folders.')->group(function () {
         Route::delete('/{id}', [FileManagerController::class, 'deleteFolder'])->name('delete');
     });
