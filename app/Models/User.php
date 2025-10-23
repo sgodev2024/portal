@@ -39,6 +39,24 @@ class User extends Authenticatable
         return $this->belongsToMany(CustomerGroup::class, 'customer_group_user', 'user_id', 'customer_group_id');
     }
 
+    /**
+     * Quan hệ: nhân viên phụ trách các nhóm khách hàng
+     */
+    public function managedGroups()
+    {
+        return $this->belongsToMany(CustomerGroup::class, 'staff_customer_group', 'staff_id', 'customer_group_id')
+                    ->withPivot('is_primary')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Quan hệ: nhân viên phụ trách nhóm (chỉ nhân viên)
+     */
+    public function staffManagedGroups()
+    {
+        return $this->hasMany(StaffCustomerGroup::class, 'staff_id');
+    }
+
 
     /**
      * Lấy tên vai trò (role name).

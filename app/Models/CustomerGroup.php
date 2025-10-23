@@ -24,6 +24,32 @@ class CustomerGroup extends Model
     }
 
     /**
+     * Quan hệ: nhóm được phụ trách bởi nhiều nhân viên
+     */
+    public function staff()
+    {
+        return $this->belongsToMany(User::class, 'staff_customer_group', 'customer_group_id', 'staff_id')
+                    ->withPivot('is_primary')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Quan hệ: nhân viên phụ trách nhóm
+     */
+    public function staffManagedGroups()
+    {
+        return $this->hasMany(StaffCustomerGroup::class, 'customer_group_id');
+    }
+
+    /**
+     * Lấy nhân viên chính phụ trách nhóm
+     */
+    public function primaryStaff()
+    {
+        return $this->staff()->wherePivot('is_primary', true)->first();
+    }
+
+    /**
      * Scope: chỉ lấy nhóm active
      */
     public function scopeActive($query)

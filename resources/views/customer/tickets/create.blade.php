@@ -70,6 +70,68 @@
                             <small class="text-muted d-block mt-2">Nhập tiêu đề ngắn gọn về vấn đề của bạn</small>
                         </div>
 
+                        {{-- Danh mục và Mức độ ưu tiên --}}
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="category" class="form-label fw-bold fs-5">
+                                    Danh mục <span class="text-danger">*</span>
+                                </label>
+                                <select 
+                                    class="form-select form-select-lg @error('category') is-invalid @enderror" 
+                                    id="category" 
+                                    name="category" 
+                                    required
+                                >
+                                    <option value="">-- Chọn danh mục --</option>
+                                    @foreach($categories as $key => $label)
+                                        <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('category')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted d-block mt-2">Chọn danh mục phù hợp với vấn đề</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="priority" class="form-label fw-bold fs-5">
+                                    Mức độ ưu tiên <span class="text-danger">*</span>
+                                </label>
+                                <select 
+                                    class="form-select form-select-lg @error('priority') is-invalid @enderror" 
+                                    id="priority" 
+                                    name="priority" 
+                                    required
+                                >
+                                    <option value="">-- Chọn mức độ --</option>
+                                    @foreach($priorities as $key => $label)
+                                        <option value="{{ $key }}" {{ old('priority', 'normal') == $key ? 'selected' : '' }}>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('priority')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted d-block mt-2">Đánh giá mức độ khẩn cấp</small>
+                            </div>
+                        </div>
+
+                        {{-- Hướng dẫn chọn mức độ ưu tiên --}}
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading fw-bold">
+                                <i class="bi bi-info-circle me-2"></i>Hướng dẫn chọn mức độ ưu tiên:
+                            </h6>
+                            <ul class="mb-0 small">
+                                <li><strong>Khẩn cấp:</strong> Hệ thống bị sập, không thể hoạt động - Phản hồi trong 1-2 giờ</li>
+                                <li><strong>Cao:</strong> Lỗi nghiêm trọng ảnh hưởng nhiều chức năng - Phản hồi trong 4-8 giờ</li>
+                                <li><strong>Bình thường:</strong> Vấn đề thông thường cần hỗ trợ - Phản hồi trong 1 ngày</li>
+                                <li><strong>Thấp:</strong> Câu hỏi, góp ý không khẩn cấp - Phản hồi trong 2-3 ngày</li>
+                            </ul>
+                        </div>
+
                         {{-- Mô tả chi tiết --}}
                         <div class="mb-4">
                             <label for="description" class="form-label fw-bold fs-5">
@@ -85,6 +147,31 @@
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                             <small class="text-muted d-block mt-2">Càng chi tiết càng tốt để chúng tôi có thể giúp bạn nhanh hơn</small>
+                        </div>
+
+                        {{-- Tips --}}
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="bi bi-lightbulb text-warning me-2"></i>Mẹo tạo ticket hiệu quả:
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <ul class="small mb-0">
+                                            <li>Mô tả rõ ràng, cụ thể vấn đề</li>
+                                            <li>Cung cấp các bước tái hiện lỗi</li>
+                                            <li>Đính kèm ảnh chụp màn hình nếu có</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul class="small mb-0">
+                                            <li>Ghi rõ thời gian xảy ra vấn đề</li>
+                                            <li>Chọn đúng danh mục và mức độ</li>
+                                            <li>Tránh tạo ticket trùng lặp</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Nút hành động --}}
@@ -135,12 +222,39 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('#description').value = data;
         }
     });
+
+    // Hiển thị thông tin khi chọn category
+    const categorySelect = document.getElementById('category');
+    const prioritySelect = document.getElementById('priority');
+    
+    // Auto-suggest priority based on category
+    categorySelect.addEventListener('change', function() {
+        const suggestedPriority = {
+            'technical': 'high',
+            'billing': 'normal',
+            'complaint': 'high',
+            'general': 'normal',
+            'feature_request': 'low',
+            'other': 'normal'
+        };
+        
+        const suggested = suggestedPriority[this.value];
+        if (suggested && !prioritySelect.value) {
+            prioritySelect.value = suggested;
+        }
+    });
 });
 </script>
 
 <style>
 .ck-editor__editable {
     min-height: 400px !important;
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
 }
 </style>
 @endsection

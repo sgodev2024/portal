@@ -134,7 +134,8 @@
                     {{-- Quản lý khách hàng --}}
                     @php
                         $isCustomerManageActive = request()->routeIs('customers.*') 
-                            || request()->routeIs('admin.customer-groups.*');
+                            || request()->routeIs('admin.customer-groups.*')
+                            || request()->routeIs('admin.group-staff.*');
                     @endphp
                     <li class="nav-item {{ $isCustomerManageActive ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#customerMenu">
@@ -153,6 +154,13 @@
                                     <li class="{{ request()->routeIs('admin.customer-groups.*') ? 'active' : '' }}">
                                         <a href="{{ route('admin.customer-groups.index') }}">
                                             <span class="sub-item">Nhóm khách hàng</span>
+                                        </a>
+                                    </li>
+                                @endif
+                                @if (Route::has('admin.group-staff.index'))
+                                    <li class="{{ request()->routeIs('admin.group-staff.*') ? 'active' : '' }}">
+                                        <a href="{{ route('admin.group-staff.index') }}">
+                                            <span class="sub-item">Nhân viên - Nhóm</span>
                                         </a>
                                     </li>
                                 @endif
@@ -228,13 +236,7 @@
                             <p>Chat khách hàng</p>
                         </a>
                     </li>
-                @elseif ($userRole == 3)
-                    <li class="nav-item {{ request()->routeIs('customer.chatcustomer.*') ? 'active' : '' }}">
-                        <a href="{{ route('customer.chatcustomer.index') }}">
-                            <i class="fas fa-comments"></i>
-                            <p>Live Chat</p>
-                        </a>
-                    </li>
+              
                 @endif
 
                 {{-- ============ QUẢN LÝ FILE (Admin/Staff) ============ --}}
@@ -266,6 +268,7 @@
                                         </a>
                                     </li>
                                 @endif
+                                
                             </ul>
                         </div>
                     </li>
