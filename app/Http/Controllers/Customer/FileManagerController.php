@@ -15,26 +15,35 @@ use Illuminate\Support\Str;
 
 class FileManagerController extends Controller
 {
-    // Hiển thị file manager
+    // Index - Luôn bắt đầu từ root folder
     public function index(Request $request)
     {
         $user = Auth::user();
-        $folderId = $request->folder;
+        
+        // Lấy root folder của user
+        $rootFolder = UserFolder::where('user_id', $user->id)
+            ->where('is_root', true)
+            ->first();
+        
+        if (!$rootFolder) {
+            // Tạo nếu chưa có (fallback)
+            $rootFolder = $this->createRootFolder($user);
+        }
+        
+        // Nếu không có folder_id trong request, dùng root
+        $folderId = $request->folder ?: $rootFolder->id;
 
         // Lấy thông tin storage quota
         $quota = UserStorageQuota::firstOrCreate(
             ['user_id' => $user->id],
-            ['quota_limit' => 1073741824] // 1GB default
+            ['quota_limit' => 1073741824]
         );
 
         // Lấy folder hiện tại
-        $currentFolder = null;
-        if ($folderId) {
-            $currentFolder = UserFolder::where('user_id', $user->id)
-                ->findOrFail($folderId);
-        }
+        $currentFolder = UserFolder::where('user_id', $user->id)
+            ->findOrFail($folderId);
 
-        // Lấy danh sách folders
+        // Lấy danh sách folders con
         $folders = UserFolder::where('user_id', $user->id)
             ->where('parent_id', $folderId)
             ->orderBy('name')
@@ -46,31 +55,53 @@ class FileManagerController extends Controller
             ->latest()
             ->get();
 
-        // Breadcrumb
+        // ✅ Lấy tất cả folders để hiển thị trong modal di chuyển
+        $allFolders = UserFolder::where('user_id', $user->id)
+            ->where('is_root', false)
+            ->orderBy('path')
+            ->get();
+
+        // Breadcrumb - Bỏ root khỏi breadcrumb để gọn hơn
         $breadcrumb = [];
-        if ($currentFolder) {
-            $breadcrumb = $currentFolder->breadcrumb;
+        if (!$currentFolder->is_root) {
+            $breadcrumbFull = $currentFolder->breadcrumb;
+            // Lọc bỏ root folder
+            $breadcrumb = $breadcrumbFull->filter(function($folder) {
+                return !$folder->is_root;
+            })->values();
         }
 
         return view('customer.file_manager.index', compact(
             'folders', 
             'files', 
-            'currentFolder', 
+            'currentFolder',
+            'rootFolder',
             'breadcrumb',
-            'quota'
+            'quota',
+            'allFolders' // ← ✅ QUAN TRỌNG: Thêm biến này
         ));
     }
 
-    // Tạo folder mới
+    // Tạo folder mới - KHÔNG cho tạo nếu parent_id = null
     public function createFolder(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:user_folders,id',
+            'parent_id' => 'required|exists:user_folders,id',
             'description' => 'nullable|string|max:500',
         ]);
 
         $user = Auth::user();
+        
+        // Kiểm tra parent folder thuộc về user
+        $parent = UserFolder::where('user_id', $user->id)
+            ->findOrFail($request->parent_id);
+
+        // Không cho tạo folder trong root nếu parent là root
+        if ($parent->is_root) {
+            // Cho phép tạo subfolder level 1 trong root
+            // Nhưng không cho tạo folder có tên trùng với user_X
+        }
 
         // Kiểm tra trùng tên trong cùng parent
         $exists = UserFolder::where('user_id', $user->id)
@@ -82,43 +113,50 @@ class FileManagerController extends Controller
             return back()->with('error', 'Tên thư mục đã tồn tại!');
         }
 
-        // Tạo path
-        $path = '/user_' . $user->id;
-        if ($request->parent_id) {
-            $parent = UserFolder::find($request->parent_id);
-            $path = $parent->path . '/' . Str::slug($request->name);
-        } else {
-            $path .= '/' . Str::slug($request->name);
+        // Tạo path dựa trên parent
+        $slugName = Str::slug($request->name);
+        $path = $parent->path . '/' . $slugName;
+
+        DB::beginTransaction();
+        try {
+            $folder = UserFolder::create([
+                'user_id' => $user->id,
+                'parent_id' => $request->parent_id,
+                'name' => $request->name,
+                'path' => $path,
+                'description' => $request->description,
+                'is_root' => false,
+            ]);
+
+            // Tạo physical folder
+            Storage::disk('public')->makeDirectory($path);
+
+            // Log activity
+            UserFileActivity::create([
+                'user_id' => $user->id,
+                'folder_id' => $folder->id,
+                'action' => 'create_folder',
+                'description' => "Tạo thư mục: {$request->name}",
+                'ip_address' => request()->ip(),
+                'created_at' => now(),
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Đã tạo thư mục thành công!');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
-
-        $folder = UserFolder::create([
-            'user_id' => $user->id,
-            'parent_id' => $request->parent_id,
-            'name' => $request->name,
-            'path' => $path,
-            'description' => $request->description,
-        ]);
-
-        // Log activity
-        UserFileActivity::create([
-            'user_id' => $user->id,
-            'folder_id' => $folder->id,
-            'action' => 'create_folder',
-            'description' => "Tạo thư mục: {$request->name}",
-            'ip_address' => request()->ip(),
-            'created_at' => now(),
-        ]);
-
-        return back()->with('success', 'Đã tạo thư mục thành công!');
     }
 
-    // Upload file (drag & drop hoặc form)
+    // Upload file - LƯU VÀO ĐÚNG FOLDER PATH
     public function upload(Request $request)
     {
         $request->validate([
             'files' => 'required|array',
-            'files.*' => 'file|max:102400', // 100MB per file
-            'folder_id' => 'nullable|exists:user_folders,id',
+            'files.*' => 'file|max:102400', // 100MB
+            'folder_id' => 'required|exists:user_folders,id',
         ]);
 
         $user = Auth::user();
@@ -127,6 +165,10 @@ class FileManagerController extends Controller
         if (!$quota) {
             return response()->json(['error' => 'Không tìm thấy thông tin quota'], 400);
         }
+
+        // Lấy folder hiện tại
+        $folder = UserFolder::where('user_id', $user->id)
+            ->findOrFail($request->folder_id);
 
         DB::beginTransaction();
         try {
@@ -147,8 +189,8 @@ class FileManagerController extends Controller
                 $fileName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) 
                     . '_' . time() . '_' . Str::random(6) . '.' . $extension;
 
-                // Lưu vào thư mục user
-                $path = $file->storeAs('users/user_' . $user->id, $fileName, 'public');
+                // ✅ LƯU VÀO ĐÚNG FOLDER PATH
+                $path = $file->storeAs($folder->path, $fileName, 'public');
 
                 $userFile = UserFile::create([
                     'user_id' => $user->id,
@@ -264,16 +306,26 @@ class FileManagerController extends Controller
         }
     }
 
-    // Xóa folder
+    // Xóa folder - KHÔNG cho xóa root
     public function deleteFolder($id)
     {
         $user = Auth::user();
         $folder = UserFolder::where('user_id', $user->id)->findOrFail($id);
 
+        // Ngăn xóa root folder
+        if ($folder->is_root) {
+            return back()->with('error', 'Không thể xóa thư mục gốc!');
+        }
+
         DB::beginTransaction();
         try {
             // Xóa tất cả files trong folder (recursive)
             $this->deleteFolderRecursive($folder);
+
+            // Xóa physical folder
+            if (Storage::disk('public')->exists($folder->path)) {
+                Storage::disk('public')->deleteDirectory($folder->path);
+            }
 
             // Log activity
             UserFileActivity::create([
@@ -308,11 +360,11 @@ class FileManagerController extends Controller
         $file = UserFile::where('user_id', $user->id)->findOrFail($id);
 
         $oldName = $file->original_name;
-        $extension = pathinfo($file->name, PATHINFO_EXTENSION);
-        $newFileName = Str::slug($request->name) . '.' . $extension;
+        $extension = pathinfo($file->original_name, PATHINFO_EXTENSION);
+        $newOriginalName = $request->name . '.' . $extension;
 
         $file->update([
-            'original_name' => $request->name . '.' . $extension,
+            'original_name' => $newOriginalName,
         ]);
 
         // Log activity
@@ -320,7 +372,7 @@ class FileManagerController extends Controller
             'user_id' => $user->id,
             'file_id' => $file->id,
             'action' => 'rename',
-            'description' => "Đổi tên: {$oldName} → {$request->name}",
+            'description' => "Đổi tên: {$oldName} → {$newOriginalName}",
             'ip_address' => request()->ip(),
             'created_at' => now(),
         ]);
@@ -332,31 +384,55 @@ class FileManagerController extends Controller
     public function moveFile(Request $request, $id)
     {
         $request->validate([
-            'folder_id' => 'nullable|exists:user_folders,id',
+            'folder_id' => 'required|exists:user_folders,id',
         ]);
 
         $user = Auth::user();
         $file = UserFile::where('user_id', $user->id)->findOrFail($id);
 
         // Kiểm tra folder đích thuộc user
-        if ($request->folder_id) {
-            $targetFolder = UserFolder::where('user_id', $user->id)
-                ->findOrFail($request->folder_id);
+        $targetFolder = UserFolder::where('user_id', $user->id)
+            ->findOrFail($request->folder_id);
+
+        // Không di chuyển nếu đã ở folder đích
+        if ($file->folder_id == $request->folder_id) {
+            return back()->with('info', 'File đã ở thư mục này rồi!');
         }
 
-        $file->update(['folder_id' => $request->folder_id]);
+        DB::beginTransaction();
+        try {
+            // Di chuyển file vật lý
+            $oldPath = $file->file_path;
+            $fileName = basename($oldPath);
+            $newPath = $targetFolder->path . '/' . $fileName;
 
-        // Log activity
-        UserFileActivity::create([
-            'user_id' => $user->id,
-            'file_id' => $file->id,
-            'action' => 'move',
-            'description' => "Di chuyển file: {$file->original_name}",
-            'ip_address' => request()->ip(),
-            'created_at' => now(),
-        ]);
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->move($oldPath, $newPath);
+            }
 
-        return back()->with('success', 'Đã di chuyển file thành công!');
+            $file->update([
+                'folder_id' => $request->folder_id,
+                'file_path' => $newPath
+            ]);
+
+            // Log activity
+            UserFileActivity::create([
+                'user_id' => $user->id,
+                'file_id' => $file->id,
+                'action' => 'move',
+                'description' => "Di chuyển file: {$file->original_name} → {$targetFolder->name}",
+                'ip_address' => request()->ip(),
+                'created_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return back()->with('success', 'Đã di chuyển file thành công!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
     }
 
     // Lịch sử hoạt động
@@ -391,6 +467,24 @@ class FileManagerController extends Controller
         $subfolders = UserFolder::where('parent_id', $folder->id)->get();
         foreach ($subfolders as $subfolder) {
             $this->deleteFolderRecursive($subfolder);
+            $subfolder->delete();
         }
+    }
+
+    // Helper: Tạo root folder
+    private function createRootFolder($user)
+    {
+        $rootFolder = UserFolder::create([
+            'user_id' => $user->id,
+            'parent_id' => null,
+            'name' => 'user_' . $user->id,
+            'path' => 'users/user_' . $user->id,
+            'description' => 'Thư mục gốc',
+            'is_root' => true,
+        ]);
+        
+        Storage::disk('public')->makeDirectory($rootFolder->path);
+        
+        return $rootFolder;
     }
 }

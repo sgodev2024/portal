@@ -9,7 +9,7 @@ class TicketMessage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ticket_id', 'sender_id', 'message', 'attachment'
+        'ticket_id', 'sender_id', 'message', 'attachment', 'is_system_message'
     ];
 
     public function ticket()

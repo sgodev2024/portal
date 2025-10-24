@@ -21,6 +21,7 @@ use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Customer\FileCustomerController;
 use App\Http\Controllers\Customer\CustomerNotificationController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
+use App\Http\Controllers\Admin\GroupStaffController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -90,6 +91,14 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::put('/{id}', [CustomerGroupController::class, 'update'])->name('update');
         Route::delete('/{id}', [CustomerGroupController::class, 'destroy'])->name('destroy');
     });
+
+    // Quản lý nhân viên - nhóm khách hàng
+    Route::prefix('group-staff')->name('admin.group-staff.')->group(function () {
+        Route::get('/', [GroupStaffController::class, 'index'])->name('index');
+        Route::post('/assign', [GroupStaffController::class, 'assign'])->name('assign');
+        Route::delete('/{groupId}/{staffId}', [GroupStaffController::class, 'remove'])->name('remove');
+Route::post('/{groupId}/reassign-tickets', [GroupStaffController::class, 'reassignUnassignedTickets'])->name('reassign-tickets');
+    });
 });
 // route admin, nhân viên
 
@@ -148,6 +157,10 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('/{id}', [AdminTicketController::class, 'show'])->name('show');
         Route::post('/{id}/reply', [AdminTicketController::class, 'reply'])->name('reply');
         Route::patch('/{id}/close', [AdminTicketController::class, 'close'])->name('close');
+        Route::get('/{id}/messages', [AdminTicketController::class, 'getMessages'])->name('messages');
+        Route::post('/{id}/assign', [AdminTicketController::class, 'assign'])
+            ->name('assign')
+            ->middleware('checkRole:1');
     });
 });
 Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1,2'])->group(function () {
@@ -230,6 +243,7 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
         Route::post('/{id}/rename', [FileManagerController::class, 'renameFile'])->name('rename');
         Route::post('/{id}/move', [FileManagerController::class, 'moveFile'])->name('move');
         Route::get('/activities/list', [FileManagerController::class, 'activities'])->name('activities');
+        
     });
 
     Route::prefix('folders')->name('folders.')->group(function () {
@@ -245,6 +259,7 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
         Route::post('/', [TicketController::class, 'store'])->name('store');
         Route::get('/{id}', [TicketController::class, 'show'])->name('show');
         Route::post('/{id}/reply', [TicketController::class, 'reply'])->name('reply');
+        Route::get('/{id}/messages', [TicketController::class, 'getMessages'])->name('messages');
     });
     Route::prefix('notifications')
         ->name('notifications.')
