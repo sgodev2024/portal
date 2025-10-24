@@ -1,14 +1,14 @@
 @php
     use App\Models\Ticket;
     use App\Models\Notification as NotificationModel;
-    
+
     $userRole = auth()->user()->role;
     $dashboardRoute = match($userRole) {
         1 => 'admin.dashboard',
         2 => 'staff.dashboard',
         default => 'customer.dashboard',
     };
-    
+
     $openTickets = in_array($userRole, [1, 2]) ? Ticket::where('status', 'open')->count() : 0;
 @endphp
 
@@ -73,7 +73,7 @@
     <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
             <ul class="nav nav-secondary">
-                
+
                 {{-- Dashboard --}}
                 <li class="nav-item {{ request()->routeIs($dashboardRoute) ? 'active' : '' }}">
                     <a href="{{ route($dashboardRoute) }}">
@@ -89,11 +89,11 @@
 
                 {{-- ============ ADMIN MENUS ============ --}}
                 @if ($userRole == 1)
-                    
+
                     {{-- Cấu hình --}}
                     @php
-                        $isConfigActive = request()->routeIs('company.index') 
-                            || request()->routeIs('admin.staffs.*') 
+                        $isConfigActive = request()->routeIs('company.index')
+                            || request()->routeIs('admin.staffs.*')
                             || request()->routeIs('admin.email_templates.*');
                     @endphp
                     <li class="nav-item {{ $isConfigActive ? 'active' : '' }}">
@@ -133,7 +133,7 @@
 
                     {{-- Quản lý khách hàng --}}
                     @php
-                        $isCustomerManageActive = request()->routeIs('customers.*') 
+                        $isCustomerManageActive = request()->routeIs('customers.*')
                             || request()->routeIs('admin.customer-groups.*')
                             || request()->routeIs('admin.group-staff.*');
                     @endphp
@@ -172,7 +172,7 @@
 
                 {{-- ============ STAFF MENUS ============ --}}
                 @if ($userRole == 2)
-                    
+
                     {{-- Thông báo Staff --}}
                     <li class="nav-item {{ request()->routeIs('staff.notifications.*') ? 'active' : '' }}">
                         <a href="{{ route('staff.notifications.index') }}">
@@ -186,7 +186,7 @@
 
                 {{-- ============ CUSTOMER MENUS ============ --}}
                 @if ($userRole == 3)
-                    
+
                     {{-- Thông báo Customer --}}
                     <li class="nav-item {{ request()->routeIs('customer.notifications.*') ? 'active' : '' }}">
                         <a href="{{ route('customer.notifications.index') }}">
@@ -236,11 +236,11 @@
                             <p>Chat khách hàng</p>
                         </a>
                     </li>
-              
+
                 @endif
 
                 {{-- ============ QUẢN LÝ FILE (Admin/Staff) ============ --}}
-                @if (in_array($userRole, [1, 2]))
+                @if (in_array($userRole, [1]))
                     <li class="nav-item {{ request()->routeIs('admin.files.*') ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#files">
                             <i class="fas fa-folder-open"></i>
@@ -268,7 +268,7 @@
                                         </a>
                                     </li>
                                 @endif
-                                
+
                             </ul>
                         </div>
                     </li>
@@ -282,18 +282,18 @@
                         $hasTemplatesRoute = Route::has('customer.files.templates');
                         $hasFileManagerRoute = Route::has('customer.file_manager.index');
                         $hasDownloadsRoute = Route::has('customer.files.my_downloads');
-                        
+
                         // Déterminer si le menu doit être actif
                         $isCustomerFilesActive = request()->routeIs('customer.files.reports')
                             || request()->routeIs('customer.files.show_report')
                             || request()->routeIs('customer.files.templates')
                             || request()->routeIs('customer.files.my_downloads')
                             || request()->routeIs('customer.file_manager.*');
-                        
+
                         // Afficher le menu si au moins une route existe
                         $showCustomerFilesMenu = $hasReportsRoute || $hasTemplatesRoute || $hasFileManagerRoute || $hasDownloadsRoute;
                     @endphp
-                    
+
                     @if ($showCustomerFilesMenu)
                         <li class="nav-item {{ $isCustomerFilesActive ? 'active' : '' }}">
                             <a data-bs-toggle="collapse" href="#customerFiles">
@@ -310,7 +310,7 @@
                                             </a>
                                         </li>
                                     @endif
-                                    
+
                                     @if ($hasTemplatesRoute)
                                         <li class="{{ request()->routeIs('customer.files.templates') ? 'active' : '' }}">
                                             <a href="{{ route('customer.files.templates') }}">
@@ -318,7 +318,7 @@
                                             </a>
                                         </li>
                                     @endif
-                                    
+
                                     @if ($hasFileManagerRoute)
                                         <li class="{{ request()->routeIs('customer.file_manager.*') ? 'active' : '' }}">
                                             <a href="{{ route('customer.file_manager.index') }}">
@@ -326,7 +326,7 @@
                                             </a>
                                         </li>
                                     @endif
-                                    
+
                                     @if ($hasDownloadsRoute)
                                         <li class="{{ request()->routeIs('customer.files.my_downloads') ? 'active' : '' }}">
                                             <a href="{{ route('customer.files.my_downloads') }}">
@@ -389,7 +389,7 @@ $(document).ready(function() {
         // Marquer le sous-menu comme actif
         $('.nav-collapse li').removeClass('active');
         $(this).parent('li').addClass('active');
-        
+
         // Garder le menu parent ouvert
         const $collapse = $(this).closest('.collapse');
         if ($collapse.length) {
@@ -403,11 +403,11 @@ $(document).ready(function() {
         // Retirer l'état actif des autres menus
         $('.nav-item').removeClass('active');
         $(this).parent('.nav-item').addClass('active');
-        
+
         // Fermer tous les menus déroulants
         $('.collapse.show').removeClass('show');
         $('.nav-item > a[data-bs-toggle="collapse"]').attr('aria-expanded', 'false');
-        
+
         // Nettoyer le localStorage
         localStorage.removeItem('activeMenu');
     });
@@ -421,7 +421,7 @@ $(document).ready(function() {
             success: function(res) {
                 const count = res.count || 0;
                 const role = {{ $userRole }};
-                
+
                 if (role === 2) {
                     const $badge = $('#badge-notif-count-staff');
                     if (count > 0) {

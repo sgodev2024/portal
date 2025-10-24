@@ -33,9 +33,9 @@
                     <td>{{ $staff->position ?? '-' }}</td>
                     <td>
                         @if($staff->is_active)
-                            <span class="badge bg-success">Đang hoạt động</span>
+                            <span class="badge bg-success">Online</span>
                         @else
-                            <span class="badge bg-danger">Chưa hoạt động</span>
+                            <span class="badge bg-danger">Offline</span>
                         @endif
                     </td>
                     <td>{{ $staff->created_at->format('d/m/Y') }}</td>
