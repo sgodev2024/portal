@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\User;
+use App\Models\CustomerGroup;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -23,10 +24,10 @@ class DashboardController extends Controller
                 // Thống kê ticket
                 'ticket_stats' => [
                     'total' => Ticket::count(),
-                    'open' => Ticket::where('status', 'open')->count(),
-                    'in_progress' => Ticket::where('status', 'in_progress')->count(),
-                    'closed' => Ticket::where('status', 'closed')->count(),
-                    'unassigned' => Ticket::whereNull('assigned_to')->count(),
+                    'new' => Ticket::where('status', Ticket::STATUS_NEW)->count(),
+                    'in_progress' => Ticket::where('status', Ticket::STATUS_IN_PROGRESS)->count(),
+                    'closed' => Ticket::where('status', Ticket::STATUS_CLOSED)->count(),
+                    'unassigned' => Ticket::whereNull('assigned_staff_id')->count(),
                 ],
                 
                 'recent_tickets' => Ticket::with(['user', 'assignedStaff', 'messages'])
@@ -38,22 +39,34 @@ class DashboardController extends Controller
 
         // Dữ liệu cho STAFF
         if ($user->role == 2) {
+            // Query tickets của staff (bao gồm cả tickets của nhóm)
+            $staffTicketsQuery = Ticket::where(function($q) use ($user) {
+                $q->where('assigned_staff_id', $user->id)
+                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
+                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
+                          $staffQuery->where('staff_id', $user->id);
+                      });
+                  });
+            });
+
             $data = [
-                'my_customers' => User::where('role', 3)->count(),
+                'my_customers' => User::where('role', 3)
+                    ->whereHas('groups.staff', function($q) use ($user) {
+                        $q->where('staff_id', $user->id);
+                    })
+                    ->count(),
                 
-                // Thống kê ticket của nhân viên
+                // Thống kê ticket của nhân viên (cả assigned và nhóm)
                 'ticket_stats' => [
-                    'total' => Ticket::where('assigned_to', $user->id)->count(),
-                    'open' => Ticket::where('assigned_to', $user->id)
-                        ->where('status', 'open')->count(),
-                    'in_progress' => Ticket::where('assigned_to', $user->id)
-                        ->where('status', 'in_progress')->count(),
-                    'closed' => Ticket::where('assigned_to', $user->id)
-                        ->where('status', 'closed')->count(),
+                    'total' => (clone $staffTicketsQuery)->count(),
+                    'new' => (clone $staffTicketsQuery)->where('status', Ticket::STATUS_NEW)->count(),
+                    'in_progress' => (clone $staffTicketsQuery)->where('status', Ticket::STATUS_IN_PROGRESS)->count(),
+                    'closed' => (clone $staffTicketsQuery)->where('status', Ticket::STATUS_CLOSED)->count(),
+                    'assigned_to_me' => Ticket::where('assigned_staff_id', $user->id)->count(),
                 ],
                 
-                'recent_tickets' => Ticket::where('assigned_to', $user->id)
-                    ->with(['user', 'messages'])
+                'recent_tickets' => (clone $staffTicketsQuery)
+                    ->with(['user', 'assignedStaff', 'messages'])
                     ->latest()
                     ->limit(5)
                     ->get(),
@@ -62,21 +75,28 @@ class DashboardController extends Controller
 
         // Dữ liệu cho CUSTOMER
         if ($user->role == 3) {
+            // Query tickets của customer (cả cá nhân và nhóm)
+            $customerTicketsQuery = Ticket::where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereHas('user', function($userQuery) use ($user) {
+                      $userQuery->whereHas('groups', function($groupQuery) use ($user) {
+                          $groupQuery->whereIn('customer_group_id', $user->groups()->pluck('customer_group_id'));
+                      });
+                  });
+            });
+
             $data = [
-                'my_tickets' => Ticket::where('user_id', $user->id)
-                    ->with('messages')
+                'my_tickets' => (clone $customerTicketsQuery)
+                    ->with(['messages', 'assignedStaff'])
                     ->latest()
                     ->limit(5)
                     ->get(),
                     
                 'ticket_stats' => [
-                    'total' => Ticket::where('user_id', $user->id)->count(),
-                    'open' => Ticket::where('user_id', $user->id)
-                        ->where('status', 'open')->count(),
-                    'in_progress' => Ticket::where('user_id', $user->id)
-                        ->where('status', 'in_progress')->count(),
-                    'closed' => Ticket::where('user_id', $user->id)
-                        ->where('status', 'closed')->count(),
+                    'total' => (clone $customerTicketsQuery)->count(),
+                    'new' => (clone $customerTicketsQuery)->where('status', Ticket::STATUS_NEW)->count(),
+                    'in_progress' => (clone $customerTicketsQuery)->where('status', Ticket::STATUS_IN_PROGRESS)->count(),
+                    'closed' => (clone $customerTicketsQuery)->where('status', Ticket::STATUS_CLOSED)->count(),
                 ],
             ];
         }

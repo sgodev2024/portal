@@ -20,6 +20,18 @@ class UserObserver
             $folderPath = 'users/user_' . $user->id;
             Storage::disk('public')->makeDirectory($folderPath);
 
+            // 1.b Tạo bản ghi thư mục gốc trong database nếu chưa có
+            if (!UserFolder::where('user_id', $user->id)->where('is_root', true)->exists()) {
+                UserFolder::create([
+                    'user_id' => $user->id,
+                    'parent_id' => null,
+                    'name' => 'user_' . $user->id,
+                    'path' => $folderPath,
+                    'description' => 'Thư mục gốc của người dùng',
+                    'is_root' => true,
+                ]);
+            }
+
             // 2. Tạo storage quota (1GB mặc định)
             UserStorageQuota::create([
                 'user_id' => $user->id,

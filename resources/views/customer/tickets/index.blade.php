@@ -61,7 +61,7 @@
                             <i class="bi bi-search"></i> Lọc
                         </button>
                         <a href="{{ route('customer.tickets.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-clockwise"></i>
+                            <i class="fa-solid fa-arrows-rotate"></i>
                         </a>
                     </div>
                 </form>
@@ -132,9 +132,7 @@
                                         <td>
                                             @if($ticket->assignedStaff)
                                                 <div class="d-flex align-items-center">
-                                                    <div class="avatar-circle bg-success text-white me-2" style="width: 25px; height: 25px; font-size: 0.7rem;">
-                                                        {{ strtoupper(substr($ticket->assignedStaff->name, 0, 1)) }}
-                                                    </div>
+                                                    
                                                     <small class="fw-semibold">{{ $ticket->assignedStaff->name }}</small>
                                                 </div>
                                             @else
@@ -188,41 +186,7 @@
             </div>
         </div>
 
-        {{-- Statistics Cards --}}
-        <div class="row mt-4">
-            <div class="col-md-3">
-                <div class="card text-center bg-info text-white">
-                    <div class="card-body">
-                        <h3>{{ \App\Models\Ticket::where('user_id', auth()->id())->where('status', 'new')->count() }}</h3>
-                        <p class="mb-0">Mới tạo</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center bg-warning text-dark">
-                    <div class="card-body">
-                        <h3>{{ \App\Models\Ticket::where('user_id', auth()->id())->where('status', 'in_progress')->count() }}</h3>
-                        <p class="mb-0">Đang xử lý</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center bg-success text-white">
-                    <div class="card-body">
-                        <h3>{{ \App\Models\Ticket::where('user_id', auth()->id())->where('status', 'completed')->count() }}</h3>
-                        <p class="mb-0">Hoàn tất</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center bg-secondary text-white">
-                    <div class="card-body">
-                        <h3>{{ \App\Models\Ticket::where('user_id', auth()->id())->where('status', 'closed')->count() }}</h3>
-                        <p class="mb-0">Đã đóng</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
     </div>
 
     <style>

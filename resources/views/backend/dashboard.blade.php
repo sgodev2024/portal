@@ -306,9 +306,7 @@
                             <a href="{{ route('customer.tickets.index') }}" class="btn btn-outline-secondary btn-lg">
                                 <i class="bi bi-list-ul me-2"></i>Xem tickets
                             </a>
-                            <a href="{{ route('customer.chatcustomer.index') }}" class="btn btn-outline-info btn-lg">
-                                <i class="bi bi-chat-dots me-2"></i>Chat hỗ trợ
-                            </a>
+                            
                         @else
                             <a href="{{ route('admin.tickets.index') }}" class="btn btn-outline-primary btn-lg">
                                 <i class="bi bi-ticket-perforated me-2"></i>Quản lý Tickets
@@ -320,70 +318,18 @@
                                 <a href="{{ route('admin.staffs.index') }}" class="btn btn-outline-info btn-lg">
                                     <i class="bi bi-person-badge me-2"></i>Quản lý Nhân viên
                                 </a>
-                            @endif
-                            <a href="{{ route('chat.index') }}" class="btn btn-outline-warning btn-lg">
+                                 <a href="{{ route('chat.index') }}" class="btn btn-outline-warning btn-lg">
                                 <i class="bi bi-chat-left-dots me-2"></i>Hỗ trợ Chat
                             </a>
+                            @endif
+                           
                         @endif
                     </div>
                 </div>
             </div>
 
             <!-- Account/System Info -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0">
-                        @if($isAdmin || $isStaff)
-                            <i class="bi bi-info-circle me-2"></i>Thông tin hệ thống
-                        @else
-                            <i class="bi bi-person-circle me-2"></i>Thông tin tài khoản
-                        @endif
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if($isAdmin)
-                        <div class="mb-3">
-                            <small class="text-muted d-block mb-1">Tổng người dùng</small>
-                            <p class="fw-semibold mb-0 fs-5">{{ ($total_customers ?? 0) + ($total_staff ?? 0) }}</p>
-                        </div>
-                        <div class="mb-3">
-                            <small class="text-muted d-block mb-1">Tickets đang hoạt động</small>
-                            <p class="fw-semibold mb-0 fs-5">{{ ($ticket_stats['open'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) }}</p>
-                        </div>
-                        <hr>
-                    @endif
-
-                    <div class="mb-3">
-                        <small class="text-muted d-block mb-1">
-                            @if($isAdmin || $isStaff) Quản trị viên @else Họ tên @endif
-                        </small>
-                        <p class="fw-semibold mb-0">{{ $user->name }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <small class="text-muted d-block mb-1">Email</small>
-                        <p class="mb-0">{{ $user->email }}</p>
-                    </div>
-                    <div class="mb-3">
-                        <small class="text-muted d-block mb-1">
-                            @if($isAdmin || $isStaff) Vai trò @else Ngày tham gia @endif
-                        </small>
-                        <p class="mb-0">
-                            @if($isAdmin)
-                                <span class="badge bg-danger">Admin</span>
-                            @elseif($isStaff)
-                                <span class="badge bg-info">Nhân viên</span>
-                            @else
-                                {{ $user->created_at->format('d/m/Y') }}
-                            @endif
-                        </p>
-                    </div>
-                    <hr>
-                    <a href="{{ $isCustomer ? route('customer.profile.edit') : '#' }}" 
-                       class="btn btn-sm btn-outline-primary w-100">
-                        <i class="bi bi-pencil-square me-2"></i>Chỉnh sửa thông tin
-                    </a>
-                </div>
-            </div>
+           
         </div>
     </div>
 </div>

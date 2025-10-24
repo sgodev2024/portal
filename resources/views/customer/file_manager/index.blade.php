@@ -28,6 +28,7 @@
             </nav>
         </div>
         <div class="col-md-6 text-end">
+            <!-- Always allow creating a subfolder in the current folder (including root) -->
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createFolderModal">
                 <i class="fas fa-folder-plus me-1"></i>Tạo thư mục
             </button>
@@ -50,6 +51,13 @@
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if(session('info'))
+        <div class="alert alert-info alert-dismissible fade show">
+            <i class="fas fa-info-circle me-2"></i>{{ session('info') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
@@ -92,31 +100,35 @@
         <!-- Danh sách Folders -->
         @if($folders->count() > 0)
             <div class="col-12 mb-3">
-                <h5><i class="fas fa-folder me-2"></i>Thư mục</h5>
+                <h5><i class="fas fa-folder me-2"></i>Thư mục ({{ $folders->count() }})</h5>
                 <div class="row">
                     @foreach($folders as $folder)
                         <div class="col-md-2 col-sm-4 col-6 mb-3">
                             <div class="card h-100 folder-item" onclick="openFolder({{ $folder->id }})">
                                 <div class="card-body text-center p-3">
                                     <i class="fas fa-folder text-warning" style="font-size: 3rem;"></i>
-                                    <h6 class="mt-2 mb-0 small">{{ Str::limit($folder->name, 20) }}</h6>
+                                    <h6 class="mt-2 mb-0 small text-truncate" title="{{ $folder->name }}">
+                                        {{ Str::limit($folder->name, 20) }}
+                                    </h6>
                                     
-                                    <div class="dropdown position-absolute top-0 end-0 m-2">
-                                        <button class="btn btn-sm btn-link text-muted" 
-                                                data-bs-toggle="dropdown" 
-                                                onclick="event.stopPropagation()">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li>
-                                                <a class="dropdown-item text-danger" 
-                                                   href="#" 
-                                                   onclick="event.stopPropagation(); deleteFolder({{ $folder->id }}, '{{ $folder->name }}')">
-                                                    <i class="fas fa-trash me-2"></i>Xóa
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
+                                    @if(!$folder->is_root)
+                                        <div class="dropdown position-absolute top-0 end-0 m-2">
+                                            <button class="btn btn-sm btn-link text-muted" 
+                                                    data-bs-toggle="dropdown" 
+                                                    onclick="event.stopPropagation()">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item text-danger" 
+                                                       href="#" 
+                                                       onclick="event.stopPropagation(); deleteFolder({{ $folder->id }}, '{{ addslashes($folder->name) }}')">
+                                                        <i class="fas fa-trash me-2"></i>Xóa
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -146,7 +158,9 @@
                                 <tr>
                                     <td><i class="{{ $file->icon_class }} fs-4"></i></td>
                                     <td>
-                                        <strong>{{ $file->original_name }}</strong>
+                                        <strong class="text-truncate d-inline-block" style="max-width: 300px;" title="{{ $file->original_name }}">
+                                            {{ $file->original_name }}
+                                        </strong>
                                         @if($file->description)
                                             <br><small class="text-muted">{{ $file->description }}</small>
                                         @endif
@@ -157,22 +171,26 @@
                                         <div class="btn-group btn-group-sm">
                                             <a href="{{ route('customer.file_manager.download', $file->id) }}" 
                                                class="btn btn-success" 
-                                               title="Tải xuống">
+                                               title="Tải xuống"
+                                               data-bs-toggle="tooltip">
                                                 <i class="fas fa-download"></i>
                                             </a>
                                             <button class="btn btn-info" 
                                                     title="Đổi tên"
-                                                    onclick="renameFile({{ $file->id }}, '{{ $file->original_name }}')">
+                                                    data-bs-toggle="tooltip"
+                                                    onclick="renameFile({{ $file->id }}, '{{ addslashes($file->original_name) }}')">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             <button class="btn btn-warning" 
                                                     title="Di chuyển"
-                                                    onclick="moveFile({{ $file->id }})">
+                                                    data-bs-toggle="tooltip"
+                                                    onclick="moveFile({{ $file->id }}, '{{ addslashes($file->original_name) }}')">
                                                 <i class="fas fa-arrows-alt"></i>
                                             </button>
                                             <button class="btn btn-danger" 
                                                     title="Xóa"
-                                                    onclick="deleteFile({{ $file->id }}, '{{ $file->original_name }}')">
+                                                    data-bs-toggle="tooltip"
+                                                    onclick="deleteFile({{ $file->id }}, '{{ addslashes($file->original_name) }}')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -197,7 +215,7 @@
         <div class="modal-content">
             <form action="{{ route('customer.file_manager.create_folder') }}" method="POST">
                 @csrf
-                <input type="hidden" name="parent_id" value="{{ $currentFolder->id ?? '' }}">
+                <input type="hidden" name="parent_id" value="{{ $currentFolder->id }}" required>
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title"><i class="fas fa-folder-plus me-2"></i>Tạo Thư Mục Mới</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -234,11 +252,52 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <label class="form-label">Tên file mới</label>
                     <input type="text" id="renameInput" name="name" class="form-control" required>
+                    <small class="text-muted">Không cần nhập phần mở rộng (.pdf, .docx, ...)</small>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check me-1"></i>Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Di Chuyển File -->
+<div class="modal fade" id="moveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="moveForm" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Di chuyển file</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>File: <strong id="moveFileName"></strong></p>
+                    <div class="mb-3">
+                        <label class="form-label">Chọn thư mục đích</label>
+                        <select name="folder_id" class="form-select" required>
+                            <option value="{{ $rootFolder->id }}">📁 Thư mục gốc</option>
+                            @foreach($allFolders ?? [] as $folder)
+                                @if(!$folder->is_root)
+                                    <option value="{{ $folder->id }}" {{ $folder->id == $currentFolder->id ? 'selected' : '' }}>
+                                        {{ str_repeat('&nbsp;&nbsp;&nbsp;', substr_count($folder->path, '/') - 1) }}📁 {{ $folder->name }}
+                                    </option>
+                                @endif
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check me-1"></i>Di chuyển
+                    </button>
                 </div>
             </form>
         </div>
@@ -264,9 +323,14 @@
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
 }
 
+#dropZone {
+    transition: all 0.3s ease;
+}
+
 #dropZone.dragover {
     background: #e7f3ff !important;
     border-color: #007bff !important;
+    transform: scale(1.02);
 }
 
 .upload-progress {
@@ -275,18 +339,42 @@
     right: 20px;
     width: 300px;
     z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+    }
 }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+// Enable tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
 // Drag & Drop Upload
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, preventDefaults, false);
+    document.body.addEventListener(eventName, preventDefaults, false);
 });
 
 function preventDefaults(e) {
@@ -312,16 +400,28 @@ function handleDrop(e) {
 
 fileInput.addEventListener('change', function() {
     uploadFiles(this.files);
+    this.value = ''; // Reset input
 });
 
 function uploadFiles(files) {
+    if (!files || files.length === 0) {
+        return;
+    }
+
+    const currentFolderId = '{{ $currentFolder->id }}';
+    
+    if (!currentFolderId) {
+        alert('Không xác định được thư mục hiện tại!');
+        return;
+    }
+
     const formData = new FormData();
     
     for (let file of files) {
         formData.append('files[]', file);
     }
     
-    formData.append('folder_id', '{{ $currentFolder->id ?? "" }}');
+    formData.append('folder_id', currentFolderId);
     formData.append('_token', '{{ csrf_token() }}');
 
     // Show progress
@@ -348,11 +448,12 @@ function uploadFiles(files) {
         if (data.success) {
             location.reload();
         } else {
-            alert('Lỗi: ' + data.error);
+            alert('Lỗi: ' + (data.error || 'Không xác định'));
         }
     })
     .catch(error => {
         progressDiv.remove();
+        console.error('Upload error:', error);
         alert('Có lỗi xảy ra khi upload file!');
     });
 }
@@ -364,7 +465,8 @@ function openFolder(id) {
 function deleteFile(id, name) {
     if (confirm(`Bạn có chắc chắn muốn xóa file "${name}"?`)) {
         const form = document.getElementById('deleteForm');
-        form.action = `/customer/files/${id}`;
+        // Route is defined under /customer/file-manager/{id} (DELETE)
+        form.action = `/customer/file-manager/${id}`;
         form.submit();
     }
 }
@@ -383,16 +485,24 @@ function renameFile(id, currentName) {
     const input = document.getElementById('renameInput');
     
     // Remove extension
-    const nameWithoutExt = currentName.substring(0, currentName.lastIndexOf('.'));
+    const lastDotIndex = currentName.lastIndexOf('.');
+    const nameWithoutExt = lastDotIndex > 0 ? currentName.substring(0, lastDotIndex) : currentName;
     
     input.value = nameWithoutExt;
-    form.action = `/customer/files/${id}/rename`;
+    // Route: POST /customer/file-manager/{id}/rename
+    form.action = `/customer/file-manager/${id}/rename`;
     modal.show();
 }
 
-function moveFile(id) {
-    // TODO: Implement move file modal
-    alert('Tính năng di chuyển file đang được phát triển');
+function moveFile(id, fileName) {
+    const modal = new bootstrap.Modal(document.getElementById('moveModal'));
+    const form = document.getElementById('moveForm');
+    const fileNameDisplay = document.getElementById('moveFileName');
+    
+    fileNameDisplay.textContent = fileName;
+    // Route: POST /customer/file-manager/{id}/move
+    form.action = `/customer/file-manager/${id}/move`;
+    modal.show();
 }
 </script>
 @endpush

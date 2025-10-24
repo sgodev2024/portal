@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
@@ -95,4 +96,55 @@ class User extends Authenticatable
     {
         return $this->is_active === true;
     }
+
+
+protected static function boot()
+{
+    parent::boot();
+    
+   
+    static::created(function ($user) {
+        if ($user->role == 3) { 
+            UserFolder::create([
+                'user_id' => $user->id,
+                'parent_id' => null,
+                'name' => 'user_' . $user->id,
+                'path' => 'users/user_' . $user->id,
+                'description' => 'Thư mục gốc',
+                'is_root' => true,
+            ]);
+            
+            
+           UserStorageQuota::create([
+                'user_id' => $user->id,
+                'quota_limit' => 1073741824, 
+                'used_space' => 0,
+            ]);
+            
+
+            Storage::disk('public')->makeDirectory('users/user_' . $user->id);
+        }
+    });
+    
+    static::deleting(function ($user) {
+        if ($user->role == 3) {
+            
+            $userFiles = UserFile::where('user_id', $user->id)->get();
+            foreach ($userFiles as $file) {
+                if (Storage::disk('public')->exists($file->file_path)) {
+                    Storage::disk('public')->delete($file->file_path);
+                }
+            }
+            
+            // Xóa physical folder
+            Storage::disk('public')->deleteDirectory('users/user_' . $user->id);
+            
+            // Xóa records
+            UserFile::where('user_id', $user->id)->delete();
+            UserFolder::where('user_id', $user->id)->delete();
+            UserStorageQuota::where('user_id', $user->id)->delete();
+            UserFileActivity::where('user_id', $user->id)->delete();
+        }
+    });
+}
 }

@@ -1,8 +1,9 @@
 <?php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Ticket extends Model
 {
@@ -10,7 +11,7 @@ class Ticket extends Model
 
     protected $fillable = [
         'user_id', 'subject', 'category', 'priority', 'description', 'status',
-        'assigned_staff_id', 'assignment_type'
+        'assigned_staff_id', 'assignment_type' 
     ];
 
     protected static function boot()
@@ -38,16 +39,16 @@ class Ticket extends Model
                                 'status' => self::STATUS_IN_PROGRESS
                             ]);
                             
-                            \Log::info("Auto-assigned ticket {$ticket->id} to staff {$primaryStaff->name} for group {$group->name}");
+                            Log::info("Auto-assigned ticket {$ticket->id} to staff {$primaryStaff->name} for group {$group->name}");
                         } else {
-                            \Log::warning("No primary staff found for group {$group->name}");
+                            Log::warning("No primary staff found for group {$group->name}");
                         }
                     }
                 } else {
-                    \Log::info("User {$user->name} has no groups, ticket {$ticket->id} not auto-assigned");
+                    Log::info("User {$user->name} has no groups, ticket {$ticket->id} not auto-assigned");
                 }
             } catch (\Exception $e) {
-                \Log::error("Error auto-assigning ticket {$ticket->id}: " . $e->getMessage());
+                Log::error("Error auto-assigning ticket {$ticket->id}: " . $e->getMessage());
             }
         });
     }

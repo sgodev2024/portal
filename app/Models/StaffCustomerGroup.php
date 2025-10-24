@@ -21,6 +21,7 @@ class StaffCustomerGroup extends Model
     {
         return $this->belongsTo(User::class, 'staff_id');
     }
+    
 
     public function customerGroup()
     {

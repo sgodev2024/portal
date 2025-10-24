@@ -155,10 +155,7 @@
                                             <td>
                                                 @if ($ticket->assignedStaff)
                                                     <div class="d-flex align-items-center">
-                                                        <div class="avatar-circle bg-success text-white me-2"
-                                                            style="width: 30px; height: 30px; font-size: 0.8rem;">
-                                                            {{ strtoupper(substr($ticket->assignedStaff->name, 0, 1)) }}
-                                                        </div>
+                                                      
                                                         <span class="small">{{ $ticket->assignedStaff->name }}</span>
                                                     </div>
                                                 @else
@@ -205,17 +202,6 @@
                                                     <i class="fas fa-eye"></i>
                                                 </a>
 
-                                                <!-- Gán ticket (chỉ admin) -->
-                                                @if (Auth::user()->role == 1)
-                                                    <button type="button" class="btn btn-sm btn-outline-warning"
-                                                        onclick="showAssignModal({{ $ticket->id }}, '{{ $ticket->subject }}')"
-                                                        title="Gán nhân viên">
-                                                        {{-- <i class="bi bi-person-plus"></i> --}}
-
-
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                @endif
 
                                                 <!-- Đóng ticket -->
                                                 @if ($ticket->status != 'closed')
@@ -253,50 +239,7 @@
         </div>
     </div>
 
-    <!-- Modal gán nhân viên (Chỉ admin) -->
-    @if (Auth::user()->role == 1 && $staffList->count() > 0)
-        <div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-info text-white">
-                        <h5 class="modal-title" id="assignModalLabel">
-                            <i class="bi bi-person-plus me-2"></i>Gán ticket cho nhân viên
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <form id="assignForm" method="POST">
-                        @csrf
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Ticket</label>
-                                <input type="text" class="form-control" id="ticketSubject" readonly>
-                            </div>
-                            <div class="mb-3">
-                                <label for="assigned_to" class="form-label fw-semibold">Chọn nhân viên <span
-                                        class="text-danger">*</span></label>
-                                <select class="form-select" name="assigned_to" id="assigned_to" required>
-                                    <option value="">-- Chọn nhân viên --</option>
-                                    @foreach ($staffList as $staff)
-                                        <option value="{{ $staff->id }}">
-                                            {{ $staff->name }} ({{ $staff->email }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle me-1"></i>Hủy
-                            </button>
-                            <button type="submit" class="btn btn-info">
-                                <i class="bi bi-check-circle me-1"></i>Gán ngay
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endif
+    
 
     <style>
         .avatar-circle {

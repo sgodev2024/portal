@@ -97,6 +97,7 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::get('/', [GroupStaffController::class, 'index'])->name('index');
         Route::post('/assign', [GroupStaffController::class, 'assign'])->name('assign');
         Route::delete('/{groupId}/{staffId}', [GroupStaffController::class, 'remove'])->name('remove');
+Route::post('/{groupId}/reassign-tickets', [GroupStaffController::class, 'reassignUnassignedTickets'])->name('reassign-tickets');
     });
 });
 // route admin, nhân viên
@@ -242,6 +243,7 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
         Route::post('/{id}/rename', [FileManagerController::class, 'renameFile'])->name('rename');
         Route::post('/{id}/move', [FileManagerController::class, 'moveFile'])->name('move');
         Route::get('/activities/list', [FileManagerController::class, 'activities'])->name('activities');
+        
     });
 
     Route::prefix('folders')->name('folders.')->group(function () {
