@@ -3,10 +3,10 @@
     <thead class="table-light">
         <tr>
             <th width="5%">STT</th>
+            <th>Thời gian</th>
             <th>Tiêu đề</th>
             <th>Nội dung</th>
             <th>Người gửi</th>
-            <th>Thời gian</th>
             <th>Trạng thái</th>
             <th width="8%">Chi tiết</th>
         </tr>
@@ -19,10 +19,10 @@
             @endphp
             <tr class="{{ $isRead ? '' : 'fw-bold' }}">
                 <td class="text-center">{{ ($notifications->currentPage() - 1) * $notifications->perPage() + $loop->iteration }}</td>
+                <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
                 <td>{{ $item->title }}</td>
                 <td>{{ Str::limit($item->content, 80) }}</td>
                 <td>{{ $item->creator->name ?? 'Hệ thống' }}</td>
-                <td>{{ $item->created_at->format('d/m/Y H:i') }}</td>
                 <td>
                     @if ($isRead)
                         <span class="badge bg-success">Đã đọc</span>

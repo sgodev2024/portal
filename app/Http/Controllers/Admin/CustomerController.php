@@ -38,14 +38,20 @@ class CustomerController extends Controller
         if ($request->has('profile') && $request->profile !== '') {
             $query->where('must_update_profile', $request->profile);
         }
+        if ($request->has('group') && $request->group !== '') {
+            $query->whereHas('groups', function ($q) use ($request) {
+                $q->where('customer_groups.id', $request->group);
+            });
+        }
 
         $customers = $query->orderBy('created_at', 'desc')->paginate(8);
+        $groups = CustomerGroup::where('is_active', true)->orderBy('name')->get();
 
         if ($request->ajax()) {
             return view('backend.customers.table', compact('customers'))->render();
         }
 
-        return view('backend.customers.index', compact('customers'));
+        return view('backend.customers.index', compact('customers', 'groups'));
     }
 
     public function show($id)

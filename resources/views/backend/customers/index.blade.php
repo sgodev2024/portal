@@ -92,6 +92,17 @@
                                         <option value="1">Chưa cập nhật</option>
                                         <option value="0">Đã cập nhật</option>
                                     </select>
+                                    <select id="filterGroup" class="form-select form-select-sm" style="width:180px;">
+                                        <option value="">Tất cả nhóm</option>
+                                        @if (isset($groups) && $groups->count() > 0)
+                                            @foreach ($groups as $group)
+                                                <option value="{{ $group->id }}"
+                                                    {{ request('group') == $group->id ? 'selected' : '' }}>
+                                                    {{ $group->name }}
+                                                </option>
+                                            @endforeach
+                                        @endif
+                                    </select>
                                 </div>
                             </div>
 
@@ -253,6 +264,7 @@
             const searchInput = document.getElementById('searchInput');
             const filterActive = document.getElementById('filterActive');
             const filterProfile = document.getElementById('filterProfile');
+            const filterGroup = document.getElementById('filterGroup');
 
             // Upload Excel
             if (excelFile && importForm) {
@@ -345,6 +357,7 @@
                     search: params.search !== undefined ? params.search : searchInput.value,
                     active: params.active !== undefined ? params.active : filterActive.value,
                     profile: params.profile !== undefined ? params.profile : filterProfile.value,
+                    group: params.group !== undefined ? params.group : filterGroup.value,
                     page: params.page || 1
                 });
 
@@ -394,6 +407,7 @@
             // Lọc theo trạng thái
             filterActive?.addEventListener('change', () => loadTable());
             filterProfile?.addEventListener('change', () => loadTable());
+            filterGroup?.addEventListener('change', () => loadTable());
 
             // Phân trang Ajax
             document.addEventListener('click', function(e) {
