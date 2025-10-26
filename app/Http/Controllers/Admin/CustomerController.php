@@ -26,7 +26,8 @@ class CustomerController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('account_id', 'like', "%{$search}%");
+                    ->orWhere('account_id', 'like', "%{$search}%")
+                    ->orWhere('company', 'like', "%{$search}%");
             });
         }
 
@@ -142,15 +143,14 @@ class CustomerController extends Controller
             'account_id' => 'required|string|max:20|unique:users,account_id,' . $id,
             'company'    => 'nullable|string|max:255',
             'address'    => 'nullable|string|max:255',
-            'groups'     => 'nullable|array',
-            'groups.*'   => 'exists:customer_groups,id',
+            'group_id'   => 'nullable|exists:customer_groups,id',
         ], [
             'name.required'       => 'Họ tên không được để trống.',
             'email.required'      => 'Email không được để trống.',
             'email.unique'        => 'Email này đã được sử dụng.',
             'account_id.required' => 'Số điện thoại không được để trống.',
             'account_id.unique'   => 'Số điện thoại này đã được sử dụng.',
-            'groups.*.exists'     => 'Nhóm khách hàng không hợp lệ.',
+            'group_id.exists'     => 'Nhóm khách hàng không hợp lệ.',
         ]);
 
         $user->update([
@@ -162,8 +162,11 @@ class CustomerController extends Controller
             'is_active'  => $request->has('is_active'),
         ]);
 
-        // Cập nhật nhóm (sync sẽ thay thế hoàn toàn)
-        $user->groups()->sync($validated['groups'] ?? []);
+        if ($validated['group_id']) {
+            $user->groups()->sync([$validated['group_id']]);
+        } else {
+            $user->groups()->detach();
+        }
 
         return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công!');
     }

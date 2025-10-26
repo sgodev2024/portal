@@ -27,7 +27,8 @@
                     </div>
                 @endif
 
-                <form action="{{ route('customers.update', $user->id) }}" method="POST" class="needs-validation" novalidate>
+                <form action="{{ route('customers.update', $user->id) }}" method="POST" class="needs-validation"
+                    novalidate>
                     @csrf
                     @method('PUT')
 
@@ -58,8 +59,10 @@
 
                         {{-- SĐT --}}
                         <div class="col-md-6">
-                            <label for="account_id" class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
-                            <input type="text" name="account_id" id="account_id" value="{{ old('account_id', $user->account_id) }}"
+                            <label for="account_id" class="form-label fw-semibold">Số điện thoại <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" name="account_id" id="account_id"
+                                value="{{ old('account_id', $user->account_id) }}"
                                 class="form-control @error('account_id') is-invalid @enderror"
                                 placeholder="Nhập số điện thoại" required>
                             @error('account_id')
@@ -70,7 +73,8 @@
                         {{-- Công ty --}}
                         <div class="col-md-6">
                             <label for="company" class="form-label fw-semibold">Công ty</label>
-                            <input type="text" name="company" id="company" value="{{ old('company', $user->company) }}"
+                            <input type="text" name="company" id="company"
+                                value="{{ old('company', $user->company) }}"
                                 class="form-control @error('company') is-invalid @enderror" placeholder="Tên công ty">
                             @error('company')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -80,45 +84,40 @@
                         {{-- Địa chỉ --}}
                         <div class="col-md-12">
                             <label for="address" class="form-label fw-semibold">Địa chỉ</label>
-                            <input type="text" name="address" id="address" value="{{ old('address', $user->address) }}"
-                                class="form-control" placeholder="Nhập địa chỉ khách hàng">
+                            <input type="text" name="address" id="address"
+                                value="{{ old('address', $user->address) }}" class="form-control"
+                                placeholder="Nhập địa chỉ khách hàng">
                         </div>
 
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Nhóm khách hàng</label>
-                            <div class="border rounded p-3" style="background-color: #f8f9fa;">
-                                @if (isset($groups) && $groups->count() > 0)
-                                    <div class="row">
-                                        @foreach ($groups as $group)
-                                            <div class="col-md-6 mb-2">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="groups[]"
-                                                        value="{{ $group->id }}" id="group_{{ $group->id }}"
-                                                        {{ in_array($group->id, old('groups', [])) ? 'checked' : '' }}
-                                                        {{ !$group->is_active ? 'disabled' : '' }}>
-                                                    <label class="form-check-label" for="group_{{ $group->id }}">
-                                                        <strong>{{ $group->name }}</strong>
-                                                        @if (!$group->is_active)
-                                                            <span class="badge bg-secondary ms-1">Không hoạt động</span>
-                                                        @endif
-                                                        @if ($group->description)
-                                                            <small
-                                                                class="text-muted d-block mt-1">{{ $group->description }}</small>
-                                                        @endif
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
+                            @if (isset($groups) && $groups->count() > 0)
+                                <select class="form-select" name="group_id" id="customer_group">
+                                    <option value="">-- Chọn nhóm khách hàng --</option>
+                                    @foreach ($groups as $group)
+                                        <option value="{{ $group->id }}"
+                                            {{ old('group_id', $user->groups->first()?->id) == $group->id ? 'selected' : '' }}
+                                            {{ !$group->is_active ? 'disabled' : '' }}>
+                                            {{ $group->name }}
+                                            @if (!$group->is_active)
+                                                (Không hoạt động)
+                                            @endif
+                                            @if ($group->description)
+                                                - {{ $group->description }}
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <div class="border rounded p-3" style="background-color: #f8f9fa;">
                                     <p class="text-muted mb-0">
                                         <i class="fas fa-info-circle me-1"></i>
                                         Chưa có nhóm khách hàng.
                                         <a href="{{ route('admin.customer-groups.create') }}" target="_blank"
                                             class="text-primary">Tạo nhóm mới</a>
                                     </p>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- Trạng thái --}}
@@ -162,7 +161,7 @@
             border-radius: 0.5rem;
         }
 
-        .form-check-input:disabled ~ .form-check-label {
+        .form-check-input:disabled~.form-check-label {
             opacity: 0.5;
         }
     </style>

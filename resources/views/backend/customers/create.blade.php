@@ -89,39 +89,33 @@
                         {{-- Nhóm khách hàng --}}
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Nhóm khách hàng</label>
-                            <div class="border rounded p-3" style="background-color: #f8f9fa;">
-                                @if (isset($groups) && $groups->count() > 0)
-                                    <div class="row">
-                                        @foreach ($groups as $group)
-                                            <div class="col-md-6 mb-2">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="groups[]"
-                                                        value="{{ $group->id }}" id="group_{{ $group->id }}"
-                                                        {{ in_array($group->id, old('groups', [])) ? 'checked' : '' }}
-                                                        {{ !$group->is_active ? 'disabled' : '' }}>
-                                                    <label class="form-check-label" for="group_{{ $group->id }}">
-                                                        <strong>{{ $group->name }}</strong>
-                                                        @if (!$group->is_active)
-                                                            <span class="badge bg-secondary ms-1">Không hoạt động</span>
-                                                        @endif
-                                                        @if ($group->description)
-                                                            <small
-                                                                class="text-muted d-block mt-1">{{ $group->description }}</small>
-                                                        @endif
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @else
+                            @if (isset($groups) && $groups->count() > 0)
+                                <select class="form-select" name="group_id" id="customer_group">
+                                    <option value="">-- Chọn nhóm khách hàng --</option>
+                                    @foreach ($groups as $group)
+                                        <option value="{{ $group->id }}"
+                                            {{ old('group_id') == $group->id ? 'selected' : '' }}
+                                            {{ !$group->is_active ? 'disabled' : '' }}>
+                                            {{ $group->name }}
+                                            @if (!$group->is_active)
+                                                (Không hoạt động)
+                                            @endif
+                                            @if ($group->description)
+                                                - {{ $group->description }}
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <div class="border rounded p-3" style="background-color: #f8f9fa;">
                                     <p class="text-muted mb-0">
                                         <i class="fas fa-info-circle me-1"></i>
                                         Chưa có nhóm khách hàng.
                                         <a href="{{ route('admin.customer-groups.create') }}" target="_blank"
                                             class="text-primary">Tạo nhóm mới</a>
                                     </p>
-                                @endif
-                            </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
