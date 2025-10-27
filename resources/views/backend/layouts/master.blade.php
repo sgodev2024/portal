@@ -15,7 +15,8 @@
                 pageLanguage: 'vi',
                 includedLanguages: 'vi,de',
                 layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
-                autoDisplay: false
+                autoDisplay: false,
+                multilanguagePage: true
             }, 'google_translate_element');
         }
     </script>
@@ -26,21 +27,21 @@
         window.addEventListener('load', function() {
             // Keep trying to find the Google Translate select element
             let attempts = 0;
-            const maxAttempts = 20;
+            const maxAttempts = 30;
             
             const checkForGoogleTranslate = setInterval(function() {
                 attempts++;
                 const select = document.querySelector('select.goog-te-combo');
                 
-                if (select) {
-                    console.log('Google Translate select found!');
+                if (select && select.options && select.options.length > 0) {
+                    console.log('Google Translate select found with options!');
                     window.googleTranslateSelect = select;
                     clearInterval(checkForGoogleTranslate);
                 } else if (attempts >= maxAttempts) {
                     console.log('Google Translate not loaded after', maxAttempts, 'attempts');
                     clearInterval(checkForGoogleTranslate);
                 }
-            }, 200);
+            }, 300);
         });
     </script>
     
