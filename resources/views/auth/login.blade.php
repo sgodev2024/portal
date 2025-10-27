@@ -16,12 +16,18 @@
     <!-- Google Translate -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'vi',
-                includedLanguages: 'vi,de',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                autoDisplay: false
-            }, 'google_translate_element');
+            try {
+                new google.translate.TranslateElement({
+                    pageLanguage: 'vi',
+                    includedLanguages: 'vi,de',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false,
+                    multilanguagePage: true
+                }, 'google_translate_element');
+                console.log('Google Translate initialized');
+            } catch(e) {
+                console.error('Google Translate initialization failed:', e);
+            }
         }
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
@@ -50,12 +56,37 @@
     <script src="{{ asset('auth/js/api.js') }}" async defer></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    
+    <!-- Initialize Google Translate Select for Login Page -->
+    <script type="text/javascript">
+        window.addEventListener('load', function() {
+            // Keep trying to find the Google Translate select element
+            let attempts = 0;
+            const maxAttempts = 20;
+            
+            const checkForGoogleTranslate = setInterval(function() {
+                attempts++;
+                const select = document.querySelector('select.goog-te-combo');
+                
+                if (select && select.options && select.options.length > 0) {
+                    console.log('Google Translate loaded successfully');
+                    window.googleTranslateSelect = select;
+                    clearInterval(checkForGoogleTranslate);
+                } else if (attempts >= maxAttempts) {
+                    console.log('Google Translate failed to load');
+                    clearInterval(checkForGoogleTranslate);
+                }
+            }, 500);
+        });
+    </script>
 
 </head>
 <style type="text/css">
     /* Google Translate Styling */
     #google_translate_element {
-        display: inline-block !important;
+        position: absolute !important;
+        left: -9999px !important;
+        visibility: hidden !important;
     }
     .goog-te-banner-frame { display: none !important; }
     .goog-te-balloon-frame { display: none !important; }
@@ -85,6 +116,11 @@
     .skiptranslate { display: none !important; }
     body { top: 0 !important; }
     .goog-te-menu-frame { z-index: 99999 !important; }
+    
+    /* Ensure translated content is visible */
+    .goog-te-combo {
+        display: block !important;
+    }
     
     .error_txt {
         color: red;
@@ -240,10 +276,8 @@
             @include('components.language-switcher')
         </div>
         
-        <!-- Google Translate Hidden Element -->
-        <div style="display: none;">
-            <div id="google_translate_element"></div>
-        </div>
+        <!-- Google Translate Element -->
+        <div id="google_translate_element" style="position: absolute; left: -9999px; visibility: hidden;"></div>
         
         <div class="login_display_02 login_page">
             <div class="ct_right">

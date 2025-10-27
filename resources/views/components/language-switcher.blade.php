@@ -89,6 +89,22 @@
 let translateInterval = null;
 let isTranslating = false;
 
+// Add function to reset translation state
+function resetTranslationState() {
+    isTranslating = false;
+    if (translateInterval) {
+        clearInterval(translateInterval);
+        translateInterval = null;
+    }
+    console.log('Translation state reset');
+}
+
+// Add function to clear session storage
+function clearTranslationCache() {
+    sessionStorage.removeItem('lang_translated');
+    console.log('Translation cache cleared');
+}
+
 function toggleLanguageMenu() {
     const menu = document.getElementById('languageMenu');
     const isHidden = menu.style.display === 'none' || !menu.style.display;
@@ -98,7 +114,10 @@ function toggleLanguageMenu() {
 function changeLanguage(locale, flag, code) {
     // Prevent multiple simultaneous translations
     if (isTranslating) {
-        console.log('Translation already in progress, please wait...');
+        // Reset the flag after a short delay to prevent permanent blocking
+        setTimeout(() => {
+            isTranslating = false;
+        }, 2000);
         return;
     }
     
@@ -136,18 +155,20 @@ function changeLanguage(locale, flag, code) {
     };
     
     const targetLang = langMap[locale];
-    console.log('Changing language to:', targetLang);
     
     // Check immediately if Google Translate is already loaded
     const select = document.querySelector('select.goog-te-combo');
     
-    if (select) {
-        console.log('Found Google Translate select immediately, setting language to:', targetLang);
+    if (select && select.options && select.options.length > 0) {
         try {
-            select.value = targetLang;
-            select.dispatchEvent(new Event('change'));
-            isTranslating = false;
-            return;
+            // Check if the target language option exists
+            const targetOption = Array.from(select.options).find(option => option.value === targetLang);
+            if (targetOption) {
+                select.value = targetLang;
+                select.dispatchEvent(new Event('change'));
+                isTranslating = false;
+                return;
+            }
         } catch(e) {
             console.error('Error setting language:', e);
             isTranslating = false;
@@ -156,22 +177,24 @@ function changeLanguage(locale, flag, code) {
     
     // If not found, wait for it with shorter intervals
     let attempts = 0;
-    const maxAttempts = 5; // Reduced from 10 to 5
+    const maxAttempts = 10;
     
     translateInterval = setInterval(function() {
         attempts++;
         
         const select = document.querySelector('select.goog-te-combo');
         
-        if (select) {
-            console.log('Found Google Translate select after', attempts, 'attempts');
+        if (select && select.options && select.options.length > 0) {
             try {
-                select.value = targetLang;
-                select.dispatchEvent(new Event('change'));
-                clearInterval(translateInterval);
-                translateInterval = null;
-                isTranslating = false;
-                return;
+                // Ensure the select element is fully loaded
+                if (select.options && select.options.length > 0) {
+                    select.value = targetLang;
+                    select.dispatchEvent(new Event('change'));
+                    clearInterval(translateInterval);
+                    translateInterval = null;
+                    isTranslating = false;
+                    return;
+                }
             } catch(e) {
                 console.error('Error setting language:', e);
                 clearInterval(translateInterval);
@@ -181,12 +204,12 @@ function changeLanguage(locale, flag, code) {
         }
         
         if (attempts >= maxAttempts) {
-            console.log('Google Translate not found after', maxAttempts, 'attempts');
+            console.log('Google Translate not found');
             clearInterval(translateInterval);
             translateInterval = null;
             isTranslating = false;
         }
-    }, 200); // Slightly increased interval for better performance
+    }, 500);
 }
 
 // Close menu when clicking outside
@@ -204,16 +227,31 @@ document.addEventListener('click', function(event) {
     
     // Only auto-translate if default language is not 'vi' and not translated before
     if (defaultLang !== 'vi' && !hasTranslatedBefore) {
-        // Wait for Google Translate to load
-        setTimeout(function() {
+        // Wait for Google Translate to load with better retry mechanism
+        let attempts = 0;
+        const maxAttempts = 20;
+        
+        const autoTranslateInterval = setInterval(function() {
+            attempts++;
             const select = document.querySelector('select.goog-te-combo');
-            if (select) {
-                select.value = defaultLang;
-                select.dispatchEvent(new Event('change'));
-                sessionStorage.setItem('lang_translated', 'true');
-                console.log('Auto-translated to default language:', defaultLang);
+            
+            if (select && select.options && select.options.length > 0) {
+                // Check if the target language option exists
+                const targetOption = Array.from(select.options).find(option => option.value === defaultLang);
+                if (targetOption) {
+                    select.value = defaultLang;
+                    select.dispatchEvent(new Event('change'));
+                    sessionStorage.setItem('lang_translated', 'true');
+                    console.log('Auto-translated to:', defaultLang);
+                    clearInterval(autoTranslateInterval);
+                }
             }
-        }, 2000);
+            
+            if (attempts >= maxAttempts) {
+                console.log('Auto-translate failed');
+                clearInterval(autoTranslateInterval);
+            }
+        }, 500);
     }
 })();
 </script>
