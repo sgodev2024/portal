@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -7,6 +7,43 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <meta name="zalo-platform-site-verification" content="MiwQ0wRY7m1OxBe-XC8UOLx6hZooi7vZDJGr" />
+    
+    <!-- Google Translate -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'vi',
+                includedLanguages: 'vi,de',
+                layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
+    <!-- Initialize Google Translate Select -->
+    <script type="text/javascript">
+        window.addEventListener('load', function() {
+            // Keep trying to find the Google Translate select element
+            let attempts = 0;
+            const maxAttempts = 20;
+            
+            const checkForGoogleTranslate = setInterval(function() {
+                attempts++;
+                const select = document.querySelector('select.goog-te-combo');
+                
+                if (select) {
+                    console.log('Google Translate select found!');
+                    window.googleTranslateSelect = select;
+                    clearInterval(checkForGoogleTranslate);
+                } else if (attempts >= maxAttempts) {
+                    console.log('Google Translate not loaded after', maxAttempts, 'attempts');
+                    clearInterval(checkForGoogleTranslate);
+                }
+            }, 200);
+        });
+    </script>
+    
     @include('backend.layouts.partials.styles')
 
     <style>
@@ -18,6 +55,18 @@
         #originTable {
             width: 100% !important;
         }
+        
+        /* Google Translate Styling */
+        #google_translate_element {
+            position: absolute !important;
+            left: -9999px !important;
+            visibility: hidden !important;
+        }
+        .goog-te-banner-frame { display: none !important; }
+        .goog-te-balloon-frame { display: none !important; }
+        .goog-tooltip { display: none !important; }
+        .skiptranslate { display: none !important; }
+        body { top: 0 !important; }
     </style>
 </head>
 
