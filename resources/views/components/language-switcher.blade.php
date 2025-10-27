@@ -1,20 +1,38 @@
+@php
+    // Get default language from company settings or use 'vi' as fallback
+    $defaultLang = isset($company) && $company->default_language ? $company->default_language : 'vi';
+    
+    // Define language data
+    $langData = [
+        'vi' => ['flag' => '🇻🇳', 'code' => 'VI', 'name' => 'Tiếng Việt'],
+        'de' => ['flag' => '🇩🇪', 'code' => 'DE', 'name' => 'Deutsch'],
+    ];
+    
+    $currentLang = $langData[$defaultLang] ?? $langData['vi'];
+@endphp
+
 <div class="language-switcher" style="position: relative; display: inline-block;">
     <button class="current-lang" onclick="toggleLanguageMenu()" style="
         background: white;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 8px 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 10px 16px;
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         font-size: 14px;
-        font-weight: bold;
-        min-width: 100px;
+        font-weight: 500;
+        min-width: 140px;
+        color: #333;
+        transition: all 0.2s ease;
     ">
-        <span id="current-flag">🇻🇳</span>
-        <span id="current-lang-code">VI</span>
-        <span style="font-size: 10px;">▼</span>
+        <span id="current-flag">{{ $currentLang['flag'] }}</span>
+        <span id="current-lang-name" style="display: flex; gap: 5px;">
+            <span style="font-weight: 600;">{{ $currentLang['code'] }}</span>
+            <span style="color: #666;">{{ $currentLang['name'] }}</span>
+        </span>
+        <span style="font-size: 9px; margin-left: auto; color: #888;">▼</span>
     </button>
     
     <div id="languageMenu" class="language-menu" style="
@@ -23,10 +41,10 @@
         left: 0;
         margin-top: 4px;
         background: white;
-        border: 1px solid #ccc;
-        border-radius: 5px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        min-width: 100px;
+        min-width: 140px;
         z-index: 99999;
         display: none;
     ">
@@ -34,31 +52,43 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 15px;
+            padding: 10px 16px;
             text-decoration: none;
             color: #333;
-            font-weight: bold;
-            border-bottom: 1px solid #eee;
-        ">
-            <span style="font-size: 20px;">🇻🇳</span>
-            <span>VI</span>
+            font-weight: 500;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s ease;
+        " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+            <span style="font-size: 18px;">🇻🇳</span>
+            <span style="display: flex; gap: 5px;">
+                <span style="font-weight: 600;">VI</span>
+                <span style="color: #666;">Tiếng Việt</span>
+            </span>
         </a>
         <a href="#" onclick="changeLanguage('de', '🇩🇪', 'DE'); return false;" class="lang-option" style="
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 15px;
+            padding: 10px 16px;
             text-decoration: none;
             color: #333;
-            font-weight: bold;
-        ">
-            <span style="font-size: 20px;">🇩🇪</span>
-            <span>DE</span>
+            font-weight: 500;
+            transition: background 0.2s ease;
+        " onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
+            <span style="font-size: 18px;">🇩🇪</span>
+            <span style="display: flex; gap: 5px;">
+                <span style="font-weight: 600;">DE</span>
+                <span style="color: #666;">Deutsch</span>
+            </span>
         </a>
     </div>
 </div>
 
 <script>
+// Global variables
+let translateInterval = null;
+let isTranslating = false;
+
 function toggleLanguageMenu() {
     const menu = document.getElementById('languageMenu');
     const isHidden = menu.style.display === 'none' || !menu.style.display;
@@ -66,9 +96,37 @@ function toggleLanguageMenu() {
 }
 
 function changeLanguage(locale, flag, code) {
+    // Prevent multiple simultaneous translations
+    if (isTranslating) {
+        console.log('Translation already in progress, please wait...');
+        return;
+    }
+    
+    isTranslating = true;
+    
+    // Clear any existing interval first
+    if (translateInterval) {
+        clearInterval(translateInterval);
+        translateInterval = null;
+    }
+    
     // Update UI first
     document.getElementById('current-flag').textContent = flag;
-    document.getElementById('current-lang-code').textContent = code;
+    
+    // Update language name display
+    const langNames = {
+        'vi': ['VI', 'Tiếng Việt'],
+        'de': ['DE', 'Deutsch']
+    };
+    
+    const currentLangName = document.getElementById('current-lang-name');
+    if (currentLangName && langNames[locale]) {
+        currentLangName.innerHTML = `
+            <span style="font-weight: 600;">${langNames[locale][0]}</span>
+            <span style="color: #666;">${langNames[locale][1]}</span>
+        `;
+    }
+    
     document.getElementById('languageMenu').style.display = 'none';
     
     // Map to Google Translate language codes
@@ -80,39 +138,55 @@ function changeLanguage(locale, flag, code) {
     const targetLang = langMap[locale];
     console.log('Changing language to:', targetLang);
     
-    // Try to use Google Translate select element
-    let attempts = 0;
-    const maxAttempts = 15;
+    // Check immediately if Google Translate is already loaded
+    const select = document.querySelector('select.goog-te-combo');
     
-    const tryTranslate = setInterval(function() {
+    if (select) {
+        console.log('Found Google Translate select immediately, setting language to:', targetLang);
+        try {
+            select.value = targetLang;
+            select.dispatchEvent(new Event('change'));
+            isTranslating = false;
+            return;
+        } catch(e) {
+            console.error('Error setting language:', e);
+            isTranslating = false;
+        }
+    }
+    
+    // If not found, wait for it with shorter intervals
+    let attempts = 0;
+    const maxAttempts = 5; // Reduced from 10 to 5
+    
+    translateInterval = setInterval(function() {
         attempts++;
         
-        // Check for the Google Translate select element
         const select = document.querySelector('select.goog-te-combo');
         
         if (select) {
-            console.log('Found Google Translate select, setting language to:', targetLang);
-            select.value = targetLang;
-            select.dispatchEvent(new Event('change'));
-            
-            // Also try trigger event
-            if (select.onchange) {
-                select.onchange();
+            console.log('Found Google Translate select after', attempts, 'attempts');
+            try {
+                select.value = targetLang;
+                select.dispatchEvent(new Event('change'));
+                clearInterval(translateInterval);
+                translateInterval = null;
+                isTranslating = false;
+                return;
+            } catch(e) {
+                console.error('Error setting language:', e);
+                clearInterval(translateInterval);
+                translateInterval = null;
+                isTranslating = false;
             }
-            
-            clearInterval(tryTranslate);
-            return;
         }
         
         if (attempts >= maxAttempts) {
-            console.log('Google Translate select not found after', maxAttempts, 'attempts');
-            console.log('Reloading page with language parameter');
-            const url = new URL(window.location.href);
-            url.searchParams.set('hl', targetLang);
-            window.location.href = url.toString();
-            clearInterval(tryTranslate);
+            console.log('Google Translate not found after', maxAttempts, 'attempts');
+            clearInterval(translateInterval);
+            translateInterval = null;
+            isTranslating = false;
         }
-    }, 300);
+    }, 200); // Slightly increased interval for better performance
 }
 
 // Close menu when clicking outside
@@ -122,4 +196,24 @@ document.addEventListener('click', function(event) {
         document.getElementById('languageMenu').style.display = 'none';
     }
 });
+
+// Auto-translate on page load if default language is not Vietnamese
+(function() {
+    const defaultLang = '{{ $defaultLang }}';
+    const hasTranslatedBefore = sessionStorage.getItem('lang_translated') === 'true';
+    
+    // Only auto-translate if default language is not 'vi' and not translated before
+    if (defaultLang !== 'vi' && !hasTranslatedBefore) {
+        // Wait for Google Translate to load
+        setTimeout(function() {
+            const select = document.querySelector('select.goog-te-combo');
+            if (select) {
+                select.value = defaultLang;
+                select.dispatchEvent(new Event('change'));
+                sessionStorage.setItem('lang_translated', 'true');
+                console.log('Auto-translated to default language:', defaultLang);
+            }
+        }, 2000);
+    }
+})();
 </script>

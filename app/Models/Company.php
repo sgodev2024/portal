@@ -17,5 +17,6 @@ class Company extends Model
         'company_email',
         'company_logo',
         'footer',
+        'default_language',
     ];
 }
