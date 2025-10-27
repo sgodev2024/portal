@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use App\Models\TicketMessage;
+use App\Models\TicketRead;
 use App\Models\User;
 use App\Models\CustomerGroup;
 use App\Models\EmailTemplate;
@@ -305,6 +306,44 @@ class TicketController extends Controller
         return response()->json([
             'messages' => $messages,
             'ticket_status' => $ticket->status
+        ]);
+    }
+
+    public function markAllAsRead(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Lấy tất cả tickets mà user có quyền xem
+        $query = Ticket::query();
+        
+        if ($user->role == 2) { // Staff
+            $query->where(function($q) use ($user) {
+                $q->where('assigned_staff_id', $user->id)
+                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
+                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
+                          $staffQuery->where('staff_id', $user->id);
+                      });
+                  });
+            });
+        }
+        
+        $tickets = $query->get();
+        
+        foreach ($tickets as $ticket) {
+            TicketRead::updateOrCreate(
+                [
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $user->id,
+                ],
+                [
+                    'read_at' => now(),
+                ]
+            );
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Tất cả tickets đã được đánh dấu là đã đọc.'
         ]);
     }
 }

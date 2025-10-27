@@ -1,5 +1,7 @@
 @php
     use App\Models\Ticket;
+    use App\Models\TicketRead;
+    use App\Models\TicketMessage;
     use App\Models\Notification as NotificationModel;
 
     $userRole = auth()->user()->role;
@@ -9,7 +11,29 @@
         default => 'customer.dashboard',
     };
 
-    $openTickets = in_array($userRole, [1, 2]) ? Ticket::where('status', 'open')->count() : 0;
+    // Kiểm tra có tickets chưa đọc không (hiển thị ! hay không)
+    $hasUnreadTickets = false;
+    if (in_array($userRole, [1, 2])) {
+        // Lấy tất cả tickets mà user có quyền xem
+        $tickets = Ticket::with('messages')->get();
+        
+        foreach ($tickets as $ticket) {
+            // Kiểm tra ticket có message mới không
+            $lastRead = TicketRead::where('ticket_id', $ticket->id)
+                ->where('user_id', auth()->id())
+                ->first();
+            
+            $lastMessage = $ticket->messages()->latest()->first();
+            
+            if ($lastMessage) {
+                // Nếu chưa đọc lần nào hoặc có message mới sau lần đọc
+                if (!$lastRead || !$lastRead->read_at || $lastMessage->created_at > $lastRead->read_at) {
+                    $hasUnreadTickets = true;
+                    break; // Chỉ cần 1 ticket chưa đọc là đủ để hiện dấu !
+                }
+            }
+        }
+    }
 @endphp
 
 <style>
@@ -202,11 +226,11 @@
                 @endphp
                 @if (in_array($userRole, [1, 2]))
                     <li class="nav-item {{ $isTicketsActive ? 'active' : '' }}">
-                        <a data-bs-toggle="collapse" href="#ticketsMenu">
+                        <a href="{{ route('admin.tickets.index') }}" data-has-unread="{{ $hasUnreadTickets ? 'true' : 'false' }}">
                             <i class="fas fa-ticket-alt"></i>
                             <p>Tickets</p>
-                            @if ($openTickets > 0)
-                                <span class="badge bg-danger">{{ $openTickets }}</span>
+                            @if ($hasUnreadTickets)
+                                <span class="badge bg-danger" id="ticketsBadge" style="display: inline-block; padding: 3px 8px;">!</span>
                             @endif
                             <span class="caret"></span>
                         </a>

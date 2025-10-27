@@ -184,6 +184,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::post('/{id}/assign', [AdminTicketController::class, 'assign'])
             ->name('assign')
             ->middleware('checkRole:1');
+        Route::post('/mark-all-read', [AdminTicketController::class, 'markAllAsRead'])->name('mark_all_read');
     });
 });
 Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1,2'])->group(function () {
