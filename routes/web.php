@@ -3,25 +3,26 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\ChatController;
+use App\Http\Controllers\Admin\FileController;
+use App\Http\Controllers\Admin\StmtController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Customer\TicketController;
-use App\Http\Controllers\Admin\FileController;
+use App\Http\Controllers\Admin\GroupStaffController;
 use App\Http\Controllers\Admin\CustomerGroupController;
 use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\NotificationCounterController;
 use App\Http\Controllers\Customer\FileManagerController;
 use App\Http\Controllers\Customer\ChatCustomerController;
+use App\Http\Controllers\Customer\FileCustomerController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Staff\StaffNotificationController;
 use App\Http\Controllers\Customer\CustomerProfileController;
-use App\Http\Controllers\Customer\FileCustomerController;
 use App\Http\Controllers\Customer\CustomerNotificationController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
-use App\Http\Controllers\Admin\GroupStaffController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -54,7 +55,10 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::post('/{id}/send', [ChatController::class, 'sendMessage'])->name('send');
         Route::get('/list-updates', [ChatController::class, 'getListUpdates']);
     });
-
+    Route::prefix('stmt')->name('admin.stmt.')->group(function () {
+        Route::get('/', [StmtController::class, 'index'])->name('index');
+        Route::post('/update', [StmtController::class, 'update'])->name('update');
+    });
     // Quản lý nhân viên
     Route::prefix('staffs')->name('admin.staffs.')->group(function () {
         Route::get('/', [StaffController::class, 'index'])->name('index');
@@ -97,7 +101,7 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::get('/', [GroupStaffController::class, 'index'])->name('index');
         Route::post('/assign', [GroupStaffController::class, 'assign'])->name('assign');
         Route::delete('/{groupId}/{staffId}', [GroupStaffController::class, 'remove'])->name('remove');
-Route::post('/{groupId}/reassign-tickets', [GroupStaffController::class, 'reassignUnassignedTickets'])->name('reassign-tickets');
+        Route::post('/{groupId}/reassign-tickets', [GroupStaffController::class, 'reassignUnassignedTickets'])->name('reassign-tickets');
     });
 });
 // route admin, nhân viên
@@ -243,7 +247,6 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
         Route::post('/{id}/rename', [FileManagerController::class, 'renameFile'])->name('rename');
         Route::post('/{id}/move', [FileManagerController::class, 'moveFile'])->name('move');
         Route::get('/activities/list', [FileManagerController::class, 'activities'])->name('activities');
-        
     });
 
     Route::prefix('folders')->name('folders.')->group(function () {

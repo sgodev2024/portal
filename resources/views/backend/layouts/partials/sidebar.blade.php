@@ -82,10 +82,6 @@
                     </a>
                 </li>
 
-                <li class="nav-section">
-                    <span class="sidebar-mini-icon"><i class="fa fa-ellipsis-h"></i></span>
-                    <h4 class="text-section">Component</h4>
-                </li>
 
                 {{-- ============ ADMIN MENUS ============ --}}
                 @if ($userRole == 1)
@@ -94,7 +90,8 @@
                     @php
                         $isConfigActive = request()->routeIs('company.index')
                             || request()->routeIs('admin.staffs.*')
-                            || request()->routeIs('admin.email_templates.*');
+                            || request()->routeIs('admin.email_templates.*')
+                            || request()->routeIs('admin.stmt.*');
                     @endphp
                     <li class="nav-item {{ $isConfigActive ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#config">
@@ -117,6 +114,11 @@
                                 <li class="{{ request()->routeIs('admin.email_templates.*') ? 'active' : '' }}">
                                     <a href="{{ route('admin.email_templates.index') }}">
                                         <span class="sub-item">Quản lý Email</span>
+                                    </a>
+                                </li>
+                                <li class="{{ request()->routeIs('admin.stmt.index') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.stmt.index') }}">
+                                        <span class="sub-item">Cấu hình STMT</span>
                                     </a>
                                 </li>
                             </ul>
