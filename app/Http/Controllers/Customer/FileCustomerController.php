@@ -16,9 +16,9 @@ class FileCustomerController extends Controller
     {
         $user = Auth::user();
         
-        // Lấy các file báo cáo có email của user trong recipients
+        // Lấy các file báo cáo có id của user trong recipients (recipients now stores user IDs)
         $files = File::reports()
-            ->whereJsonContains('recipients', $user->email)
+            ->whereJsonContains('recipients', $user->id)
             ->with(['uploader', 'sender'])
             ->latest('sent_at')
             ->paginate(10);
@@ -68,7 +68,7 @@ class FileCustomerController extends Controller
         $file = File::reports()->findOrFail($id);
         
         // Kiểm tra quyền truy cập
-        if (!in_array($user->email, $file->recipients ?? [])) {
+        if (!in_array($user->id, $file->recipients ?? [])) {
             abort(403, 'Bạn không có quyền truy cập file này!');
         }
 
@@ -116,8 +116,8 @@ class FileCustomerController extends Controller
         $user = Auth::user();
         $file = File::reports()->with(['uploader', 'sender'])->findOrFail($id);
         
-        // Kiểm tra quyền truy cập
-        if (!in_array($user->email, $file->recipients ?? [])) {
+        // Kiểm tra quyền truy cập (recipients holds user IDs)
+        if (!in_array($user->id, $file->recipients ?? [])) {
             abort(403, 'Bạn không có quyền truy cập file này!');
         }
 

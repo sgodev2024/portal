@@ -40,117 +40,96 @@
     </div>
 
     <!-- Main Content - Wide Layout -->
-    <div class="card border-0 shadow-hover">
-        <div class="list-group list-group-flush">
-            @forelse($files as $file)
-            <div class="list-group-item list-item-hover px-4 py-4">
-                <div class="d-flex align-items-center gap-4">
-                    <!-- File Icon -->
-                    <div class="file-icon flex-shrink-0">
-                        <i class="fas fa-file-{{ $file->file_type === 'pdf' ? 'pdf' : ($file->file_type === 'doc' || $file->file_type === 'docx' ? 'word' : 'alt') }}"></i>
-                    </div>
-
-                    <!-- File Title & Badges -->
-                    <div class="file-main-info">
-                        <h5 class="file-title mb-2">{{ $file->title }}</h5>
-                        <div class="d-flex gap-2">
-                            <span class="badge bg-primary-soft">
-                                <i class="fas fa-file-alt me-1"></i>{{ strtoupper($file->file_type) }}
-                            </span>
-                            <span class="badge bg-success-soft">
-                                <i class="fas fa-database me-1"></i>{{ $file->file_size_formatted }}
-                            </span>
-                            @if($file->downloads_count > 0)
-                            <span class="badge bg-info-soft">
-                                <i class="fas fa-download me-1"></i>{{ $file->downloads_count }} lượt
-                            </span>
+     <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="5%" class="text-center">STT</th>
+                        <th width="30%">Tên báo cáo</th>
+                        <th width="12%" class="text-center">Ngày gửi</th>
+                        <th width="15%" class="text-center">Thao tác</th>
+                        <th width="38%">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($files as $index => $file)
+                    <tr>
+                        <!-- STT -->
+                        <td class="text-center">
+                            {{ $files->firstItem() + $index }}
+                        </td>
+                        
+                        <!-- Tên báo cáo -->
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-file-{{ $file->file_type === 'pdf' ? 'pdf text-danger' : ($file->file_type === 'doc' || $file->file_type === 'docx' ? 'word text-primary' : 'alt text-secondary') }}"></i>
+                                <div>
+                                    <div class="fw-semibold">{{ $file->title }}</div>
+                                    <small class="text-muted">
+                                        {{ strtoupper($file->file_type) }} • {{ $file->file_size_formatted }}
+                                        @if($file->downloads_count > 0)
+                                        • {{ $file->downloads_count }} lượt tải
+                                        @endif
+                                    </small>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Ngày gửi -->
+                        <td class="text-center">
+                            <div>{{ $file->sent_at->format('d/m/Y') }}</div>
+                            <small class="text-muted">{{ $file->sent_at->format('H:i') }}</small>
+                        </td>
+                        
+                        <!-- Thao tác -->
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a href="{{ route('customer.files.download_report', $file->id) }}" 
+                                   class="btn btn-primary btn-sm" title="Tải xuống">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                                <a href="{{ route('customer.files.show_report', $file->id) }}" 
+                                   class="btn btn-light btn-sm" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                        
+                        <!-- Ghi chú -->
+                        <td>
+                            @if($file->description)
+                                <small>{{ $file->description }}</small>
+                            @else
+                                <small class="text-muted fst-italic">Không có ghi chú</small>
                             @endif
-                        </div>
-                    </div>
-
-                    <!-- Description - Extended -->
-                    @if($file->description)
-                    <div class="file-description flex-grow-1">
-                        <div class="description-content">
-                            <i class="fas fa-quote-left text-muted me-2"></i>
-                            <span class="text-body">{{ $file->description }}</span>
-                        </div>
-                    </div>
-                    @else
-                    <div class="flex-grow-1"></div>
-                    @endif
-
-                    <!-- Uploader Info -->
-                    <div class="uploader-info flex-shrink-0">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="avatar-circle bg-primary-soft text-primary">
-                                {{ substr($file->uploader->name, 0, 1) }}
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                                <h5 class="mb-2">Chưa có báo cáo nào</h5>
+                                <p class="mb-0">
+                                    Bạn sẽ nhận được thông báo qua email khi có báo cáo mới được gửi đến.
+                                </p>
                             </div>
-                            <div>
-                                <div class="fw-semibold text-body">{{ $file->uploader->name }}</div>
-                                <small class="text-muted">{{ $file->uploader->email }}</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Date Info -->
-                    <div class="date-info flex-shrink-0">
-                        <div class="text-center">
-                            <div class="date-badge">
-                                <div class="date-day">{{ $file->sent_at->format('d') }}</div>
-                                <div class="date-month">{{ $file->sent_at->format('M Y') }}</div>
-                            </div>
-                            <small class="text-muted d-block mt-1">{{ $file->sent_at->format('H:i') }}</small>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="actions-group flex-shrink-0">
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('customer.files.download_report', $file->id) }}" 
-                               class="btn btn-primary btn-action" 
-                               title="Tải xuống">
-                                <i class="fas fa-download"></i>
-                            </a>
-                            <a href="{{ route('customer.files.show_report', $file->id) }}" 
-                               class="btn btn-light btn-action" 
-                               title="Xem chi tiết">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @empty
-            <div class="list-group-item py-5">
-                <div class="text-center">
-                    <div class="empty-state mb-4">
-                        <div class="empty-icon-lg">
-                            <i class="fas fa-inbox"></i>
-                        </div>
-                    </div>
-                    <h5 class="mb-2">Chưa có báo cáo nào</h5>
-                    <p class="text-muted mb-4">
-                        Bạn sẽ nhận được thông báo qua email khi có báo cáo mới được gửi đến.<br>
-                        Các báo cáo thường được gửi vào cuối tháng hoặc theo yêu cầu đặc biệt.
-                    </p>
-                    <button class="btn btn-light" disabled>
-                        <i class="fas fa-sync-alt me-2"></i> Làm mới
-                    </button>
-                </div>
-            </div>
-            @endforelse
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
 
         @if($files->count() > 0)
-        <div class="card-footer bg-white border-0 pt-3">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                <div class="text-muted">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Hiển thị <strong>{{ $files->firstItem() ?? 0 }}</strong> - <strong>{{ $files->lastItem() ?? 0 }}</strong> 
-                    trong tổng số <strong>{{ $files->total() }}</strong> báo cáo
-                </div>
-                <div class="pagination-wrapper">
+        <div class="card-footer bg-white border-top">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Hiển thị {{ $files->firstItem() ?? 0 }} - {{ $files->lastItem() ?? 0 }} 
+                    trong tổng số {{ $files->total() }} báo cáo
+                </small>
+                <div>
                     {{ $files->links() }}
                 </div>
             </div>

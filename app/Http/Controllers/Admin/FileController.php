@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\File;
 use App\Models\User;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use App\Models\CustomerGroup;
 use App\Mail\FileNotification;
@@ -80,14 +81,29 @@ class FileController extends Controller
     }
 
     // Form tạo file mới
-   // Form tạo file mới
-public function create(Request $request)
-{
-    if ($request->routeIs('admin.files.create_template')) {
-        return view('backend.files.create_template');
-    }
-    
-    if ($request->routeIs('admin.files.create_report')) {
+    public function create(Request $request)
+    {
+        if ($request->routeIs('admin.files.create_template')) {
+            return view('backend.files.create_template');
+        }
+        
+        if ($request->routeIs('admin.files.create_report')) {
+            $customers = User::where('role', 3)
+                ->where('is_active', 1)
+                ->orderBy('name')
+                ->get();
+
+            $groups = CustomerGroup::orderBy('name')->get();
+
+            return view('backend.files.create_report', compact('customers', 'groups'));
+        }
+        
+        $type = $request->get('type', 'report');
+        
+        if ($type === 'template') {
+            return view('backend.files.create_template');
+        }
+
         $customers = User::where('role', 3)
             ->where('is_active', 1)
             ->orderBy('name')
@@ -97,204 +113,217 @@ public function create(Request $request)
 
         return view('backend.files.create_report', compact('customers', 'groups'));
     }
-    $type = $request->get('type', 'report');
-    
-    if ($type === 'template') {
-        return view('backend.files.create_template');
-    }
 
-    $customers = User::where('role', 3)
-        ->where('is_active', 1)
-        ->orderBy('name')
-        ->get();
-
-    $groups = CustomerGroup::orderBy('name')->get();
-
-    return view('backend.files.create_report', compact('customers', 'groups'));
-}
-
- public function store(Request $request)
-{
-    Log::info('File upload attempt', [
-        'category' => $request->file_category,
-        'has_file' => $request->hasFile('file'),
-        'recipient_users' => $request->recipient_user_ids,
-        'recipient_groups' => $request->recipient_group_ids
-    ]);
-
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string|max:1000',
-        'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,zip,rar|max:51200',
-        'file_category' => 'required|in:report,template',
-    ], [
-        'title.required' => 'Vui lòng nhập tiêu đề',
-        'file.required' => 'Vui lòng chọn file',
-        'file.mimes' => 'File phải có định dạng: PDF, DOC, DOCX, XLS, XLSX, ZIP, RAR',
-        'file.max' => 'File không được vượt quá 50MB',
-    ]);
-
-    // Validation riêng cho báo cáo
-    if ($request->file_category === 'report') {
-        // Kiểm tra người nhận
-        $hasUsers = !empty($request->recipient_user_ids) && is_array($request->recipient_user_ids);
-        $hasGroups = !empty($request->recipient_group_ids) && is_array($request->recipient_group_ids);
-        
-        if (!$hasUsers && !$hasGroups) {
-            return back()
-                ->withErrors(['recipient_error' => 'Vui lòng chọn ít nhất 1 người nhận hoặc 1 nhóm khách hàng.'])
-                ->withInput();
-        }
-
-        // Validate IDs nếu có
-        if ($hasUsers) {
-            $request->validate([
-                'recipient_user_ids' => 'array',
-                'recipient_user_ids.*' => 'exists:users,id',
-            ]);
-        }
-        
-        if ($hasGroups) {
-            $request->validate([
-                'recipient_group_ids' => 'array',
-                'recipient_group_ids.*' => 'exists:customer_groups,id',
-            ]);
-        }
-    }
-
-    DB::beginTransaction();
-    try {
-        // Kiểm tra file upload
-        if (!$request->hasFile('file')) {
-            throw new \Exception('Không tìm thấy file upload');
-        }
-
-        $file = $request->file('file');
-        
-        // Kiểm tra file hợp lệ
-        if (!$file->isValid()) {
-            throw new \Exception('File upload không hợp lệ: ' . $file->getErrorMessage());
-        }
-
-        $originalName = $file->getClientOriginalName();
-        $extension = $file->getClientOriginalExtension();
-        $fileName = time() . '_' . Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $extension;
-        
-        $folder = $request->file_category === 'report' ? 'reports' : 'templates';
-        
-        // Tạo thư mục nếu chưa có
-        $storagePath = storage_path('app/public/' . $folder);
-        if (!file_exists($storagePath)) {
-            mkdir($storagePath, 0755, true);
-        }
-        
-        $path = $file->storeAs($folder, $fileName, 'public');
-
-        // Kiểm tra file đã lưu thành công
-        if (!Storage::disk('public')->exists($path)) {
-            throw new \Exception('Lưu file thất bại');
-        }
-
-        // Tạo record file
-        $fileRecord = File::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'file_name' => $originalName,
-            'file_path' => $path,
-            'file_type' => $extension,
-            'file_size' => $file->getSize(),
-            'uploaded_by' => Auth::id(),
-            'file_category' => $request->file_category,
-            'is_active' => $request->has('is_active') ? 1 : 0,
+    public function store(Request $request)
+    {
+        // Log attempt
+        Log::info('File upload attempt', [
+            'category' => $request->file_category,
+            'has_files' => $request->hasFile('files'),
         ]);
 
-        Log::info('File record created', ['id' => $fileRecord->id]);
+        // Detailed debug: list incoming file names for troubleshooting
+        try {
+            if ($request->hasFile('files')) {
+                $names = array_map(function($f){ return $f->getClientOriginalName(); }, $request->file('files'));
+                Log::info('Incoming upload files', ['count' => count($names), 'names' => $names]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('Could not read incoming file names for debug: ' . $e->getMessage());
+        }
 
-        // Xử lý người nhận cho báo cáo
-        $recipientCount = 0;
-        if ($request->file_category === 'report') {
-            $recipients = collect();
+        // Basic validation for multiple files
+        try {
+            $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'files' => 'required|array',
+            'files.*' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,zip,rar|max:51200',
+            'file_category' => 'required|in:report,template',
+        ], [
+            'title.required' => 'Vui lòng nhập tiêu đề',
+            'files.required' => 'Vui lòng chọn ít nhất một file',
+            'files.*.required' => 'Vui lòng chọn file hợp lệ',
+            'files.*.mimes' => 'File phải có định dạng: PDF, DOC, DOCX, XLS, XLSX, ZIP, RAR',
+            'files.*.max' => 'File không được vượt quá 50MB',
+        ]);
+        } catch (ValidationException $e) {
+            // If request expects JSON (AJAX from file manager), return JSON errors
+            Log::warning('File upload validation failed', ['errors' => $e->validator->errors()->all()]);
+            if ($request->expectsJson() || $request->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $e->validator->errors()->all()
+                ], 422);
+            }
+            throw $e;
+        }
+        // If report type, try auto-detecting recipients from filenames first
+        if ($request->file_category === 'report' && $request->hasFile('files') && empty($request->recipient_user_ids) && empty($request->recipient_group_ids)) {
+            $filesForDetect = $request->file('files');
+            $errorFiles = [];
 
-            // Lấy khách hàng từ nhóm
-            if (!empty($request->recipient_group_ids)) {
-                $groupUsers = User::where('role', 3)
+            foreach ($filesForDetect as $tmpFile) {
+                if (! $tmpFile || ! $tmpFile->isValid()) {
+                    $errorFiles[] = ['filename' => ($tmpFile ? $tmpFile->getClientOriginalName() : 'unknown'), 'error' => 'File không hợp lệ'];
+                    continue;
+                }
+
+                $baseName = pathinfo($tmpFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $accountId = ltrim($baseName, '0');
+
+                if (! ctype_digit((string) $accountId)) {
+                    $errorFiles[] = ['filename' => $tmpFile->getClientOriginalName(), 'error' => 'Tên file không phải là số điện thoại hợp lệ'];
+                    continue;
+                }
+
+                $user = User::where('account_id', 'like', '%' . $accountId)
+                    ->where('role', 3)
                     ->where('is_active', 1)
-                    ->whereHas('groups', function($query) use ($request) {
-                        $query->whereIn('customer_groups.id', $request->recipient_group_ids);
-                    })
-                    ->get();
-                $recipients = $recipients->merge($groupUsers);
-                
-                Log::info('Users from groups', ['count' => $groupUsers->count()]);
+                    ->first();
+
+                if (! $user) {
+                    $errorFiles[] = ['filename' => $tmpFile->getClientOriginalName(), 'error' => 'Không tìm thấy khách hàng có số điện thoại này'];
+                    continue;
+                }
             }
 
-            // Lấy khách hàng được chọn trực tiếp
-            if (!empty($request->recipient_user_ids)) {
-                $directUsers = User::where('role', 3)
-                    ->where('is_active', 1)
-                    ->whereIn('id', $request->recipient_user_ids)
-                    ->get();
-                $recipients = $recipients->merge($directUsers);
-                
-                Log::info('Direct users', ['count' => $directUsers->count()]);
+            if (! empty($errorFiles)) {
+                $messages = array_map(function($e){ return "File {$e['filename']}: {$e['error']}"; }, $errorFiles);
+                Log::warning('File detection errors', ['errors' => $messages]);
+                if ($request->expectsJson() || $request->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                    return response()->json([ 'success' => false, 'errors' => $messages ], 422);
+                }
+                return redirect()->back()->withInput()->withErrors(['files' => $messages]);
             }
+        }
 
-            // Loại bỏ trùng lặp
-            $recipients = $recipients->unique('id');
-            $recipientCount = $recipients->count();
+        // Process and store files inside a transaction
+        DB::beginTransaction();
+        $storedPaths = [];
+        $fileRecords = [];
 
-            Log::info('Total unique recipients', ['count' => $recipientCount]);
+        try {
+            $files = $request->file('files');
 
-            if ($recipients->isNotEmpty()) {
-                // Cập nhật recipients
-                $fileRecord->update([
-                    'recipients' => $recipients->pluck('email')->toArray(),
-                    'sent_at' => now(),
-                    'sent_by' => Auth::id(),
+            foreach ($files as $file) {
+                if (! $file || ! $file->isValid()) {
+                    throw new \Exception('File upload không hợp lệ');
+                }
+
+                $originalName = $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $fileName = time() . '_' . Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $extension;
+                $folder = $request->file_category === 'report' ? 'reports' : 'templates';
+
+                $storagePath = storage_path('app/public/' . $folder);
+                if (! file_exists($storagePath)) {
+                    mkdir($storagePath, 0755, true);
+                }
+
+                $path = $file->storeAs($folder, $fileName, 'public');
+                $storedPaths[] = $path;
+
+                if (! Storage::disk('public')->exists($path)) {
+                    throw new \Exception('Lưu file thất bại');
+                }
+
+                // detect recipient for this file (if possible)
+                $baseName = pathinfo($originalName, PATHINFO_FILENAME);
+                $accountId = ltrim($baseName, '0');
+                $recipientId = null;
+
+                if (ctype_digit((string) $accountId)) {
+                    $user = User::where('account_id', 'like', '%' . $accountId)
+                        ->where('role', 3)
+                        ->where('is_active', 1)
+                        ->first();
+
+                    if ($user) {
+                        $recipientId = $user->id;
+                    }
+                }
+
+                $fileRecord = File::create([
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'file_name' => $originalName,
+                    'file_path' => $path,
+                    'file_type' => $extension,
+                    'file_size' => $file->getSize(),
+                    'uploaded_by' => Auth::id(),
+                    'file_category' => $request->file_category,
+                    'is_active' => $request->has('is_active') ? 1 : 0,
+                    'recipients' => $recipientId ? [$recipientId] : [],
+                    'sent_at' => $recipientId ? now() : null,
+                    'sent_by' => $recipientId ? Auth::id() : null,
                 ]);
 
-                // Gửi email thông báo
-                foreach ($recipients as $recipient) {
-                    try {
-                        $downloadUrl = route('customer.documents.download_report', $fileRecord->id);
+                $fileRecords[] = $fileRecord;
+
+                // send immediately if recipient found and this is a report
+                if ($recipientId && $request->file_category === 'report') {
+                    $recipient = User::find($recipientId);
+                    if ($recipient) {
+                        $downloadUrl = route('customer.files.download_report', $fileRecord->id);
                         Mail::to($recipient->email)->queue(new FileNotification($fileRecord, $downloadUrl));
-                    } catch (\Exception $e) {
-                        Log::error('Failed to send email', [
-                            'recipient' => $recipient->email,
-                            'error' => $e->getMessage()
-                        ]);
                     }
                 }
             }
+
+            DB::commit();
+
+            $fileCount = count($fileRecords);
+            $recipientCount = collect($fileRecords)->pluck('recipients')->flatten()->unique()->count();
+
+            $message = $request->file_category === 'report'
+                ? "Đã tạo và gửi {$fileCount} báo cáo thành công đến {$recipientCount} khách hàng!"
+                : "Đã tạo {$fileCount} biểu mẫu thành công!";
+
+            // If AJAX request, return structured per-file results so UI can show links/errors
+            if ($request->expectsJson() || $request->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
+                $results = array_map(function($rec) {
+                    return [
+                        'id' => $rec->id,
+                        'title' => $rec->title,
+                        'file_name' => $rec->file_name,
+                        'recipients' => $rec->recipients,
+                        'download_url' => route('customer.files.download_report', $rec->id),
+                    ];
+                }, $fileRecords);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'files' => $results,
+                ]);
+            }
+
+            if ($request->file_category === 'template') {
+                return redirect()->route('admin.files.templates')->with('success', $message);
+            }
+
+            return redirect()->route('admin.files.reports')->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // cleanup stored files
+            foreach ($storedPaths as $p) {
+                if (Storage::disk('public')->exists($p)) {
+                    Storage::disk('public')->delete($p);
+                }
+            }
+
+            Log::error('File upload error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withInput()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
-
-        DB::commit();
-
-        $message = $request->file_category === 'report' 
-            ? "Đã tạo và gửi báo cáo '{$fileRecord->title}' thành công đến {$recipientCount} khách hàng!"
-            : "Đã tạo biểu mẫu '{$fileRecord->title}' thành công!";
-
-        return redirect()->route('admin.files.index')
-            ->with('success', $message);
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-
-        Log::error('File upload error', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-
-        // Xóa file nếu đã upload
-        if (isset($path) && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-        }
-
-        return back()
-            ->withInput()
-            ->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
     }
-}
+
     // Xem chi tiết file
     public function show($id)
     {
@@ -323,7 +352,7 @@ public function create(Request $request)
         }
     }
 
-    // Cập nhật file
+    // ✅ Cập nhật file - ĐÃ SỬA
     public function update(Request $request, $id)
     {
         $file = File::findOrFail($id);
@@ -332,26 +361,39 @@ public function create(Request $request)
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,zip,rar|max:51200',
-            'is_active' => 'boolean',
+        ], [
+            'title.required' => 'Vui lòng nhập tiêu đề',
+            'file.mimes' => 'File phải có định dạng: PDF, DOC, DOCX, XLS, XLSX, ZIP, RAR',
+            'file.max' => 'File không được vượt quá 50MB',
         ]);
 
         DB::beginTransaction();
         try {
+            // ✅ SỬA: Chuyển is_active về integer rõ ràng
             $updateData = [
                 'title' => $request->title,
                 'description' => $request->description,
-                'is_active' => $request->has('is_active'),
+                'is_active' => $request->has('is_active') ? 1 : 0,
             ];
 
             // Cập nhật file nếu có
             if ($request->hasFile('file')) {
                 $newFile = $request->file('file');
+                
+                if (!$newFile->isValid()) {
+                    throw new \Exception('File upload không hợp lệ');
+                }
+
                 $originalName = $newFile->getClientOriginalName();
                 $extension = $newFile->getClientOriginalExtension();
                 $fileName = time() . '_' . Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) . '.' . $extension;
                 
                 $folder = $file->file_category === 'report' ? 'reports' : 'templates';
                 $path = $newFile->storeAs($folder, $fileName, 'public');
+
+                if (!Storage::disk('public')->exists($path)) {
+                    throw new \Exception('Lưu file thất bại');
+                }
 
                 // Xóa file cũ
                 if (Storage::disk('public')->exists($file->file_path)) {
@@ -370,11 +412,27 @@ public function create(Request $request)
 
             DB::commit();
 
-            return redirect()->route('admin.files.show', $file->id)
-                ->with('success', 'Cập nhật file thành công!');
+            // ✅ SỬA: Redirect về đúng trang dựa vào loại file
+            if ($file->file_category === 'template') {
+                return redirect()->route('admin.files.templates')
+                    ->with('success', 'Cập nhật biểu mẫu thành công!');
+            } else {
+                return redirect()->route('admin.files.reports')
+                    ->with('success', 'Cập nhật báo cáo thành công!');
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();
+
+            Log::error('File update error', [
+                'file_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if (isset($path) && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
 
             return back()
                 ->withInput()
@@ -391,10 +449,8 @@ public function create(Request $request)
             abort(404, 'File không tồn tại');
         }
 
-        // Tăng số lượt download
         $file->increment('download_count');
 
-        // Lưu log download
         \App\Models\FileDownload::create([
             'file_id' => $file->id,
             'user_id' => Auth::id(),
@@ -419,20 +475,18 @@ public function create(Request $request)
         }
 
         try {
-            // Lấy danh sách người nhận
+            // recipients now stores user IDs, so query by id
             $recipients = User::where('role', 3)
                 ->where('is_active', 1)
-                ->whereIn('email', $file->recipients)
+                ->whereIn('id', $file->recipients)
                 ->get();
 
             if ($recipients->isNotEmpty()) {
-                // Gửi email thông báo
                 foreach ($recipients as $recipient) {
-                    $downloadUrl = route('customer.documents.download_report', $file->id);
+                    $downloadUrl = route('customer.files.download_report', $file->id);
                     Mail::to($recipient->email)->send(new FileNotification($file, $downloadUrl));
                 }
 
-                // Cập nhật thời gian gửi
                 $file->update([
                     'sent_at' => now(),
                     'sent_by' => Auth::id(),
@@ -453,12 +507,10 @@ public function create(Request $request)
     {
         $file = File::findOrFail($id);
 
-        // Xóa file vật lý
         if (Storage::disk('public')->exists($file->file_path)) {
             Storage::disk('public')->delete($file->file_path);
         }
 
-        // Xóa record
         $file->delete();
 
         return redirect()->route('admin.files.index')

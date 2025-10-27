@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
 
 class File extends Model
 {
@@ -14,7 +15,7 @@ class File extends Model
         'title', 'description', 'file_name', 'file_path',
         'file_type', 'file_size', 'uploaded_by',
         'file_category', // 'report' hoặc 'template'
-        'recipients', // JSON array emails
+    'recipients', // JSON array of user IDs (recipients)
         'sent_at', 'sent_by',
         'is_active', 'download_count'
     ];
@@ -78,5 +79,23 @@ class File extends Model
     public function incrementDownloadCount()
     {
         $this->increment('download_count');
+    }
+
+    /**
+     * Helper accessor: get recipient User models for this file.
+     * Usage: $file->recipient_users
+     */
+    public function getRecipientUsersAttribute()
+    {
+        return User::whereIn('id', $this->recipients ?? [])->get();
+    }
+
+    /**
+     * Helper accessor: get recipient emails array.
+     * Usage: $file->recipient_emails
+     */
+    public function getRecipientEmailsAttribute()
+    {
+        return $this->recipient_users->pluck('email')->toArray();
     }
 }

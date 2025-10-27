@@ -12,17 +12,20 @@ use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Customer\TicketController;
 use App\Http\Controllers\Admin\GroupStaffController;
+use App\Http\Controllers\Staff\StaffGroupController;
 use App\Http\Controllers\Admin\CustomerGroupController;
 use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\NotificationCounterController;
 use App\Http\Controllers\Customer\FileManagerController;
 use App\Http\Controllers\Customer\ChatCustomerController;
 use App\Http\Controllers\Customer\FileCustomerController;
+use App\Http\Controllers\Admin\AdminFileManagerController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Staff\StaffNotificationController;
 use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Customer\CustomerNotificationController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
+
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -40,6 +43,19 @@ Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/notifications/unread-count', [NotificationCounterController::class, 'unreadCount'])->middleware('auth')->name('notifications.unread_count');
 // route admin
 Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
+
+    Route::prefix('file-manager')->name('admin.file_manager.')->group(function () {
+        Route::get('/', [AdminFileManagerController::class, 'index'])->name('index');
+        Route::post('/upload', [AdminFileManagerController::class, 'upload'])->name('upload'); // ← THÊM
+        Route::get('/folders', [AdminFileManagerController::class, 'folders'])->name('folders');
+        Route::get('/download-history', [AdminFileManagerController::class, 'downloadHistory'])->name('download_history');
+        Route::get('/activities', [AdminFileManagerController::class, 'activities'])->name('activities');
+        Route::get('/storage-quota', [AdminFileManagerController::class, 'storageQuota'])->name('storage_quota');
+        Route::put('/storage-quota/{userId}', [AdminFileManagerController::class, 'updateQuota'])->name('update_quota');
+        Route::get('/files/{id}', [AdminFileManagerController::class, 'showFile'])->name('show_file');
+        Route::get('/files/{id}/download', [AdminFileManagerController::class, 'download'])->name('download');
+        Route::delete('/files/{id}', [AdminFileManagerController::class, 'deleteFile'])->name('delete_file');
+    });
 
     // Trang dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
@@ -59,6 +75,7 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::get('/', [StmtController::class, 'index'])->name('index');
         Route::post('/update', [StmtController::class, 'update'])->name('update');
     });
+
     // Quản lý nhân viên
     Route::prefix('staffs')->name('admin.staffs.')->group(function () {
         Route::get('/', [StaffController::class, 'index'])->name('index');
@@ -101,6 +118,7 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::get('/', [GroupStaffController::class, 'index'])->name('index');
         Route::post('/assign', [GroupStaffController::class, 'assign'])->name('assign');
         Route::delete('/{groupId}/{staffId}', [GroupStaffController::class, 'remove'])->name('remove');
+        
         Route::post('/{groupId}/reassign-tickets', [GroupStaffController::class, 'reassignUnassignedTickets'])->name('reassign-tickets');
     });
 });
@@ -196,6 +214,13 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->gro
             Route::get('/{id}', [StaffNotificationController::class, 'show'])->name('show');
             Route::get('/datatable/data', [StaffNotificationController::class, 'data'])->name('data');
         });
+
+    Route::get('/groups', [StaffGroupController::class, 'index'])
+        ->name('groups.index');
+    Route::post('/groups/{groupId}/claim', [StaffGroupController::class, 'claim'])
+        ->name('groups.claim');
+    Route::delete('/groups/{groupId}/leave', [StaffGroupController::class, 'leave'])
+        ->name('groups.leave');
 });
 
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3'])->group(function () {
@@ -209,15 +234,6 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3']
 
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3', 'must.update.profile'])->group(function () {
 
-    // QUẢN LÝ FILE THỐNG NHẤT (Báo cáo + Biểu mẫu)
-    // Route::prefix('documents')->name('documents.')->group(function () {
-    //     Route::get('/reports', [FileCustomerController::class, 'reports'])->name('reports');
-    //     Route::get('/reports/{id}', [FileCustomerController::class, 'showReport'])->name('show_report');
-    //     Route::get('/reports/{id}/download', [FileCustomerController::class, 'downloadReport'])->name('download_report');
-    //     Route::get('/templates', [FileCustomerController::class, 'templates'])->name('templates');
-    //     Route::get('/templates/{id}/download', [FileCustomerController::class, 'downloadTemplate'])->name('download_template');
-    //     Route::get('/my-downloads', [FileCustomerController::class, 'myDownloads'])->name('my_downloads');
-    // });
     Route::prefix('files')->name('files.')->group(function () {
         Route::get('/reports', [FileCustomerController::class, 'reports'])->name('reports');
         Route::get('/reports/{id}', [FileCustomerController::class, 'showReport'])->name('show_report');
@@ -238,20 +254,6 @@ Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3',
     //     Route::post('/{id}/move', [FileManagerController::class, 'moveFile'])->name('move');
     //     Route::get('/activities/list', [FileManagerController::class, 'activities'])->name('activities');
     // });
-    Route::prefix('file-manager')->name('file_manager.')->group(function () {
-        Route::get('/', [FileManagerController::class, 'index'])->name('index');
-        Route::post('/upload', [FileManagerController::class, 'upload'])->name('upload');
-        Route::post('/create-folder', [FileManagerController::class, 'createFolder'])->name('create_folder');
-        Route::get('/{id}/download', [FileManagerController::class, 'download'])->name('download');
-        Route::delete('/{id}', [FileManagerController::class, 'deleteFile'])->name('delete');
-        Route::post('/{id}/rename', [FileManagerController::class, 'renameFile'])->name('rename');
-        Route::post('/{id}/move', [FileManagerController::class, 'moveFile'])->name('move');
-        Route::get('/activities/list', [FileManagerController::class, 'activities'])->name('activities');
-    });
-
-    Route::prefix('folders')->name('folders.')->group(function () {
-        Route::delete('/{id}', [FileManagerController::class, 'deleteFolder'])->name('delete');
-    });
 });
 
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3', 'must.update.profile'])->group(function () {

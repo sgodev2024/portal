@@ -7,8 +7,12 @@ use App\Models\Ticket;
 use App\Models\TicketMessage;
 use App\Models\User;
 use App\Models\CustomerGroup;
+use App\Models\EmailTemplate;
+use App\Mail\GenericMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class TicketController extends Controller
 {
@@ -140,6 +144,34 @@ class TicketController extends Controller
         if ($ticket->status === Ticket::STATUS_NEW) {
             $ticket->update(['status' => Ticket::STATUS_IN_PROGRESS]);
         }
+
+        // Gửi mail thông báo có reply mới
+        try {
+            $template = EmailTemplate::where('code', 'ticket_replied')
+                ->where('is_active', true)
+                ->first();
+
+            if ($template && $ticket->user) {
+                $ticketLink = $ticket->user->role == 3 
+                    ? route('customer.tickets.show', $ticket->id)
+                    : route('admin.tickets.show', $ticket->id);
+                
+                Mail::to($ticket->user->email)->queue(new GenericMail(
+                    $template,
+                    [
+                        'user_name' => $ticket->user->name,
+                        'ticket_id' => $ticket->id,
+                        'ticket_subject' => $ticket->subject,
+                        'sender_name' => Auth::user()->name,
+                        'ticket_link' => $ticketLink,
+                        'app_name' => config('app.name'),
+                    ]
+                ));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send ticket_replied email: ' . $e->getMessage());
+        }
+
         return back()->with('success', 'Phản hồi đã được gửi!');
     }
 
@@ -162,6 +194,32 @@ class TicketController extends Controller
 
         $ticket = $query->findOrFail($id);
         $ticket->update(['status' => Ticket::STATUS_CLOSED]);
+
+        // Gửi mail thông báo ticket được đóng
+        try {
+            $template = EmailTemplate::where('code', 'ticket_closed')
+                ->where('is_active', true)
+                ->first();
+
+            if ($template && $ticket->user) {
+                $ticketLink = $ticket->user->role == 3 
+                    ? route('customer.tickets.show', $ticket->id)
+                    : route('admin.tickets.show', $ticket->id);
+                
+                Mail::to($ticket->user->email)->queue(new GenericMail(
+                    $template,
+                    [
+                        'user_name' => $ticket->user->name,
+                        'ticket_id' => $ticket->id,
+                        'ticket_subject' => $ticket->subject,
+                        'ticket_link' => $ticketLink,
+                        'app_name' => config('app.name'),
+                    ]
+                ));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send ticket_closed email: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Ticket đã được đóng.');
     }
@@ -187,6 +245,33 @@ class TicketController extends Controller
             'assignment_type' => Ticket::ASSIGNMENT_INDIVIDUAL,
             'status' => $ticket->status === 'new' ? Ticket::STATUS_IN_PROGRESS : $ticket->status
         ]);
+
+        // Gửi mail thông báo ticket được gán
+        try {
+            $template = EmailTemplate::where('code', 'ticket_assigned')
+                ->where('is_active', true)
+                ->first();
+
+            if ($template && $ticket->user) {
+                $ticketLink = $ticket->user->role == 3 
+                    ? route('customer.tickets.show', $ticket->id)
+                    : route('admin.tickets.show', $ticket->id);
+                
+                Mail::to($ticket->user->email)->queue(new GenericMail(
+                    $template,
+                    [
+                        'user_name' => $ticket->user->name,
+                        'ticket_id' => $ticket->id,
+                        'ticket_subject' => $ticket->subject,
+                        'staff_name' => $staff->name,
+                        'ticket_link' => $ticketLink,
+                        'app_name' => config('app.name'),
+                    ]
+                ));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send ticket_assigned email: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Đã gán ticket cho nhân viên ' . $staff->name);
     }

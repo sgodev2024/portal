@@ -75,20 +75,27 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="8%">ID</th>
+                                    <th width="5%">STT</th>
+                                    <th width="13%">Ngày tạo</th>
                                     <th width="20%">Tiêu đề</th>
                                     <th width="12%">Danh mục</th>
                                     <th width="10%">Ưu tiên</th>
                                     <th width="12%">Trạng thái</th>
                                     <th width="15%">Phụ trách</th>
-                                    <th width="13%">Ngày tạo</th>
                                     <th width="10%" class="text-center">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($tickets as $ticket)
+                                @foreach ($tickets as $index => $ticket)
                                     <tr>
-                                        <td class="fw-bold text-primary">#{{ $ticket->id }}</td>
+                                        <td class="text-center">{{ $tickets->firstItem() + $index }}</td>
+                                      
+                                          <td>
+                                            <small>
+                                                <i class="bi bi-calendar3"></i>
+                                                {{ $ticket->created_at->format('d/m/Y H:i') }}
+                                            </small>
+                                        </td>
                                         <td>
                                             <div class="fw-semibold">{{ Str::limit($ticket->subject, 40) }}</div>
                                             <small class="text-muted">
@@ -139,12 +146,7 @@
                                                 <span class="text-muted small">Chưa gán</span>
                                             @endif
                                         </td>
-                                        <td>
-                                            <small>
-                                                <i class="bi bi-calendar3"></i>
-                                                {{ $ticket->created_at->format('d/m/Y H:i') }}
-                                            </small>
-                                        </td>
+                                      
                                         <td class="text-center">
                                             <a href="{{ route('customer.tickets.show', $ticket->id) }}"
                                                 class="btn btn-sm btn-outline-primary">

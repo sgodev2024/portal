@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Customer;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use App\Models\TicketMessage;
+use App\Models\EmailTemplate;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\GenericMail;
 
 class TicketController extends Controller
 {
@@ -93,6 +97,29 @@ class TicketController extends Controller
             'sender_id' => Auth::id(),
             'message' => $request->description,
         ]);
+
+        // Gửi mail thông báo ticket được tạo
+        try {
+            $template = EmailTemplate::where('code', 'ticket_created')
+                ->where('is_active', true)
+                ->first();
+
+            if ($template) {
+                $ticketLink = route('customer.tickets.show', $ticket->id);
+                Mail::to(Auth::user()->email)->queue(new GenericMail(
+                    $template,
+                    [
+                        'user_name' => Auth::user()->name,
+                        'ticket_id' => $ticket->id,
+                        'ticket_subject' => $ticket->subject,
+                        'ticket_link' => $ticketLink,
+                        'app_name' => config('app.name'),
+                    ]
+                ));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send ticket_created email: ' . $e->getMessage());
+        }
 
         return redirect()->route('customer.tickets.index')->with('success', 'Ticket đã được gửi thành công!');
     }

@@ -15,8 +15,8 @@
                 <div class="card border-info shadow-sm">
                     <div class="card-body text-center">
                         <i class="bi bi-clock-history display-4 text-info"></i>
-                        <h3 class="mt-2">{{ $tickets->where('status', 'open')->count() }}</h3>
-                        <p class="text-muted mb-0">Chờ xử lý</p>
+                        <h3 class="mt-2">{{ $tickets->where('status', 'new')->count() }}</h3>
+                        <p class="text-muted mb-0">Chưa xử lý</p>
                     </div>
                 </div>
             </div>
@@ -33,8 +33,8 @@
                 <div class="card border-success shadow-sm">
                     <div class="card-body text-center">
                         <i class="bi bi-check-circle display-4 text-success"></i>
-                        <h3 class="mt-2">{{ $tickets->where('status', 'closed')->count() }}</h3>
-                        <p class="text-muted mb-0">Đã đóng</p>
+                        <h3 class="mt-2">{{ $tickets->where('status', 'completed')->count() + $tickets->where('status', 'closed')->count() }}</h3>
+                        <p class="text-muted mb-0">Đã hoàn tất</p>
                     </div>
                 </div>
             </div>
@@ -65,8 +65,9 @@
                         <label class="form-label fw-semibold">Trạng thái</label>
                         <select class="form-select" name="status">
                             <option value="">Tất cả</option>
-                            <option value="open" {{ $status == 'open' ? 'selected' : '' }}>Chờ xử lý</option>
+                            <option value="new" {{ $status == 'new' ? 'selected' : '' }}>Chưa xử lý</option>
                             <option value="in_progress" {{ $status == 'in_progress' ? 'selected' : '' }}>Đang xử lý</option>
+                            <option value="completed" {{ $status == 'completed' ? 'selected' : '' }}>Hoàn tất</option>
                             <option value="closed" {{ $status == 'closed' ? 'selected' : '' }}>Đã đóng</option>
                         </select>
                     </div>
@@ -117,7 +118,7 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="5%">#ID</th>
+                                    <th width="5%">STT</th>
                                     <th width="18%">Khách hàng</th>
                                     <th width="25%">Tiêu đề</th>
                                     @if (Auth::user()->role == 1)
@@ -129,9 +130,9 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($tickets as $ticket)
+                                @foreach ($tickets as $index => $ticket)
                                     <tr>
-                                        <td class="fw-bold text-primary">#{{ $ticket->id }}</td>
+                                        <td class="text-center">{{ $tickets->firstItem() + $index }}</td>
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-circle bg-primary text-white me-2">
@@ -168,9 +169,9 @@
 
                                         <td>
                                             @switch($ticket->status)
-                                                @case('open')
+                                                @case('new')
                                                     <span class="badge bg-info">
-                                                        <i class="bi bi-clock"></i> Chờ xử lý
+                                                        <i class="bi bi-clock"></i> Chưa xử lý
                                                     </span>
                                                 @break
 
@@ -180,9 +181,15 @@
                                                     </span>
                                                 @break
 
-                                                @case('closed')
+                                                @case('completed')
                                                     <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> Đã đóng
+                                                        <i class="bi bi-check-circle"></i> Hoàn tất
+                                                    </span>
+                                                @break
+
+                                                @case('closed')
+                                                    <span class="badge bg-secondary">
+                                                        <i class="bi bi-x-circle"></i> Đã đóng
                                                     </span>
                                                 @break
                                             @endswitch

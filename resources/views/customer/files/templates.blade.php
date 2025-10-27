@@ -47,143 +47,101 @@
                 </div>
             </div>
         </div>
-
-        <!-- Stats Bar -->
-        <div class="stats-bar mt-3">
-            <div class="row g-3">
-                <div class="col-auto">
-                    <div class="stat-item">
-                        <i class="fas fa-file-alt text-primary"></i>
-                        <span class="stat-value">{{ $files->total() }}</span>
-                        <span class="stat-label">Biểu mẫu</span>
-                    </div>
-                </div>
-                <div class="col-auto">
-                    <div class="stat-item">
-                        <i class="fas fa-folder text-warning"></i>
-                        <span class="stat-value">{{ $categories->count() }}</span>
-                        <span class="stat-label">Danh mục</span>
-                    </div>
-                </div>
-                <div class="col-auto">
-                    <div class="stat-item">
-                        <i class="fas fa-download text-success"></i>
-                        <span class="stat-value">{{ count($myDownloads) }}</span>
-                        <span class="stat-label">Đã tải</span>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- Main Content - Wide Layout -->
-    <div class="card border-0 shadow-hover">
-        <div class="list-group list-group-flush">
-            @forelse($files as $file)
-            <div class="list-group-item list-item-hover px-4 py-4">
-                <div class="d-flex align-items-center gap-4">
-                    <!-- File Icon -->
-                    <div class="file-icon flex-shrink-0">
-                        <i class="fas fa-file-{{ $file->file_type === 'pdf' ? 'pdf' : ($file->file_type === 'doc' || $file->file_type === 'docx' ? 'word' : 'alt') }}"></i>
-                    </div>
-
-                    <!-- File Title & Category -->
-                    <div class="file-main-info">
-                        <h5 class="file-title mb-2">{{ $file->title }}</h5>
-                        <div class="d-flex gap-2 flex-wrap">
-                            @if($file->category)
-                            <span class="badge bg-warning-soft">
-                                <i class="fas fa-folder me-1"></i>{{ $file->category }}
-                            </span>
-                            @endif
-                            <span class="badge bg-primary-soft">
-                                <i class="fas fa-file-alt me-1"></i>{{ strtoupper($file->file_type) }}
-                            </span>
-                            <span class="badge bg-success-soft">
-                                <i class="fas fa-database me-1"></i>{{ $file->file_size_formatted }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Description - Extended -->
-                    @if($file->description)
-                    <div class="file-description flex-grow-1">
-                        <div class="description-content">
-                            <i class="fas fa-info-circle text-muted me-2"></i>
-                            <span class="text-body">{{ $file->description }}</span>
-                        </div>
-                    </div>
-                    @else
-                    <div class="flex-grow-1"></div>
-                    @endif
-
-                    <!-- Uploader Info -->
-                    <div class="uploader-info flex-shrink-0">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="avatar-circle bg-primary-soft text-primary">
-                                {{ substr($file->uploader->name, 0, 1) }}
-                            </div>
-                            <div>
-                                <div class="fw-semibold text-body small">{{ $file->uploader->name }}</div>
-                                <small class="text-muted">{{ $file->created_at->format('d/m/Y') }}</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Download Stats -->
-                    <div class="download-stats flex-shrink-0">
-                        <div class="stats-badge">
-                            <div class="stats-icon">
-                                <i class="fas fa-download"></i>
-                            </div>
-                            <div class="stats-info">
-                                <div class="stats-number">{{ $file->download_count }}</div>
-                                <div class="stats-text">lượt tải</div>
-                            </div>
-                        </div>
-                        @if(in_array($file->id, $myDownloads))
-                        <div class="mt-2 text-center">
-                            <span class="badge bg-success-soft text-success">
-                                <i class="fas fa-check-circle me-1"></i>Đã tải
-                            </span>
-                        </div>
-                        @endif
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="actions-group flex-shrink-0">
-                        <a href="{{ route('customer.files.download_template', $file->id) }}" 
-                           class="btn btn-primary btn-download">
-                            <i class="fas fa-download me-2"></i>
-                            Tải xuống
-                        </a>
-                    </div>
-                </div>
+    <!-- Table Content -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 60px;" class="text-center">STT</th>
+                            <th style="width: 30%;">Tên biểu mẫu</th>
+                            <th style="width: 12%;" class="text-center">Ngày tạo</th>
+                            <th style="width: 15%;" class="text-center">Thao tác</th>
+                            <th style="width: 38%;">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($files as $index => $file)
+                        <tr>
+                            <!-- STT -->
+                            <td class="text-center">
+                                {{ $files->firstItem() + $index }}
+                            </td>
+                            
+                            <!-- Tên biểu mẫu -->
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-file-{{ $file->file_type === 'pdf' ? 'pdf text-danger' : ($file->file_type === 'doc' || $file->file_type === 'docx' ? 'word text-primary' : 'alt text-secondary') }}"></i>
+                                    <div>
+                                        <div class="fw-semibold">{{ $file->title }}</div>
+                                        <small class="text-muted">
+                                            {{ strtoupper($file->file_type) }} • {{ $file->file_size_formatted }}
+                                            @if($file->category)
+                                            • {{ $file->category }}
+                                            @endif
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- Ngày tạo -->
+                            <td class="text-center">
+                                <div>{{ $file->created_at->format('d/m/Y') }}</div>
+                                <small class="text-muted">{{ $file->created_at->format('H:i') }}</small>
+                            </td>
+                            
+                            <!-- Thao tác -->
+                            <td class="text-center">
+                                <a href="{{ route('customer.files.download_template', $file->id) }}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-download"></i> Tải xuống
+                                </a>
+                                @if(in_array($file->id, $myDownloads))
+                                <div class="mt-1">
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle"></i> Đã tải
+                                    </small>
+                                </div>
+                                @endif
+                            </td>
+                            
+                            <!-- Ghi chú -->
+                            <td>
+                                @if($file->description)
+                                    <small>{{ $file->description }}</small>
+                                @else
+                                    <small class="text-muted fst-italic">Không có ghi chú</small>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                                    <h5 class="mb-2">Không tìm thấy biểu mẫu</h5>
+                                    <p class="mb-4">
+                                        @if(request('search'))
+                                            Không có biểu mẫu nào phù hợp với từ khóa "{{ request('search') }}"
+                                        @else
+                                            Chưa có biểu mẫu nào trong danh mục này
+                                        @endif
+                                    </p>
+                                    @if(request('search') || request('category'))
+                                    <a href="{{ route('customer.files.templates') }}" class="btn btn-light">
+                                        <i class="fas fa-redo me-2"></i> Xem tất cả
+                                    </a>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-            @empty
-            <div class="list-group-item py-5">
-                <div class="text-center">
-                    <div class="empty-state mb-4">
-                        <div class="empty-icon-lg">
-                            <i class="fas fa-inbox"></i>
-                        </div>
-                    </div>
-                    <h5 class="mb-2">Không tìm thấy biểu mẫu</h5>
-                    <p class="text-muted mb-4">
-                        @if(request('search'))
-                            Không có biểu mẫu nào phù hợp với từ khóa "{{ request('search') }}"
-                        @else
-                            Chưa có biểu mẫu nào trong danh mục này
-                        @endif
-                    </p>
-                    @if(request('search') || request('category'))
-                    <a href="{{ route('customer.files.templates') }}" class="btn btn-light">
-                        <i class="fas fa-redo me-2"></i> Xem tất cả
-                    </a>
-                    @endif
-                </div>
-            </div>
-            @endforelse
         </div>
 
         @if($files->count() > 0)
@@ -205,11 +163,6 @@
 
 @push('styles')
 <style>
-    /* Container - Wider */
-    .container-fluid {
-        max-width: 100% !important;
-    }
-
     /* Header Styles */
     .gradient-text {
         background: linear-gradient(45deg, #4e73df, #36b9cc);
@@ -217,39 +170,6 @@
         -webkit-text-fill-color: transparent;
         font-weight: 600;
         font-size: 1.75rem;
-    }
-
-    /* Stats Bar */
-    .stats-bar {
-        padding: 1rem;
-        background: linear-gradient(135deg, #f8f9fa, #ffffff);
-        border-radius: 12px;
-        border: 1px solid #e9ecef;
-    }
-
-    .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.5rem 1rem;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .stat-item i {
-        font-size: 1.5rem;
-    }
-
-    .stat-value {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #344767;
-    }
-
-    .stat-label {
-        font-size: 0.85rem;
-        color: #6c757d;
     }
 
     /* Filter Group */
@@ -304,163 +224,121 @@
         padding: 0.625rem 1.25rem;
     }
 
-    /* Card & List - Horizontal Layout */
-    .shadow-hover {
-        transition: all 0.3s ease;
+    /* Card */
+    .card {
         border-radius: 12px;
+        overflow: hidden;
     }
 
-    .list-item-hover {
+    /* Table Styles */
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .table-header th {
+        color: #344767;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .table-row {
         transition: all 0.2s ease;
-        border-left: 4px solid transparent;
+        border-left: 3px solid transparent;
     }
 
-    .list-item-hover:hover {
+    .table-row:hover {
         background-color: #f8f9fa;
         border-left-color: #4e73df;
     }
 
-    /* File Elements - Horizontal */
-    .file-icon {
-        width: 56px;
-        height: 56px;
+    .table-row td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+    }
+
+    /* STT Badge */
+    .stt-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #4e73df, #36b9cc);
+        color: white;
+        border-radius: 50%;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    /* File Icon */
+    .file-icon-sm {
+        width: 45px;
+        height: 45px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 12px;
+        border-radius: 10px;
         background: linear-gradient(135deg, #4e73df20, #36b9cc20);
         color: #4e73df;
+        flex-shrink: 0;
     }
 
-    .file-icon i {
-        font-size: 1.75rem;
+    .file-icon-sm i {
+        font-size: 1.4rem;
     }
 
-    /* File Main Info */
-    .file-main-info {
-        min-width: 280px;
-    }
-
-    .file-title {
-        color: #344767;
+    /* File Name */
+    .file-name {
         font-weight: 600;
-        font-size: 1.1rem;
+        color: #344767;
+        font-size: 1rem;
         line-height: 1.4;
-        margin-bottom: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 380px;
+        margin-bottom: 0.25rem;
     }
 
-    /* Description - Takes up remaining space */
-    .file-description {
-        max-width: 450px;
-        min-width: 200px;
+    .file-meta {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
     }
 
-    .description-content {
-        padding: 0.75rem 1rem;
+    /* Date Info */
+    .date-info {
+        font-weight: 500;
+        color: #344767;
+        font-size: 0.95rem;
+    }
+
+    /* Note Content */
+    .note-content {
+        display: flex;
+        align-items: start;
+        gap: 0.5rem;
+        padding: 0.75rem;
         background-color: #f8f9fa;
         border-radius: 8px;
         border-left: 3px solid #4e73df;
         font-size: 0.9rem;
         line-height: 1.5;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    /* Uploader Info */
-    .uploader-info {
-        min-width: 180px;
-    }
-
-    .avatar-circle {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-
-    /* Download Stats */
-    .download-stats {
-        min-width: 120px;
-    }
-
-    .stats-badge {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-        background: linear-gradient(135deg, #1cc88a10, #1cc88a20);
-        border-radius: 8px;
-        border: 1px solid #1cc88a30;
-    }
-
-    .stats-icon {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: white;
-        border-radius: 50%;
-        color: #1cc88a;
-        font-size: 1.1rem;
-    }
-
-    .stats-number {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1cc88a;
-        line-height: 1;
-    }
-
-    .stats-text {
-        font-size: 0.75rem;
-        color: #6c757d;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* Actions */
-    .actions-group {
-        min-width: 140px;
-    }
-
-    .btn-download {
-        padding: 0.75rem 1.5rem;
-        font-weight: 500;
-        border-radius: 8px;
-        white-space: nowrap;
-        transition: all 0.2s ease;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #4e73df, #36b9cc);
-        border: none;
-    }
-
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #3d5cb5, #2a8fa0);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(78, 115, 223, 0.4);
+        color: #344767;
     }
 
     /* Badges */
     .badge {
-        padding: 0.4em 0.75em;
+        padding: 0.35em 0.65em;
         font-weight: 500;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         letter-spacing: 0.3px;
-        border-radius: 6px;
-        white-space: nowrap;
+        border-radius: 5px;
     }
 
     .bg-primary-soft {
@@ -478,10 +356,30 @@
         color: #d4941e;
     }
 
+    /* Download Button */
+    .btn-download {
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4e73df, #36b9cc);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #3d5cb5, #2a8fa0);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78, 115, 223, 0.4);
+    }
+
     /* Empty State */
-    .empty-icon-lg {
-        width: 100px;
-        height: 100px;
+    .empty-state .empty-icon {
+        width: 80px;
+        height: 80px;
         margin: 0 auto;
         display: flex;
         align-items: center;
@@ -489,7 +387,7 @@
         border-radius: 50%;
         background: linear-gradient(135deg, #4e73df10, #36b9cc10);
         color: #4e73df;
-        font-size: 2.5rem;
+        font-size: 2rem;
     }
 
     /* Pagination */
@@ -513,41 +411,28 @@
     }
 
     /* Responsive */
-    @media (max-width: 1400px) {
-        .file-description {
-            max-width: 300px;
-        }
-        
-        .file-title {
-            max-width: 280px;
-        }
-    }
-
-    @media (max-width: 1200px) {
-        .list-item-hover .d-flex {
-            flex-wrap: wrap;
+    @media (max-width: 992px) {
+        .table-responsive {
+            font-size: 0.875rem;
         }
 
-        .file-main-info,
-        .uploader-info,
-        .download-stats,
-        .actions-group {
-            margin-bottom: 1rem;
+        .file-name {
+            font-size: 0.9rem;
         }
 
-        .file-description {
-            width: 100%;
-            max-width: 100%;
-            order: 5;
+        .stt-badge {
+            width: 35px;
+            height: 35px;
+            font-size: 0.85rem;
         }
 
-        .actions-group {
-            width: 100%;
-            order: 6;
+        .file-icon-sm {
+            width: 40px;
+            height: 40px;
         }
 
-        .btn-download {
-            width: 100%;
+        .file-icon-sm i {
+            font-size: 1.2rem;
         }
     }
 
@@ -562,27 +447,30 @@
             text-align: left;
         }
 
-        .file-icon {
-            width: 48px;
-            height: 48px;
+        .table {
+            font-size: 0.8rem;
         }
 
-        .file-icon i {
-            font-size: 1.5rem;
+        .table-header th {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.75rem;
         }
 
-        .file-title {
-            font-size: 1rem;
+        .table-row td {
+            padding: 1rem 0.5rem;
         }
 
-        .stats-bar {
-            overflow-x: auto;
+        .btn-download {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.8rem;
         }
 
-        .stats-bar .row {
-            flex-wrap: nowrap;
+        .note-content {
+            font-size: 0.8rem;
+            padding: 0.5rem;
         }
     }
+    
 </style>
 @endpush
 @endsection

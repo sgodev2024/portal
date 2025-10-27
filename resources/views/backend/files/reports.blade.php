@@ -75,10 +75,13 @@
                                 </td>
                                 <td>
                                     @if($file->recipients && count($file->recipients) > 0)
+                                        @php
+                                            $recipientEmails = \App\Models\User::whereIn('id', $file->recipients)->pluck('email')->toArray();
+                                        @endphp
                                         <span class="badge bg-info">{{ count($file->recipients) }} người nhận</span>
                                         <br>
                                         <small class="text-muted">
-                                            {{ implode(', ', array_slice($file->recipients, 0, 2)) }}
+                                            {{ implode(', ', array_slice($recipientEmails, 0, 2)) }}
                                             {{ count($file->recipients) > 2 ? '...' : '' }}
                                         </small>
                                     @else

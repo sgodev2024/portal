@@ -222,22 +222,25 @@
                         <span class="badge bg-primary ms-2">{{ count($file->recipients) }}</span>
                     </h6>
                 </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        @foreach($file->recipients as $email)
-                        <div class="list-group-item border-0 py-3">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm me-3">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
-                                <div class="flex-grow-1 text-break">
-                                    {{ $email }}
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @php
+                                $recipientUsers = !empty($file->recipients) ? \App\Models\User::whereIn('id', $file->recipients)->get() : collect();
+                            @endphp
+                            @foreach($recipientUsers as $recipient)
+                            <div class="list-group-item border-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-3">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div class="flex-grow-1 text-break">
+                                        {{ $recipient->email }}
+                                    </div>
                                 </div>
                             </div>
+                            @endforeach
                         </div>
-                        @endforeach
                     </div>
-                </div>
             </div>
             @endif
         </div>
