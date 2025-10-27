@@ -14,7 +14,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('subject');
             $table->text('body_html');
-            $table->string('from_name')->nullable();
             $table->boolean('is_active')->default(true);
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();

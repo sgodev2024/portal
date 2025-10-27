@@ -33,18 +33,6 @@
                         </div>
                     </div>
 
-                    <!-- Thông tin người gửi -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Tên người gửi</label>
-                            <input type="text" name="from_name"
-                                class="form-control @error('from_name') is-invalid @enderror"
-                                value="{{ old('from_name', $email_template->from_name) }}" placeholder="VD: Hệ thống ABC">
-                            @error('from_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
 
                     <!-- Nội dung Email -->
                     <div class="mb-3">

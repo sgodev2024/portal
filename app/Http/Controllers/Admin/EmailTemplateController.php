@@ -39,7 +39,6 @@ class EmailTemplateController extends Controller
             'name' => $request->name,
             'subject' => $request->subject,
             'body_html' => $cleanHtml,
-            'from_name' => $request->from_name,
             'is_active' => $request->has('is_active')
         ]);
 

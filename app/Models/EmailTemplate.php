@@ -14,7 +14,6 @@ class EmailTemplate extends Model
         'name',
         'subject',
         'body_html',
-        'from_name',
         'is_active',
         'created_by'
     ];
