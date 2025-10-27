@@ -91,6 +91,17 @@
 
                 </li>
             @endif --}}
+            
+            {{-- Language Switcher --}}
+            <li class="nav-item" style="display: flex; align-items: center; margin-right: 15px;">
+                @include('components.language-switcher')
+            </li>
+            
+            {{-- Google Translate Hidden Element --}}
+            <li class="nav-item" style="display: none;">
+                <div id="google_translate_element"></div>
+            </li>
+            
             <li class="nav-item topbar-user dropdown hidden-caret">
                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                     <div class="avatar-sm">

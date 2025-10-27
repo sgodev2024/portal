@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\TicketController as AdminTicketController;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');

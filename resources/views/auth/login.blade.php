@@ -12,6 +12,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
+    
+    <!-- Google Translate -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'vi',
+                includedLanguages: 'vi,de',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -39,6 +53,39 @@
 
 </head>
 <style type="text/css">
+    /* Google Translate Styling */
+    #google_translate_element {
+        display: inline-block !important;
+    }
+    .goog-te-banner-frame { display: none !important; }
+    .goog-te-balloon-frame { display: none !important; }
+    .goog-tooltip { display: none !important; }
+    .goog-te-gadget { font-size: 0 !important; }
+    .goog-te-gadget-simple {
+        background: #fff !important;
+        border: 2px solid #0066cc !important;
+        border-radius: 5px !important;
+        padding: 10px 20px !important;
+        font-size: 15px !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        display: inline-block !important;
+    }
+    .goog-te-gadget-simple:hover {
+        background: #0066cc !important;
+        color: #fff !important;
+    }
+    .goog-te-gadget-icon { display: none !important; }
+    .goog-te-menu-value { 
+        color: #0066cc !important; 
+        font-size: 15px !important; 
+        font-weight: bold !important;
+    }
+    .goog-te-menu-value span { font-size: 15px !important; }
+    .skiptranslate { display: none !important; }
+    body { top: 0 !important; }
+    .goog-te-menu-frame { z-index: 99999 !important; }
+    
     .error_txt {
         color: red;
     }
@@ -188,6 +235,16 @@
 
 <body class="form_page">
     <div id="qb_content_navi_2021">
+        <!-- Language Switcher -->
+        <div style="position: absolute; top: 20px; right: 20px; z-index: 999;">
+            @include('components.language-switcher')
+        </div>
+        
+        <!-- Google Translate Hidden Element -->
+        <div style="display: none;">
+            <div id="google_translate_element"></div>
+        </div>
+        
         <div class="login_display_02 login_page">
             <div class="ct_right">
                 <div class="ct_right_ct">
@@ -234,8 +291,7 @@
                                 </div>
                                 <div class="btn">
                                     <button type="submit" name="button"
-                                        class="loginButton loginButtonGg remove-msg before-login " id="submitBtn">Đăng
-                                        nhập</button>
+                                        class="loginButton loginButtonGg remove-msg before-login " id="submitBtn">Đăng nhập</button>
                                 </div>
                                 <div class="forgot-password-link">
                                     <a href="{{ route('password.request') }}" class="text-decoration-none"

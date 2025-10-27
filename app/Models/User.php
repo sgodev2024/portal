@@ -69,10 +69,22 @@ class User extends Authenticatable
      */
     public function getRoleNameAttribute()
     {
+        $locale = app()->getLocale();
+        
+        if ($locale == 'de') {
+            return match ($this->role) {
+                1 => 'Administrator',
+                2 => 'Mitarbeiter',
+                3 => 'Kunde',
+                default => 'Unbekannt',
+            };
+        }
+        
+        // Default Vietnamese
         return match ($this->role) {
-            1 => 'Admin',
+            1 => 'Quản trị viên',
             2 => 'Nhân viên',
-            3 => 'Người dùng',
+            3 => 'Khách hàng',
             default => 'Không xác định',
         };
     }
