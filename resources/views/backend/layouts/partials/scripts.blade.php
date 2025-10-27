@@ -66,4 +66,48 @@
 <script src="{{ asset('helper.js') }}"></script>
 @include('backend/includes/alert')
 
+<script>
+    // Xử lý đánh dấu tickets đã đọc khi click vào menu
+    document.addEventListener('DOMContentLoaded', function() {
+        const ticketsMenuLink = document.querySelector('a[data-has-unread]');
+        if (ticketsMenuLink) {
+            ticketsMenuLink.addEventListener('click', function(e) {
+                const hasUnread = this.getAttribute('data-has-unread') === 'true';
+                
+                if (hasUnread) {
+                    e.preventDefault(); // Tạm dừng điều hướng
+                    
+                    // Gọi AJAX để mark all as read
+                    fetch('{{ route('admin.tickets.mark_all_read') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Ẩn badge sau khi mark as read
+                        const badge = document.getElementById('ticketsBadge');
+                        if (badge) {
+                            badge.style.display = 'none';
+                        }
+                        
+                        // Cập nhật attribute để không hiện lại
+                        this.setAttribute('data-has-unread', 'false');
+                        
+                        // Sau đó điều hướng đến trang tickets
+                        window.location.href = '{{ route('admin.tickets.index') }}';
+                    })
+                    .catch(error => {
+                        console.error('Error marking tickets as read:', error);
+                        // Nếu có lỗi, vẫn cho phép điều hướng
+                        window.location.href = '{{ route('admin.tickets.index') }}';
+                    });
+                }
+            });
+        }
+    });
+</script>
+
 @stack('scripts')
