@@ -115,7 +115,6 @@ class EmailTemplateSeeder extends Seeder
                         <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
                     </p>
                 '),
-                'from_name' => 'Hỗ trợ khách hàng',
                 'is_active' => true,
                 'created_by' => 1,
             ]
@@ -189,7 +188,6 @@ class EmailTemplateSeeder extends Seeder
                         <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
                     </p>
                 '),
-                'from_name' => 'Hỗ trợ khách hàng',
                 'is_active' => true,
                 'created_by' => 1,
             ]
@@ -264,7 +262,6 @@ class EmailTemplateSeeder extends Seeder
                         <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
                     </p>
                 '),
-                'from_name' => 'Hỗ trợ khách hàng',
                 'is_active' => true,
                 'created_by' => 1,
             ]
@@ -318,7 +315,6 @@ class EmailTemplateSeeder extends Seeder
                 <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
             </p>
         '),
-                'from_name' => 'Support Team',
                 'is_active' => true,
                 'created_by' => 1,
             ]
@@ -365,7 +361,6 @@ class EmailTemplateSeeder extends Seeder
                 <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
             </p>
         '),
-                'from_name' => 'Hỗ trợ khách hàng',
                 'is_active' => true,
                 'created_by' => 1,
             ]
@@ -422,7 +417,6 @@ class EmailTemplateSeeder extends Seeder
                         <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
                     </p>
                 '),
-                'from_name' => 'Hỗ trợ khách hàng',
                 'is_active' => true,
                 'created_by' => 1,
             ]
@@ -485,7 +479,6 @@ class EmailTemplateSeeder extends Seeder
                         <strong style="color: #059669;">Đội ngũ hỗ trợ {app_name}</strong>
                     </p>
                 '),
-                'from_name' => 'Hỗ trợ khách hàng',
                 'is_active' => true,
                 'created_by' => 1,
             ]
@@ -548,7 +541,6 @@ class EmailTemplateSeeder extends Seeder
                         <strong style="color: #6b7280;">Đội ngũ hỗ trợ {app_name}</strong>
                     </p>
                 '),
-                'from_name' => 'Hỗ trợ khách hàng',
                 'is_active' => true,
                 'created_by' => 1,
             ]
@@ -605,7 +597,6 @@ class EmailTemplateSeeder extends Seeder
                         <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
                     </p>
                 '),
-                'from_name' => 'Hỗ trợ khách hàng',
                 'is_active' => true,
                 'created_by' => 1,
             ]
