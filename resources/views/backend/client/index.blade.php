@@ -14,7 +14,7 @@
                     <thead>
                         <tr>
                             <th><input type="checkbox" name="" id="checkboxAll"></th>
-                            <th>STT</th>
+                            <th>ID</th>
                             <th>Họ và tên</th>
                             <th>Email</th>
                             <th>Điện thoại</th>

@@ -2,7 +2,7 @@
 <table class="table table-hover align-middle mb-0">
     <thead class="table-light">
         <tr>
-            <th width="5%">STT</th>
+            <th width="5%">ID</th>
             <th>Thời gian</th>
             <th>Tiêu đề</th>
             <th>Nội dung</th>

@@ -6,7 +6,7 @@
                 <th class="text-center" style="width: 50px;">
                     <input type="checkbox" class="form-check-input" id="checkAll">
                 </th>
-                <th class="text-center" style="width: 60px;">STT</th>
+                <th class="text-center" style="width: 60px;">ID</th>
                 <th style="min-width: 180px;">HỌ TÊN</th>
                 <th style="min-width: 150px;">EMAIL CÔNG TY</th>
                 <th style="min-width: 130px;">SỐ ĐIỆN THOẠI</th>

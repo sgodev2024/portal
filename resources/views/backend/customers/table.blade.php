@@ -5,7 +5,7 @@
                 <th width="20" class="text-center border-end">
                     <input type="checkbox" id="checkAll" class="form-check-input">
                 </th>
-                <th width="40" class="border-end text-center">STT</th>
+                <th width="40" class="border-end text-center">ID</th>
                 <th class="border-end">HỌ TÊN</th>
                 <th class="border-end">EMAIL</th>
                 <th class="border-end">SỐ ĐIỆN THOẠI</th>

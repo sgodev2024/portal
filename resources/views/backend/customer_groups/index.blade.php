@@ -18,7 +18,7 @@
     <table class="table table-bordered align-middle">
         <thead class="table-light">
             <tr>
-                <th width="5%">STT</th>
+                <th width="5%">ID</th>
                 <th>Tên nhóm</th>
                 <th>Mô tả</th>
                 <th>Trạng thái</th>
