@@ -63,6 +63,27 @@
                                         </div>
                                     </div>
 
+                                    <!-- Default Language -->
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="default_language" class="form-label">
+                                                <i class="fas fa-language me-1"></i>Ngôn ngữ mặc định
+                                            </label>
+                                            <select class="form-control @error('default_language') is-invalid @enderror"
+                                                id="default_language" name="default_language">
+                                                <option value="vi" {{ old('default_language', $company->default_language ?? 'vi') == 'vi' ? 'selected' : '' }}>
+                                                    🇻🇳 Tiếng Việt
+                                                </option>
+                                                <option value="de" {{ old('default_language', $company->default_language ?? 'vi') == 'de' ? 'selected' : '' }}>
+                                                    🇩🇪 Deutsch
+                                                </option>
+                                            </select>
+                                            @error('default_language')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
                                     <!-- Logo Section -->
                                     <div class="col-md-6">
                                         <div class="form-group">

@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('staff_customer_group', function (Blueprint $table) {
-            $table->unique('customer_group_id');
+        Schema::table('companies', function (Blueprint $table) {
+            $table->string('default_language', 5)->default('vi')->after('footer');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-         Schema::table('staff_customer_group', function (Blueprint $table) {
-            $table->boolean('is_primary')->default(false);
+        Schema::table('companies', function (Blueprint $table) {
+            $table->dropColumn('default_language');
         });
     }
 };

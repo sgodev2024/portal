@@ -27,6 +27,7 @@ class CompanyRequest extends FormRequest
             'company_email'           => 'nullable|email|max:255',
             'footer'                  => 'nullable|string|max:250',
             'company_logo'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'default_language'        => 'nullable|string|in:vi,de',
         ];
     }
 
