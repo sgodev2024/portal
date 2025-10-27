@@ -41,11 +41,19 @@ class Ticket extends Model
                             
                             Log::info("Auto-assigned ticket {$ticket->id} to staff {$primaryStaff->name} for group {$group->name}");
                         } else {
-                            Log::warning("No primary staff found for group {$group->name}");
+                            // Không có staff trong group, set status = new (chưa xử lý)
+                            $ticket->update([
+                                'status' => self::STATUS_NEW
+                            ]);
+                            Log::warning("No primary staff found for group {$group->name}, ticket {$ticket->id} status set to NEW");
                         }
                     }
                 } else {
-                    Log::info("User {$user->name} has no groups, ticket {$ticket->id} not auto-assigned");
+                    // Nếu không tìm thấy staff thì giữ status là 'new' (chưa xử lý)
+                    $ticket->update([
+                        'status' => self::STATUS_NEW
+                    ]);
+                    Log::info("User {$user->name} has no groups, ticket {$ticket->id} status set to NEW (unassigned)");
                 }
             } catch (\Exception $e) {
                 Log::error("Error auto-assigning ticket {$ticket->id}: " . $e->getMessage());

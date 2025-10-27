@@ -29,7 +29,6 @@ class CustomerGroup extends Model
     public function staff()
     {
         return $this->belongsToMany(User::class, 'staff_customer_group', 'customer_group_id', 'staff_id')
-                    ->withPivot('is_primary')
                     ->withTimestamps();
     }
 

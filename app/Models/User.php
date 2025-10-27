@@ -2,7 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\UserFile;
+use App\Models\UserFolder;
+use App\Models\UserStorageQuota;
+use App\Models\UserFileActivity;
+use App\Models\CustomerGroup;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -58,9 +64,8 @@ class User extends Authenticatable
         return $this->hasMany(StaffCustomerGroup::class, 'staff_id');
     }
 
-
     /**
-     * Lấy tên vai trò (role name).
+     * Lấy tên vai trò (role name)
      */
     public function getRoleNameAttribute()
     {
@@ -73,7 +78,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Kiểm tra tài khoản có phải admin không.
+     * Kiểm tra vai trò
      */
     public function isAdmin()
     {
@@ -89,62 +94,92 @@ class User extends Authenticatable
     {
         return (int)$this->role === 3;
     }
-    /**
-     * Kiểm tra tài khoản có đang hoạt động không.
-     */
+
     public function isActive(): bool
     {
         return $this->is_active === true;
     }
 
+    /**
+     * ==========================================
+     * BOOT METHOD - TẠO FOLDER & QUOTA TỰ ĐỘNG
+     * ==========================================
+     */
+    protected static function boot()
+    {
+        parent::boot();
 
-protected static function boot()
-{
-    parent::boot();
-    
-   
-    static::created(function ($user) {
-        if ($user->role == 3) { 
-            UserFolder::create([
-                'user_id' => $user->id,
-                'parent_id' => null,
-                'name' => 'user_' . $user->id,
-                'path' => 'users/user_' . $user->id,
-                'description' => 'Thư mục gốc',
-                'is_root' => true,
-            ]);
-            
-            
-           UserStorageQuota::create([
-                'user_id' => $user->id,
-                'quota_limit' => 1073741824, 
-                'used_space' => 0,
-            ]);
-            
+        // ✅ KHI TẠO USER (role = 3 là customer)
+        static::created(function ($user) {
+            if ($user->role == 3) {
+                DB::beginTransaction();
+                try {
+                    // 1️⃣ TẠO ROOT FOLDER
+                    UserFolder::create([
+                        'user_id' => $user->id,
+                        'parent_id' => null,
+                        'name' => 'user_' . $user->id,
+                        'path' => '/',
+                        'description' => 'Thư mục gốc',
+                        'is_root' => true,
+                    ]);
 
-            Storage::disk('public')->makeDirectory('users/user_' . $user->id);
-        }
-    });
-    
-    static::deleting(function ($user) {
-        if ($user->role == 3) {
-            
-            $userFiles = UserFile::where('user_id', $user->id)->get();
-            foreach ($userFiles as $file) {
-                if (Storage::disk('public')->exists($file->file_path)) {
-                    Storage::disk('public')->delete($file->file_path);
+                    // 2️⃣ TẠO STORAGE QUOTA (1GB = 1073741824 bytes)
+                    UserStorageQuota::create([
+                        'user_id' => $user->id,
+                        'quota_limit' => 1073741824,  // 1GB
+                        'used_space' => 0,
+                    ]);
+
+                    // 3️⃣ TẠO THỰC THƯ MỤC TRÊN DISK
+                    Storage::disk('public')->makeDirectory("user_files/{$user->id}");
+
+                    DB::commit();
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    \Illuminate\Support\Facades\Log::error('Lỗi tạo folder: ' . $e->getMessage());
+                    throw $e;
                 }
             }
-            
-            // Xóa physical folder
-            Storage::disk('public')->deleteDirectory('users/user_' . $user->id);
-            
-            // Xóa records
-            UserFile::where('user_id', $user->id)->delete();
-            UserFolder::where('user_id', $user->id)->delete();
-            UserStorageQuota::where('user_id', $user->id)->delete();
-            UserFileActivity::where('user_id', $user->id)->delete();
-        }
-    });
+        });
+
+        // ✅ KHI XÓA USER
+        static::deleting(function ($user) {
+            if ($user->role == 3) {
+                DB::beginTransaction();
+                try {
+                    // 1️⃣ Lấy tất cả files của user
+                    $userFiles = UserFile::where('user_id', $user->id)->get();
+
+                    // 2️⃣ Xóa file vật lý
+                    foreach ($userFiles as $file) {
+                        if (Storage::disk('public')->exists($file->file_path)) {
+                            Storage::disk('public')->delete($file->file_path);
+                        }
+                    }
+
+                    // 3️⃣ Xóa thư mục vật lý trên disk
+                    if (Storage::disk('public')->exists("user_files/{$user->id}")) {
+                        Storage::disk('public')->deleteDirectory("user_files/{$user->id}");
+                    }
+
+                    // 4️⃣ Xóa database records
+                    UserFile::where('user_id', $user->id)->delete();
+                    UserFolder::where('user_id', $user->id)->delete();
+                    UserStorageQuota::where('user_id', $user->id)->delete();
+                    UserFileActivity::where('user_id', $user->id)->delete();
+
+                    DB::commit();
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    \Illuminate\Support\Facades\Log::error('Lỗi xóa user: ' . $e->getMessage());
+                    throw $e;
+                }
+            }
+        });
+    }
 }
-}
+
+?>

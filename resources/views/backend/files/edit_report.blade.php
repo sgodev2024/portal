@@ -66,13 +66,16 @@
                         </div>
 
                         @if(!empty($file->recipients))
+                        @php
+                            $recipientUsers = \App\Models\User::whereIn('id', $file->recipients)->get();
+                        @endphp
                         <div class="alert alert-info">
                             <h6><i class="fas fa-info-circle"></i> Thông tin người nhận</h6>
                             <p class="mb-2">Báo cáo này đã được gửi đến {{ count($file->recipients) }} người:</p>
                             <div class="list-group">
-                                @foreach($file->recipients as $email)
+                                @foreach($recipientUsers as $recipient)
                                 <div class="list-group-item py-1">
-                                    <i class="fas fa-envelope"></i> {{ $email }}
+                                    <i class="fas fa-envelope"></i> {{ $recipient->email }}
                                 </div>
                                 @endforeach
                             </div>

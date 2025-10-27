@@ -10,7 +10,8 @@
                 <div class="card-header">
                     <h3 class="card-title">Chỉnh sửa Biểu mẫu</h3>
                     <div class="card-tools">
-                        <a href="{{ route('admin.files.show', $file->id) }}" class="btn btn-secondary">
+                        {{-- ✅ SỬA: Về trang templates --}}
+                        <a href="{{ route('admin.files.templates') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Quay lại
                         </a>
                     </div>
@@ -59,7 +60,7 @@
                         <div class="form-group">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="is_active" id="is_active" 
-                                       {{ old('is_active', $file->is_active) ? 'checked' : '' }}>
+                                       value="1" {{ old('is_active', $file->is_active) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="is_active">
                                     Hiển thị cho khách hàng
                                 </label>
@@ -79,7 +80,8 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Cập nhật
                             </button>
-                            <a href="{{ route('admin.files.show', $file->id) }}" class="btn btn-secondary">
+                            {{-- ✅ SỬA: Về trang templates --}}
+                            <a href="{{ route('admin.files.templates') }}" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Hủy
                             </a>
                         </div>
@@ -90,5 +92,3 @@
     </div>
 </div>
 @endsection
-
-

@@ -370,5 +370,245 @@ class EmailTemplateSeeder extends Seeder
                 'created_by' => 1,
             ]
         );
+
+        // 6. Ticket được tạo
+        EmailTemplate::updateOrCreate(
+            ['code' => 'ticket_created'],
+            [
+                'name' => 'Ticket được tạo',
+                'subject' => 'Ticket #{ticket_id} - {ticket_subject}',
+                'body_html' => $emailWrapper('
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #0056b3, #0069d9); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 40px;">🎫</span>
+                        </div>
+                    </div>
+
+                    <h2 style="color: #0056b3; font-size: 24px; margin: 0 0 20px 0; text-align: center;">
+                        Ticket của bạn đã được tạo
+                    </h2>
+
+                    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 15px 0;">
+                        Xin chào <strong>{user_name}</strong>, chúng tôi đã nhận được ticket hỗ trợ của bạn tại <strong style="color: #0056b3;">{app_name}</strong>.
+                    </p>
+
+                    <div style="background-color: #e6f2ff; border-radius: 8px; padding: 25px; margin: 25px 0;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Ticket ID:</strong></td>
+                                <td style="color: #0f172a; font-size: 16px; font-weight: 700; text-align: right; padding: 8px 0;">#{ticket_id}</td>
+                            </tr>
+                            <tr><td colspan="2" style="padding: 0;"><div style="height: 1px; background-color: #cce5ff; margin: 8px 0;"></div></td></tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Tiêu đề:</strong></td>
+                                <td style="color: #0f172a; font-size: 14px; font-weight: 600; text-align: right; padding: 8px 0;">{ticket_subject}</td>
+                            </tr>
+                            <tr><td colspan="2" style="padding: 0;"><div style="height: 1px; background-color: #cce5ff; margin: 8px 0;"></div></td></tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Trạng thái:</strong></td>
+                                <td style="text-align: right; padding: 8px 0;"><span style="background-color: #cfe2ff; color: #0056b3; padding: 5px 12px; border-radius: 12px; font-size: 13px; font-weight: 600;">Chưa xử lý</span></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{ticket_link}" style="display: inline-block; background: linear-gradient(135deg, #0056b3, #0069d9); color: #ffffff; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);">
+                            Xem ticket
+                        </a>
+                    </div>
+
+                    <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
+                        Trân trọng,<br>
+                        <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
+                    </p>
+                '),
+                'from_name' => 'Hỗ trợ khách hàng',
+                'is_active' => true,
+                'created_by' => 1,
+            ]
+        );
+
+        // 7. Ticket được gán
+        EmailTemplate::updateOrCreate(
+            ['code' => 'ticket_assigned'],
+            [
+                'name' => 'Ticket được gán',
+                'subject' => 'Ticket #{ticket_id} đã được gán cho bạn',
+                'body_html' => $emailWrapper('
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 40px;">✅</span>
+                        </div>
+                    </div>
+
+                    <h2 style="color: #059669; font-size: 24px; margin: 0 0 20px 0; text-align: center;">
+                        Ticket đã được phân công
+                    </h2>
+
+                    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 15px 0;">
+                        Xin chào <strong>{user_name}</strong>, ticket của bạn tại <strong style="color: #0056b3;">{app_name}</strong> đã được phân công cho nhân viên xử lý.
+                    </p>
+
+                    <div style="background-color: #f0fdf4; border-radius: 8px; padding: 25px; margin: 25px 0;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Ticket ID:</strong></td>
+                                <td style="color: #0f172a; font-size: 16px; font-weight: 700; text-align: right; padding: 8px 0;">#{ticket_id}</td>
+                            </tr>
+                            <tr><td colspan="2" style="padding: 0;"><div style="height: 1px; background-color: #d1fae5; margin: 8px 0;"></div></td></tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Tiêu đề:</strong></td>
+                                <td style="color: #0f172a; font-size: 14px; font-weight: 600; text-align: right; padding: 8px 0;">{ticket_subject}</td>
+                            </tr>
+                            <tr><td colspan="2" style="padding: 0;"><div style="height: 1px; background-color: #d1fae5; margin: 8px 0;"></div></td></tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Nhân viên:</strong></td>
+                                <td style="color: #059669; font-size: 14px; font-weight: 700; text-align: right; padding: 8px 0;">{staff_name}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{ticket_link}" style="display: inline-block; background: linear-gradient(135deg, #059669, #10b981); color: #ffffff; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                            Xem ticket
+                        </a>
+                    </div>
+
+                    <div style="background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                        <p style="margin: 0; color: #065f46; font-size: 13px;">
+                            💡 Nhân viên sẽ liên hệ với bạn sớm nhất có thể để xử lý ticket của bạn.
+                        </p>
+                    </div>
+
+                    <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
+                        Trân trọng,<br>
+                        <strong style="color: #059669;">Đội ngũ hỗ trợ {app_name}</strong>
+                    </p>
+                '),
+                'from_name' => 'Hỗ trợ khách hàng',
+                'is_active' => true,
+                'created_by' => 1,
+            ]
+        );
+
+        // 8. Ticket được đóng
+        EmailTemplate::updateOrCreate(
+            ['code' => 'ticket_closed'],
+            [
+                'name' => 'Ticket được đóng',
+                'subject' => 'Ticket #{ticket_id} đã được đóng',
+                'body_html' => $emailWrapper('
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #6b7280, #9ca3af); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 40px;">🔒</span>
+                        </div>
+                    </div>
+
+                    <h2 style="color: #6b7280; font-size: 24px; margin: 0 0 20px 0; text-align: center;">
+                        Ticket đã được đóng
+                    </h2>
+
+                    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 15px 0;">
+                        Xin chào <strong>{user_name}</strong>, ticket của bạn tại <strong style="color: #0056b3;">{app_name}</strong> đã được đóng.
+                    </p>
+
+                    <div style="background-color: #f9fafb; border-radius: 8px; padding: 25px; margin: 25px 0;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Ticket ID:</strong></td>
+                                <td style="color: #0f172a; font-size: 16px; font-weight: 700; text-align: right; padding: 8px 0;">#{ticket_id}</td>
+                            </tr>
+                            <tr><td colspan="2" style="padding: 0;"><div style="height: 1px; background-color: #e5e7eb; margin: 8px 0;"></div></td></tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Tiêu đề:</strong></td>
+                                <td style="color: #0f172a; font-size: 14px; font-weight: 600; text-align: right; padding: 8px 0;">{ticket_subject}</td>
+                            </tr>
+                            <tr><td colspan="2" style="padding: 0;"><div style="height: 1px; background-color: #e5e7eb; margin: 8px 0;"></div></td></tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Trạng thái:</strong></td>
+                                <td style="text-align: right; padding: 8px 0;"><span style="background-color: #f3f4f6; color: #6b7280; padding: 5px 12px; border-radius: 12px; font-size: 13px; font-weight: 600;">Đã đóng</span></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{ticket_link}" style="display: inline-block; background: linear-gradient(135deg, #6b7280, #9ca3af); color: #ffffff; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);">
+                            Xem lịch sử ticket
+                        </a>
+                    </div>
+
+                    <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                        <p style="margin: 0; color: #78350f; font-size: 13px;">
+                            💡 Nếu bạn có bất kỳ thắc mắc hoặc câu hỏi nào, vui lòng tạo ticket mới.
+                        </p>
+                    </div>
+
+                    <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
+                        Trân trọng,<br>
+                        <strong style="color: #6b7280;">Đội ngũ hỗ trợ {app_name}</strong>
+                    </p>
+                '),
+                'from_name' => 'Hỗ trợ khách hàng',
+                'is_active' => true,
+                'created_by' => 1,
+            ]
+        );
+
+        // 9. Ticket có reply mới
+        EmailTemplate::updateOrCreate(
+            ['code' => 'ticket_replied'],
+            [
+                'name' => 'Ticket có phản hồi mới',
+                'subject' => 'Ticket #{ticket_id} - Có phản hồi mới',
+                'body_html' => $emailWrapper('
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #0056b3, #0069d9); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 40px;">💬</span>
+                        </div>
+                    </div>
+
+                    <h2 style="color: #0056b3; font-size: 24px; margin: 0 0 20px 0; text-align: center;">
+                        Có phản hồi mới
+                    </h2>
+
+                    <p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 0 0 15px 0;">
+                        Xin chào <strong>{user_name}</strong>, ticket của bạn đã nhận được phản hồi mới từ <strong style="color: #0056b3;">{app_name}</strong>.
+                    </p>
+
+                    <div style="background-color: #e6f2ff; border-radius: 8px; padding: 25px; margin: 25px 0;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Ticket ID:</strong></td>
+                                <td style="color: #0f172a; font-size: 16px; font-weight: 700; text-align: right; padding: 8px 0;">#{ticket_id}</td>
+                            </tr>
+                            <tr><td colspan="2" style="padding: 0;"><div style="height: 1px; background-color: #cce5ff; margin: 8px 0;"></div></td></tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Tiêu đề:</strong></td>
+                                <td style="color: #0f172a; font-size: 14px; font-weight: 600; text-align: right; padding: 8px 0;">{ticket_subject}</td>
+                            </tr>
+                            <tr><td colspan="2" style="padding: 0;"><div style="height: 1px; background-color: #cce5ff; margin: 8px 0;"></div></td></tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding: 8px 0;"><strong>Người gửi:</strong></td>
+                                <td style="color: #0f172a; font-size: 14px; font-weight: 600; text-align: right; padding: 8px 0;">{sender_name}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{ticket_link}" style="display: inline-block; background: linear-gradient(135deg, #0056b3, #0069d9); color: #ffffff; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);">
+                            Xem phản hồi
+                        </a>
+                    </div>
+
+                    <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
+                        Trân trọng,<br>
+                        <strong style="color: #0056b3;">Đội ngũ hỗ trợ {app_name}</strong>
+                    </p>
+                '),
+                'from_name' => 'Hỗ trợ khách hàng',
+                'is_active' => true,
+                'created_by' => 1,
+            ]
+        );
     }
 }

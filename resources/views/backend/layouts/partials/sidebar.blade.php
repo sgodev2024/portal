@@ -82,7 +82,6 @@
                     </a>
                 </li>
 
-
                 {{-- ============ ADMIN MENUS ============ --}}
                 @if ($userRole == 1)
 
@@ -116,7 +115,7 @@
                                         <span class="sub-item">Quản lý Email</span>
                                     </a>
                                 </li>
-                                <li class="{{ request()->routeIs('admin.stmt.index') ? 'active' : '' }}">
+                                  <li class="{{ request()->routeIs('admin.stmt.index') ? 'active' : '' }}">
                                     <a href="{{ route('admin.stmt.index') }}">
                                         <span class="sub-item">Cấu hình STMT</span>
                                     </a>
@@ -159,13 +158,7 @@
                                         </a>
                                     </li>
                                 @endif
-                                @if (Route::has('admin.group-staff.index'))
-                                    <li class="{{ request()->routeIs('admin.group-staff.*') ? 'active' : '' }}">
-                                        <a href="{{ route('admin.group-staff.index') }}">
-                                            <span class="sub-item">Nhân viên - Nhóm</span>
-                                        </a>
-                                    </li>
-                                @endif
+                              
                             </ul>
                         </div>
                     </li>
@@ -184,6 +177,7 @@
                         </a>
                     </li>
 
+                
                 @endif
 
                 {{-- ============ CUSTOMER MENUS ============ --}}
@@ -201,15 +195,48 @@
                 @endif
 
                 {{-- ============ TICKETS (Admin/Staff) ============ --}}
+                @php
+                    $isTicketsActive = request()->routeIs('admin.tickets.*')
+                        || request()->routeIs('staff.groups.*')
+                        || request()->routeIs('admin.group-staff.*');
+                @endphp
                 @if (in_array($userRole, [1, 2]))
-                    <li class="nav-item {{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
-                        <a href="{{ route('admin.tickets.index') }}">
+                    <li class="nav-item {{ $isTicketsActive ? 'active' : '' }}">
+                        <a data-bs-toggle="collapse" href="#ticketsMenu">
                             <i class="fas fa-ticket-alt"></i>
                             <p>Tickets</p>
                             @if ($openTickets > 0)
                                 <span class="badge bg-danger">{{ $openTickets }}</span>
                             @endif
+                            <span class="caret"></span>
                         </a>
+                        <div class="collapse {{ $isTicketsActive ? 'show' : '' }}" id="ticketsMenu">
+                            <ul class="nav nav-collapse">
+                                <li class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.tickets.index') }}">
+                                        <span class="sub-item">Tất cả Tickets</span>
+                                    </a>
+                                </li>
+
+                                {{-- Nhóm của tôi: chỉ hiện cho role 2 (staff) --}}
+                                @if ($userRole == 2 && Route::has('staff.groups.index'))
+                                    <li class="{{ request()->routeIs('staff.groups.*') ? 'active' : '' }}">
+                                        <a href="{{ route('staff.groups.index') }}">
+                                            <span class="sub-item">Nhóm của tôi</span>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                {{-- Nhân viên - nhóm: chỉ hiện cho role 1 (admin) --}}
+                                @if ($userRole == 1 && Route::has('admin.group-staff.index'))
+                                    <li class="{{ request()->routeIs('admin.group-staff.*') ? 'active' : '' }}">
+                                        <a href="{{ route('admin.group-staff.index') }}">
+                                            <span class="sub-item">Nhân viên - nhóm</span>
+                                        </a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
                     </li>
                 @endif
 
@@ -238,10 +265,9 @@
                             <p>Chat khách hàng</p>
                         </a>
                     </li>
-
                 @endif
 
-                {{-- ============ QUẢN LÝ FILE (Admin/Staff) ============ --}}
+                {{-- ============ QUẢN LÝ FILE (Admin) ============ --}}
                 @if (in_array($userRole, [1]))
                     <li class="nav-item {{ request()->routeIs('admin.files.*') ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#files">
@@ -270,7 +296,16 @@
                                         </a>
                                     </li>
                                 @endif
-
+                                <li class="{{ request()->routeIs('admin.file_manager.index') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.file_manager.index') }}">
+                                        <span class="sub-item">File Manager</span>
+                                    </a>
+                                </li>
+                                <li class="{{ request()->routeIs('admin.file_manager.download_history') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.file_manager.download_history') }}">
+                                        <span class="sub-item">Lịch sử tải</span>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </li>
@@ -279,20 +314,15 @@
                 {{-- ============ BÁO CÁO & FILE (Customer) ============ --}}
                 @if ($userRole == 3)
                     @php
-                        // Vérifier quelles routes existent - basé sur le fichier routes
                         $hasReportsRoute = Route::has('customer.files.reports');
                         $hasTemplatesRoute = Route::has('customer.files.templates');
                         $hasFileManagerRoute = Route::has('customer.file_manager.index');
                         $hasDownloadsRoute = Route::has('customer.files.my_downloads');
-
-                        // Déterminer si le menu doit être actif
                         $isCustomerFilesActive = request()->routeIs('customer.files.reports')
                             || request()->routeIs('customer.files.show_report')
                             || request()->routeIs('customer.files.templates')
                             || request()->routeIs('customer.files.my_downloads')
                             || request()->routeIs('customer.file_manager.*');
-
-                        // Afficher le menu si au moins une route existe
                         $showCustomerFilesMenu = $hasReportsRoute || $hasTemplatesRoute || $hasFileManagerRoute || $hasDownloadsRoute;
                     @endphp
 
@@ -317,22 +347,6 @@
                                         <li class="{{ request()->routeIs('customer.files.templates') ? 'active' : '' }}">
                                             <a href="{{ route('customer.files.templates') }}">
                                                 <span class="sub-item">Biểu mẫu</span>
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    @if ($hasFileManagerRoute)
-                                        <li class="{{ request()->routeIs('customer.file_manager.*') ? 'active' : '' }}">
-                                            <a href="{{ route('customer.file_manager.index') }}">
-                                                <span class="sub-item">File Manager</span>
-                                            </a>
-                                        </li>
-                                    @endif
-
-                                    @if ($hasDownloadsRoute)
-                                        <li class="{{ request()->routeIs('customer.files.my_downloads') ? 'active' : '' }}">
-                                            <a href="{{ route('customer.files.my_downloads') }}">
-                                                <span class="sub-item">Lịch sử tải</span>
                                             </a>
                                         </li>
                                     @endif
