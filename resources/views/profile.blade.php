@@ -36,11 +36,11 @@
 
                             <!-- Số điện thoại -->
                             <div class="form-group mb-3">
-                                <label for="account_id">Số điện thoại</label>
-                                <input type="text" name="account_id" id="account_id" value="{{ old('account_id', $user->account_id) }}"
-                                    class="form-control @error('account_id') is-invalid @enderror"
+                                <label for="phone">Số điện thoại</label>
+                                <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}"
+                                    class="form-control @error('phone') is-invalid @enderror"
                                     placeholder="Nhập số điện thoại">
-                                @error('account_id')
+                                @error('phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

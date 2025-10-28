@@ -1,53 +1,16 @@
 @extends('backend.layouts.master')
 
 @section('content')
-    <div class="container-fluid py-4 notranslate">
+    <div class="container py-4">
         <div class="row mb-4">
-            <div class="col-md-12">
-                <h2 class="mb-0">Quản lý Tickets</h2>
-                <p class="text-muted">Danh sách tất cả yêu cầu hỗ trợ từ khách hàng</p>
+            <div class="col-md-8">
+                <h2 class="mb-0">Danh sách Ticket hỗ trợ</h2>
+                <p class="text-muted">Quản lý các yêu cầu hỗ trợ của bạn</p>
             </div>
-        </div>
-
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card border-info shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-clock-history display-4 text-info"></i>
-                        <h3 class="mt-2">{{ $tickets->where('status', 'new')->count() }}</h3>
-                        <p class="text-muted mb-0">Chưa xử lý</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-warning shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-hourglass-split display-4 text-warning"></i>
-                        <h3 class="mt-2">{{ $tickets->where('status', 'in_progress')->count() }}</h3>
-                        <p class="text-muted mb-0">Đang xử lý</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-success shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-check-circle display-4 text-success"></i>
-                        <h3 class="mt-2">
-                            {{ $tickets->where('status', 'completed')->count() + $tickets->where('status', 'closed')->count() }}
-                        </h3>
-                        <p class="text-muted mb-0">Đã hoàn tất</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-primary shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-ticket-perforated display-4 text-primary"></i>
-                        <h3 class="mt-2">{{ $tickets->total() }}</h3>
-                        <p class="text-muted mb-0">Tổng tickets</p>
-                    </div>
-                </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ route('customer.tickets.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Tạo Ticket mới
+                </a>
             </div>
         </div>
 
@@ -58,61 +21,53 @@
             </div>
         @endif
 
-        <!-- Filters -->
-        <div class="card shadow-sm mb-4">
+        {{-- Filter Section --}}
+        <div class="card shadow-sm mb-3">
             <div class="card-body">
-                <form method="GET" class="row g-3 align-items-end">
-                    <!-- Trạng thái -->
+                <form method="GET" action="{{ route('customer.tickets.index') }}" class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Trạng thái</label>
-                        <select class="form-select" name="status">
+                        <label class="form-label small text-muted">Tìm kiếm</label>
+                        <input type="text" name="search" class="form-control" placeholder="ID, Tiêu đề..." value="{{ request('search') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Danh mục</label>
+                        <select name="category" class="form-select">
                             <option value="">Tất cả</option>
-                            <option value="new" {{ $status == 'new' ? 'selected' : '' }}>Chưa xử lý</option>
-                            <option value="in_progress" {{ $status == 'in_progress' ? 'selected' : '' }}>Đang xử lý</option>
-                            <option value="completed" {{ $status == 'completed' ? 'selected' : '' }}>Hoàn tất</option>
-                            <option value="closed" {{ $status == 'closed' ? 'selected' : '' }}>Đã đóng</option>
+                            @foreach(\App\Models\Ticket::getCategories() as $key => $label)
+                                <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
                         </select>
                     </div>
-
-                    <!-- Tìm kiếm -->
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Tìm kiếm</label>
-                        <input type="text" class="form-control" name="search" placeholder="Tìm theo tiêu đề, khách hàng"
-                            value="{{ $search }}">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Trạng thái</label>
+                        <select name="status" class="form-select">
+                            <option value="">Tất cả</option>
+                            @foreach(\App\Models\Ticket::getStatuses() as $key => $label)
+                                <option value="{{ $key }}" {{ request('status') == $key ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
-
-                    <!-- Nhân viên (Chỉ admin thấy) -->
-                    @if (Auth::user()->role == 1)
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Nhân viên</label>
-                            <select class="form-select" name="assigned_to">
-                                <option value="">Tất cả</option>
-                                <option value="unassigned" {{ request('assigned_to') == 'unassigned' ? 'selected' : '' }}>
-                                    Chưa gán</option>
-                                @foreach ($staffList as $staff)
-                                    <option value="{{ $staff->id }}"
-                                        {{ request('assigned_to') == $staff->id ? 'selected' : '' }}>
-                                        {{ $staff->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-
-                    <!-- Nút tìm kiếm & reset -->
-                    <div class="col-md-3 d-flex gap-2">
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted">Ưu tiên</label>
+                        <select name="priority" class="form-select">
+                            <option value="">Tất cả</option>
+                            @foreach(\App\Models\Ticket::getPriorities() as $key => $label)
+                                <option value="{{ $key }}" {{ request('priority') == $key ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end gap-2">
                         <button type="submit" class="btn btn-primary flex-grow-1">
-                            <i class="bi bi-search me-1"></i> Tìm kiếm
+                            <i class="bi bi-search"></i> Lọc
                         </button>
-                        <a href="{{ route('admin.tickets.index') }}" class="btn btn-outline-secondary flex-grow-1">
-                            <i class="bi bi-x-circle me-1"></i> Reset
+                        <a href="{{ route('customer.tickets.index') }}" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-arrows-rotate"></i>
                         </a>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Tickets Table -->
         <div class="card shadow-sm">
             <div class="card-body">
                 @if ($tickets->count() > 0)
@@ -121,31 +76,25 @@
                             <thead class="table-light">
                                 <tr>
                                     <th width="5%">STT</th>
-                                    <th width="18%">Khách hàng</th>
-                                    <th width="25%">Tiêu đề</th>
-                                    @if (Auth::user()->role == 1)
-                                        <th width="15%">Nhân viên</th>
-                                    @endif
+                                    <th width="13%">Ngày tạo</th>
+                                    <th width="20%">Tiêu đề</th>
+                                    <th width="12%">Danh mục</th>
+                                    <th width="10%">Ưu tiên</th>
                                     <th width="12%">Trạng thái</th>
-                                    <th width="12%">Ngày tạo</th>
-                                    <th width="13%" class="text-center">Thao tác</th>
+                                    <th width="15%">Phụ trách</th>
+                                    <th width="10%" class="text-center">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($tickets as $index => $ticket)
                                     <tr>
                                         <td class="text-center">{{ $tickets->firstItem() + $index }}</td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="avatar-circle bg-primary text-white me-2">
-                                                    {{ strtoupper(substr($ticket->user->name ?? 'U', 0, 1)) }}
-                                                </div>
-                                                <div>
-                                                    <div class="fw-semibold">{{ $ticket->user->name ?? 'N/A' }}</div>
-                                                    <small
-                                                        class="text-muted notranslate">{{ $ticket->user->email ?? '' }}</small>
-                                                </div>
-                                            </div>
+
+                                          <td>
+                                            <small>
+                                                <i class="bi bi-calendar3"></i>
+                                                {{ $ticket->created_at->format('d/m/Y H:i') }}
+                                            </small>
                                         </td>
                                         <td>
                                             <div class="fw-semibold">{{ Str::limit($ticket->subject, 40) }}</div>
@@ -153,81 +102,56 @@
                                                 <i class="bi bi-chat-dots"></i> {{ $ticket->messages->count() }} tin nhắn
                                             </small>
                                         </td>
-
-                                        <!-- Cột Nhân viên (chỉ admin thấy) -->
-                                        @if (Auth::user()->role == 1)
-                                            <td>
-                                                @if ($ticket->assignedStaff)
-                                                    <div class="d-flex align-items-center">
-
-                                                        <span class="small">{{ $ticket->assignedStaff->name }}</span>
-                                                    </div>
-                                                @else
-                                                    <span class="badge bg-secondary">
-                                                        <i class="bi bi-person-x"></i> Chưa gán
-                                                    </span>
+                                        <td>
+                                            <span class="badge {{ $ticket->category_badge }}">
+                                                {{ $ticket->category_label }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {{ $ticket->priority_badge }}">
+                                                @if($ticket->priority === 'urgent')
+                                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                                @elseif($ticket->priority === 'high')
+                                                    <i class="bi bi-arrow-up-circle-fill"></i>
                                                 @endif
-                                            </td>
-                                        @endif
-
-                                        <td>
-                                            @switch($ticket->status)
-                                                @case('new')
-                                                    <span class="badge bg-info">
-                                                        <i class="bi bi-clock"></i> Chưa xử lý
-                                                    </span>
-                                                @break
-
-                                                @case('in_progress')
-                                                    <span class="badge bg-warning text-dark">
-                                                        <i class="bi bi-hourglass-split"></i> Đang xử lý
-                                                    </span>
-                                                @break
-
-                                                @case('completed')
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> Hoàn tất
-                                                    </span>
-                                                @break
-
-                                                @case('closed')
-                                                    <span class="badge bg-secondary">
-                                                        <i class="bi bi-x-circle"></i> Đã đóng
-                                                    </span>
-                                                @break
-                                            @endswitch
+                                                {{ $ticket->priority_label }}
+                                            </span>
                                         </td>
                                         <td>
-                                            <small>
-                                                <i class="bi bi-calendar3"></i>
-                                                {{ $ticket->created_at->format('d/m/Y') }}<br>
-                                                <i class="bi bi-clock"></i> {{ $ticket->created_at->format('H:i') }}
-                                            </small>
+                                            <span class="badge {{ $ticket->status_badge }}">
+                                                @switch($ticket->status)
+                                                    @case('new')
+                                                        <i class="bi bi-clock"></i>
+                                                        @break
+                                                    @case('in_progress')
+                                                        <i class="bi bi-hourglass-split"></i>
+                                                        @break
+                                                    @case('completed')
+                                                        <i class="bi bi-check-circle"></i>
+                                                        @break
+                                                    @case('closed')
+                                                        <i class="bi bi-x-circle"></i>
+                                                        @break
+                                                @endswitch
+                                                {{ $ticket->status_label }}
+                                            </span>
                                         </td>
+                                        <td>
+                                            @if($ticket->assignedStaff)
+                                                <div class="d-flex align-items-center">
+
+                                                    <small class="fw-semibold">{{ $ticket->assignedStaff->name }}</small>
+                                                </div>
+                                            @else
+                                                <span class="text-muted small">Chưa gán</span>
+                                            @endif
+                                        </td>
+
                                         <td class="text-center">
-                                            <div class="btn-group" role="group">
-                                                <!-- Xem chi tiết -->
-                                                <a href="{{ route('admin.tickets.show', $ticket->id) }}"
-                                                    class="btn btn-sm btn-outline-info" title="Xem chi tiết">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-
-
-                                                <!-- Đóng ticket -->
-                                                @if ($ticket->status != 'closed')
-                                                    <form action="{{ route('admin.tickets.close', $ticket->id) }}"
-                                                        method="POST" class="d-inline"
-                                                        onsubmit="return confirm('Bạn có chắc muốn đóng ticket này?')">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit" class="btn btn-sm btn-outline-success"
-                                                            title="Đóng ticket">
-                                                            {{-- <i class="bi bi-check-circle"></i> --}}
-                                                            <i class="fa-solid fa-x"></i>
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                            </div>
+                                            <a href="{{ route('customer.tickets.show', $ticket->id) }}"
+                                                class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Xem
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -235,71 +159,50 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="d-flex justify-content-center mt-4">
+                    {{-- Pagination --}}
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="text-muted small">
+                            Hiển thị {{ $tickets->firstItem() }} - {{ $tickets->lastItem() }} trong tổng số {{ $tickets->total() }} ticket
+                        </div>
                         {{ $tickets->links() }}
                     </div>
                 @else
                     <div class="text-center py-5">
                         <i class="bi bi-inbox display-1 text-muted"></i>
                         <h5 class="mt-3 text-muted">Chưa có ticket nào</h5>
+                        <p class="text-muted">
+                            @if(request()->hasAny(['search', 'category', 'status', 'priority']))
+                                Không tìm thấy ticket phù hợp với bộ lọc.
+                                <a href="{{ route('customer.tickets.index') }}" class="text-decoration-none">Xóa bộ lọc</a>
+                            @else
+                                Tạo ticket mới để nhận hỗ trợ từ đội ngũ của chúng tôi
+                            @endif
+                        </p>
+                        @if(!request()->hasAny(['search', 'category', 'status', 'priority']))
+                            <a href="{{ route('customer.tickets.create') }}" class="btn btn-primary mt-2">
+                                <i class="bi bi-plus-circle"></i> Tạo Ticket đầu tiên
+                            </a>
+                        @endif
                     </div>
                 @endif
             </div>
         </div>
+
+
     </div>
 
-
-
     <style>
-        .avatar-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1rem;
-        }
-
         .table tbody tr {
-            transition: background-color 0.2s ease;
+            transition: all 0.2s;
         }
 
         .table tbody tr:hover {
             background-color: #f8f9fa;
         }
 
-        .btn-sm {
-            padding: 0.35rem 0.65rem;
-            font-size: 0.8rem;
-        }
-
-        .btn-group .btn {
-            border-radius: 0;
-        }
-
-        .btn-group .btn:first-child {
-            border-top-left-radius: 0.25rem;
-            border-bottom-left-radius: 0.25rem;
-        }
-
-        .btn-group .btn:last-child {
-            border-top-right-radius: 0.25rem;
-            border-bottom-right-radius: 0.25rem;
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
         }
     </style>
-
-    <script>
-        // Hiển thị modal gán ticket
-        function showAssignModal(ticketId, ticketSubject) {
-            document.getElementById('ticketSubject').value = '#' + ticketId + ' - ' + ticketSubject;
-            document.getElementById('assignForm').action = '{{ route('admin.tickets.assign', ':id') }}'.replace(':id',
-                ticketId);
-
-            const modal = new bootstrap.Modal(document.getElementById('assignModal'));
-            modal.show();
-        }
-    </script>
 @endsection
