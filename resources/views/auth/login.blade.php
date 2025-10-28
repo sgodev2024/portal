@@ -22,7 +22,9 @@
                     includedLanguages: 'vi,de',
                     layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
                     autoDisplay: false,
-                    multilanguagePage: true
+                    multilanguagePage: true,
+                    gaTrack: true,
+                    gaId: 'UA-XXXXX-X'
                 }, 'google_translate_element');
                 console.log('Google Translate initialized');
             } catch(e) {
@@ -59,10 +61,10 @@
     
     <!-- Initialize Google Translate Select for Login Page -->
     <script type="text/javascript">
-        window.addEventListener('load', function() {
-            // Keep trying to find the Google Translate select element
+        // Wait for Google Translate to be ready
+        function waitForGoogleTranslate() {
             let attempts = 0;
-            const maxAttempts = 20;
+            const maxAttempts = 30;
             
             const checkForGoogleTranslate = setInterval(function() {
                 attempts++;
@@ -71,13 +73,30 @@
                 if (select && select.options && select.options.length > 0) {
                     console.log('Google Translate loaded successfully');
                     window.googleTranslateSelect = select;
+                    
+                    // Set up language change handler
+                    select.addEventListener('change', function() {
+                        console.log('Language changed to:', this.value);
+                        // No need to reload page - let Google Translate handle it
+                    });
+                    
                     clearInterval(checkForGoogleTranslate);
                 } else if (attempts >= maxAttempts) {
                     console.log('Google Translate failed to load');
                     clearInterval(checkForGoogleTranslate);
                 }
-            }, 500);
-        });
+            }, 300);
+        }
+        
+        // Start checking when page loads
+        window.addEventListener('load', waitForGoogleTranslate);
+        
+        // Also check when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', waitForGoogleTranslate);
+        } else {
+            waitForGoogleTranslate();
+        }
     </script>
 
 </head>

@@ -1,7 +1,7 @@
 @extends('backend.layouts.master')
 
 @section('content')
-    <div class="container py-4">
+    <div class="container py-4 notranslate">
         <div class="row mb-4">
             <div class="col-md-8">
                 <h2 class="mb-0">Danh sách Ticket hỗ trợ</h2>

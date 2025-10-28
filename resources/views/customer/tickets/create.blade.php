@@ -3,7 +3,7 @@
 @section('title', 'Tạo Ticket Hỗ Trợ')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 notranslate">
     <div class="row justify-content-center">
         <div class="col-12 col-xl-10">
             

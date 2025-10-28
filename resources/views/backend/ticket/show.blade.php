@@ -3,7 +3,7 @@
 @section('title', 'Chi tiết Ticket')
 
 @section('content')
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 notranslate">
         <div class="row g-4">
             {{-- Main Content --}}
             <div class="col-12 col-lg-8">
