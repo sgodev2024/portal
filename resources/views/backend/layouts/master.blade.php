@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <meta name="zalo-platform-site-verification" content="MiwQ0wRY7m1OxBe-XC8UOLx6hZooi7vZDJGr" />
-    
+
     <!-- Google Translate -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -20,19 +20,20 @@
             }, 'google_translate_element');
         }
     </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-    
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+
     <!-- Initialize Google Translate Select -->
     <script type="text/javascript">
         window.addEventListener('load', function() {
             // Keep trying to find the Google Translate select element
             let attempts = 0;
             const maxAttempts = 30;
-            
+
             const checkForGoogleTranslate = setInterval(function() {
                 attempts++;
                 const select = document.querySelector('select.goog-te-combo');
-                
+
                 if (select && select.options && select.options.length > 0) {
                     console.log('Google Translate select found with options!');
                     window.googleTranslateSelect = select;
@@ -44,7 +45,7 @@
             }, 300);
         });
     </script>
-    
+
     @include('backend.layouts.partials.styles')
 
     <style>
@@ -56,18 +57,42 @@
         #originTable {
             width: 100% !important;
         }
-        
+
         /* Google Translate Styling */
         #google_translate_element {
             position: absolute !important;
             left: -9999px !important;
             visibility: hidden !important;
         }
-        .goog-te-banner-frame { display: none !important; }
-        .goog-te-balloon-frame { display: none !important; }
-        .goog-tooltip { display: none !important; }
-        .skiptranslate { display: none !important; }
-        body { top: 0 !important; }
+
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        .goog-te-balloon-frame {
+            display: none !important;
+        }
+
+        .goog-tooltip {
+            display: none !important;
+        }
+
+        .skiptranslate {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        /* Prevent translation of specific elements */
+        .notranslate {
+            -webkit-translate: no !important;
+            -moz-translate: no !important;
+            -ms-translate: no !important;
+            -o-translate: no !important;
+            translate: no !important;
+        }
     </style>
 </head>
 

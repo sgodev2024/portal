@@ -5,9 +5,9 @@
                 <th width="20" class="text-center border-end">
                     <input type="checkbox" id="checkAll" class="form-check-input">
                 </th>
-                <th width="40" class="border-end text-center">ID</th>
+                <th width="40" class="border-end text-center notranslate">ID</th>
                 <th class="border-end">HỌ TÊN</th>
-                <th class="border-end">EMAIL</th>
+                <th class="border-end notranslate">EMAIL</th>
                 <th class="border-end">SỐ ĐIỆN THOẠI</th>
                 <th class="border-end">CÔNG TY</th>
                 <th class="border-end">NHÓM</th>
@@ -29,8 +29,8 @@
                     </td>
 
                     <td class="border-end"><strong>{{ $c->name }}</strong></td>
-                    <td class="border-end text-muted">{{ $c->email ?? '-' }}</td>
-                    <td class="border-end">{{ $c->account_id ?? '-' }}</td>
+                    <td class="border-end text-muted notranslate">{{ $c->email ?? '-' }}</td>
+                    <td class="border-end notranslate">{{ $c->account_id ?? '-' }}</td>
                     <td class="border-end">{{ $c->company ?? '-' }}</td>
 
                     <td class="border-end">
