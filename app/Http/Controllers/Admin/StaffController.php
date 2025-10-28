@@ -22,6 +22,7 @@ class StaffController extends Controller
                 $q->where('name', 'LIKE', "%{$search}%")
                     ->orWhere('email', 'LIKE', "%{$search}%")
                     ->orWhere('account_id', 'LIKE', "%{$search}%")
+                    ->orWhere('phone', 'LIKE', "%{$search}%")
                     ->orWhere('department', 'LIKE', "%{$search}%")
                     ->orWhere('position', 'LIKE', "%{$search}%");
             });
@@ -46,16 +47,15 @@ class StaffController extends Controller
     {
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
-            'account_id' => 'required|string|max:20|unique:users,account_id',
+            'phone'      => 'required|string|max:15|unique:users,phone',
             'email'      => 'required|email|unique:users,email',
             'department' => 'required|string|max:255',
             'position'   => 'required|string|max:255',
             'password'   => 'nullable|string|min:6',
         ], [
             'name.required'       => 'Họ tên không được để trống.',
-            'account_id.required' => 'Mã nhân viên không được để trống.',
-            'account_id.unique'   => 'Mã nhân viên này đã tồn tại.',
-            'account_id.max'      => 'Mã nhân viên không được vượt quá 20 ký tự.',
+            'phone.required'      => 'Số điện thoại không được để trống.',
+            'phone.unique'        => 'Số điện thoại này đã tồn tại.',
             'email.required'      => 'Email công ty không được để trống.',
             'email.email'         => 'Email không hợp lệ.',
             'email.unique'        => 'Email này đã được sử dụng.',
@@ -64,11 +64,15 @@ class StaffController extends Controller
             'password.min'        => 'Mật khẩu phải có ít nhất 6 ký tự.',
         ]);
 
+        // Sinh account_id từ số điện thoại
+        $accountId = $this->generateAccountId($validated['phone']);
+
         $password = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make('123456');
 
         User::create([
             'name'       => $validated['name'],
-            'account_id' => $validated['account_id'],
+            'account_id' => $accountId,
+            'phone'      => $validated['phone'],
             'email'      => $validated['email'],
             'department' => $validated['department'],
             'position'   => $validated['position'],
@@ -94,7 +98,7 @@ class StaffController extends Controller
 
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
-            'account_id' => 'required|string|max:20|unique:users,account_id,' . $staff->id,
+            'phone'      => 'required|string|max:15|unique:users,phone,' . $staff->id,
             'email'      => 'required|email|unique:users,email,' . $staff->id,
             'department' => 'required|string|max:255',
             'position'   => 'required|string|max:255',
@@ -103,9 +107,8 @@ class StaffController extends Controller
             'is_active'  => 'nullable|boolean'
         ], [
             'name.required'       => 'Họ tên không được để trống.',
-            'account_id.required' => 'Mã nhân viên không được để trống.',
-            'account_id.unique'   => 'Mã nhân viên này đã tồn tại.',
-            'account_id.max'      => 'Mã nhân viên không được vượt quá 20 ký tự.',
+            'phone.required'      => 'Số điện thoại không được để trống.',
+            'phone.unique'        => 'Số điện thoại này đã tồn tại.',
             'email.required'      => 'Email công ty không được để trống.',
             'email.email'         => 'Email không hợp lệ.',
             'email.unique'        => 'Email này đã được sử dụng.',
@@ -116,9 +119,16 @@ class StaffController extends Controller
             'password.min'        => 'Mật khẩu phải có ít nhất 6 ký tự.',
         ]);
 
+        // Nếu số điện thoại thay đổi, sinh lại account_id
+        $accountId = $staff->account_id;
+        if ($validated['phone'] !== $staff->phone) {
+            $accountId = $this->generateAccountId($validated['phone']);
+        }
+
         $updateData = [
             'name'       => $validated['name'],
-            'account_id' => $validated['account_id'],
+            'account_id' => $accountId,
+            'phone'      => $validated['phone'],
             'email'      => $validated['email'],
             'department' => $validated['department'],
             'position'   => $validated['position'],
@@ -165,6 +175,7 @@ class StaffController extends Controller
             return redirect()->route('admin.staffs.index')->with('error', 'Import thất bại: ' . $e->getMessage());
         }
     }
+
     public function downloadTemplate()
     {
         $filePath = storage_path('app/public/templates/staff_import_template.xlsx');
@@ -174,5 +185,37 @@ class StaffController extends Controller
         }
 
         return response()->download($filePath, 'staff_import_template.xlsx');
+    }
+
+    /**
+     * Sinh account_id từ số điện thoại
+     * Bắt đầu từ 3 số cuối, nếu trùng thì tăng lên 4, 5... cho đến khi không trùng
+     */
+    private function generateAccountId($phone)
+    {
+        // Loại bỏ các ký tự không phải số
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        // Bắt đầu từ 3 số cuối
+        $length = 3;
+        $maxLength = strlen($phone);
+
+        while ($length <= $maxLength) {
+            $accountId = substr($phone, -$length);
+
+            // Kiểm tra xem account_id đã tồn tại chưa
+            $exists = User::where('account_id', $accountId)->exists();
+
+            if (!$exists) {
+                return $accountId;
+            }
+
+            // Nếu trùng, tăng số ký tự lên
+            $length++;
+        }
+
+        // Trường hợp cực kỳ hiếm: tất cả các tổ hợp đều trùng
+        // Thêm timestamp để đảm bảo unique
+        return $phone . time();
     }
 }

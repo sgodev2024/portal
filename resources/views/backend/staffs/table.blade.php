@@ -29,7 +29,7 @@
                     </td>
                     <td><strong>{{ $staff->name }}</strong></td>
                     <td class="notranslate">{{ $staff->email ?? '-' }}</td>
-                    <td>{{ $staff->account_id ?? '-' }}</td>
+                    <td>{{ $staff->phone ?? '-' }}</td>
                     <td>{{ $staff->department ?? '-' }}</td>
                     <td>{{ $staff->position ?? '-' }}</td>
                     <td>

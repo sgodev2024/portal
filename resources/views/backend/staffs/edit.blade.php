@@ -35,10 +35,10 @@
 
                     <!-- Số điện thoại -->
                     <div class="form-group mb-3">
-                        <label for="account_id">Số điện thoại <span class="text-danger">*</span></label>
-                        <input type="text" name="account_id" id="account_id" value="{{ old('account_id', $staff->account_id) }}"
-                            class="form-control @error('account_id') is-invalid @enderror" required>
-                        @error('account_id')
+                        <label for="phone">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="text" name="phone" id="phone" value="{{ old('phone', $staff->phone) }}"
+                            class="form-control @error('phone') is-invalid @enderror" required>
+                        @error('phone')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>

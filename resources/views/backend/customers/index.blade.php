@@ -92,6 +92,7 @@
                                         <option value="1">Chưa cập nhật</option>
                                         <option value="0">Đã cập nhật</option>
                                     </select>
+
                                     <select id="filterGroup" class="form-select form-select-sm" style="width:180px;">
                                         <option value="">Tất cả nhóm</option>
                                         @if (isset($groups) && $groups->count() > 0)
@@ -109,8 +110,8 @@
                             <div class="col-lg-6 col-md-12">
                                 <div class="d-flex align-items-center justify-content-lg-end flex-wrap gap-2">
                                     <div class="search-box">
-                                        <input type="text" class="form-control form-control-sm" placeholder="Tìm kiếm..."
-                                            id="searchInput">
+                                        <input type="text" class="form-control form-control-sm"
+                                            placeholder="Tìm kiếm..." id="searchInput">
                                     </div>
 
                                     <!-- Nút Import Excel - CHỈ TRIGGER, KHÔNG PHẢI FORM -->
@@ -125,20 +126,22 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- Link tải file mẫu -->
-                    <div class="row mt-3">
-                        <div class="col-12 text-end">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle me-1 text-primary"></i>
-                                <a href="{{ route('customers.downTemplates') }}"
-                                    class="text-decoration-none fw-semibold text-primary">
-                                    Tải file Excel mẫu
-                                </a>
-                                để import dữ liệu
-                            </small>
+
+                        <!-- Link tải file mẫu ngay dưới -->
+                        <div class="row mt-2">
+                            <div class="col-12 text-end">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1 text-primary"></i>
+                                    <a href="{{ route('customers.downTemplates') }}"
+                                        class="text-decoration-none fw-semibold text-primary">
+                                        Tải file Excel mẫu
+                                    </a>
+                                    để import dữ liệu
+                                </small>
+                            </div>
                         </div>
                     </div>
+
                     <!-- Bảng khách hàng -->
                     <div id="customerTableWrapper">
                         @include('backend.customers.table', ['customers' => $customers])

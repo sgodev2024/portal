@@ -64,13 +64,13 @@
                         @endif
                     </td>
 
-                    <td class="text-center d-flex justify-content-center gap-1">
-                        <button type="button" class="btn btn-sm btn-info"
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-info me-1"
                             onclick="window.location='{{ route('customers.show', $c->id) }}'" title="Xem chi tiết">
                             <i class="fas fa-eye"></i>
                         </button>
 
-                        <button type="button" class="btn btn-sm btn-primary"
+                        <button type="button" class="btn btn-sm btn-primary me-1"
                             onclick="window.location='{{ route('customers.edit', $c->id) }}'" title="Chỉnh sửa">
                             <i class="fas fa-edit"></i>
                         </button>

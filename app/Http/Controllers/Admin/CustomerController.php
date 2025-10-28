@@ -100,15 +100,14 @@ class CustomerController extends Controller
             'phone'      => 'required|string|max:20',
             'company'    => 'required|string|max:255',
             'address'    => 'nullable|string|max:500',
-            'groups'     => 'nullable|array',
-            'groups.*'   => 'exists:customer_groups,id',
+            'group_id'   => 'nullable|exists:customer_groups,id',
         ], [
             'name.required'       => 'Họ tên không được để trống.',
             'email.required'      => 'Email không được để trống.',
             'email.unique'        => 'Email này đã được sử dụng.',
             'phone.required'      => 'Số điện thoại không được để trống.',
             'company.required'    => 'Tên công ty không được để trống.',
-            'groups.*.exists'     => 'Nhóm khách hàng không hợp lệ.',
+            'group_id.exists'     => 'Nhóm khách hàng không hợp lệ.',
         ]);
 
         $accountId = $this->generateAccountId($validated['phone']);
@@ -130,9 +129,9 @@ class CustomerController extends Controller
             'must_update_profile' => true,
         ]);
 
-        // Gán nhóm cho khách hàng (nếu có)
-        if (!empty($validated['groups'])) {
-            $user->groups()->sync($validated['groups']);
+        // Gán nhóm cho khách hàng (nếu có chọn)
+        if (!empty($validated['group_id'])) {
+            $user->groups()->attach($validated['group_id']);
         }
 
         // Gửi email thông báo tạo tài khoản
