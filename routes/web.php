@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Api\TicketStatsController;
 use App\Http\Controllers\Customer\TicketController;
 use App\Http\Controllers\Admin\GroupStaffController;
 use App\Http\Controllers\Staff\StaffGroupController;
@@ -42,6 +43,18 @@ Route::middleware('guest')->group(function () {
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 // Notifications unread count (for authenticated users)
 Route::get('/notifications/unread-count', [NotificationCounterController::class, 'unreadCount'])->middleware('auth')->name('notifications.unread_count');
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications/unread-count', [NotificationCounterController::class, 'unreadCount'])
+        ->name('notifications.unread_count');
+    Route::get('/notifications/recent', [NotificationCounterController::class, 'recentNotifications'])
+        ->name('notifications.recent');
+    Route::post('/notifications/mark-all-read', [NotificationCounterController::class, 'markAllAsRead'])
+        ->name('notifications.mark_all_read');
+});
+Route::middleware('auth')->group(function () {
+    Route::get('/api/ticket-stats', [TicketStatsController::class, 'getStats'])
+        ->name('api.ticket_stats');
+});
 // route admin
 Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
 
@@ -213,8 +226,9 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->gro
         ->name('notifications.')
         ->group(function () {
             Route::get('/', [StaffNotificationController::class, 'index'])->name('index');
-            Route::get('/{id}', [StaffNotificationController::class, 'show'])->name('show');
             Route::get('/datatable/data', [StaffNotificationController::class, 'data'])->name('data');
+            Route::get('/{id}', [StaffNotificationController::class, 'show'])->name('show');
+            
         });
 
     Route::get('/groups', [StaffGroupController::class, 'index'])

@@ -140,6 +140,7 @@
                                                 </div>
                                                 <div>
                                                     <div class="fw-semibold">{{ $ticket->user->name ?? 'N/A' }}</div>
+                                                    <small class="text-muted d-block">ID: {{ $ticket->user->account_id ?? 'N/A' }}</small>
                                                     <small class="text-muted">{{ $ticket->user->email ?? '' }}</small>
                                                 </div>
                                             </div>

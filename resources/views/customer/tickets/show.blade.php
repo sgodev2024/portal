@@ -47,6 +47,7 @@
                                 <div>
                                     <div class="small text-muted">Nhân viên hỗ trợ</div>
                                     <strong>{{ $ticket->assignedStaff->name }}</strong>
+                                    <div class="small text-muted">ID: {{ $ticket->assignedStaff->account_id ?? 'N/A' }}</div>
                                 </div>
                             </div>
                         @else
@@ -80,6 +81,9 @@
                                             </div>
                                             <div>
                                                 <div class="fw-semibold">{{ $message->sender->name }}</div>
+                                                @if($message->sender_id !== auth()->id())
+                                                    <div class="small text-muted">ID: {{ $message->sender->account_id ?? 'N/A' }}</div>
+                                                @endif
                                                 <div class="small text-muted">
                                                     <i class="bi bi-clock me-1"></i>{{ $message->created_at->format('d/m/Y H:i') }}
                                                 </div>
@@ -201,6 +205,7 @@
                                             </div>
                                             <div>
                                                 <strong>{{ $ticket->assignedStaff->name }}</strong>
+                                                <div class="small text-muted">ID: {{ $ticket->assignedStaff->account_id ?? 'N/A' }}</div>
                                                 <div class="small text-muted">{{ $ticket->assignedStaff->email }}</div>
                                             </div>
                                         </div>
@@ -433,6 +438,7 @@
                                 </div>
                                 <div>
                                     <div class="fw-semibold">${escapeHtml(message.sender.name)}</div>
+                                    ${message.sender_id != {{ Auth::id() }} ? `<div class="small text-muted">ID: ${escapeHtml(message.sender.account_id || 'N/A')}</div>` : ''}
                                     <div class="small text-muted">
                                         <i class="bi bi-clock me-1"></i>${formatDate(message.created_at)}
                                     </div>

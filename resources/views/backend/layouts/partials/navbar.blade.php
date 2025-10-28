@@ -2,12 +2,6 @@
     <div class="container-fluid">
         <nav class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex">
             <div class="input-group">
-                {{-- <div class="input-group-prepend">
-                    <button type="submit" class="btn btn-search pe-1">
-                        <i class="fa fa-search search-icon"></i>
-                    </button>
-                </div>
-                <input type="text" placeholder="Search ..." class="form-control" /> --}}
             </div>
         </nav>
 
@@ -25,72 +19,6 @@
                     </form>
                 </ul>
             </li>
-            {{-- @if (Auth::user()->role_id != 1)
-
-                <li>
-                    <a href="{{ route('qrcode.index') }}" class="dropdown-title d-flex justify-content-between align-items-center" style="border-bottom: none !important;">
-                        <span>
-                            Qr Code<i class="fas fa-qrcode " style="margin-left: 10px"></i>
-                        </span>
-                    </a>
-                </li>
-
-                <li class="nav-item topbar-icon dropdown hidden-caret">
-                    <a class="nav-link dropdown-toggle" href="#" id="walletDropdown" role="button"
-                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-
-                        <i class="fas fa-wallet"></i>
-
-                    </a>
-                    <ul class="dropdown-menu wallet-menu animated fadeIn" aria-labelledby="walletDropdown">
-                        <li>
-                            <div class="dropdown-title d-flex justify-content-between align-items-center"
-                                style="width: 250px;">
-                                Ví : {{ number_format(Auth::user()->wallet, 0, ',', '.') }} đ
-                            </div>
-                        </li>
-                        <li>
-                            <a href="{{ route('payment.recharge') }}"
-                                class="dropdown-title d-flex justify-content-between align-items-center">
-                                <i class="fas fa-coins"></i> Nạp tiền
-                            </a>
-                        </li>
-                        <li>
-                        <a href="#" class="dropdown-title d-flex justify-content-between align-items-center">
-                            <i class="fas fa-history"></i> Lịch sử giao dịch
-                        </a>
-                    </li>
-                    </ul>
-                </li>
-                <li class="nav-item topbar-icon dropdown hidden-caret">
-                    @php
-                        $cartDetails = optional(Auth::user()->cart)->details ?? false;
-                        $renewCount = \App\Models\RenewService::where('email', Auth::user()->email)->count();
-                    @endphp
-
-                    @if ($cartDetails)
-                        <a class="nav-link" href="{{ route('customer.cart.listcart') }}" id="notifDropdown">
-                            <i class="fa fa-shopping-cart"></i>
-                            <span class="notification">
-                                {{ count($cartDetails) }}
-                            </span>
-                        </a>
-                    @elseif ($renewCount > 0)
-                        <a class="nav-link" href="{{ route('customer.cart.listrenews') }}" id="notifDropdown">
-                            <i class="fa fa-shopping-cart"></i>
-                            <span class="notification">
-                                {{ $renewCount }}
-                            </span>
-                        </a>
-                    @else
-                        <a class="nav-link" href="#" id="notifDropdown">
-                            <i class="fa fa-shopping-cart"></i>
-                            <span class="notification">0</span>
-                        </a>
-                    @endif
-
-                </li>
-            @endif --}}
             
             {{-- Language Switcher --}}
             <li class="nav-item" style="display: flex; align-items: center; margin-right: 15px;">
@@ -100,6 +28,47 @@
             {{-- Google Translate Hidden Element --}}
             <li class="nav-item" style="display: none;">
                 <div id="google_translate_element"></div>
+            </li>
+
+            {{-- Notifications Dropdown --}}
+            <li class="nav-item topbar-icon dropdown hidden-caret">
+                <a class="nav-link dropdown-toggle" href="#" id="notificationsDropdown" role="button"
+                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-counter" style="display: none;">0</span>
+                </a>
+                <ul class="dropdown-menu notifications-menu animated fadeIn" aria-labelledby="notificationsDropdown">
+                    <div class="dropdown-header d-flex justify-content-between align-items-center">
+                        <span class="notification-title">Thông báo</span>
+                        <a href="#" class="text-muted mark-all-read" style="font-size: 0.8rem;">Đánh dấu đã đọc</a>
+                    </div>
+                    <div class="notifications-scroll" style="max-height: 300px; overflow-y: auto;">
+                        <div class="notifications-list">
+                            <div class="text-center p-3 loading-notifications" style="display: none;">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Đang tải...</span>
+                                </div>
+                            </div>
+                            <div class="no-notifications text-center p-3 text-muted" style="display: none;">
+                                <i class="fas fa-bell-slash mb-2"></i><br>
+                                Không có thông báo mới
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-footer text-center p-2 border-top">
+                        @php
+                            $notificationIndexRoute = match(Auth::user()->role) {
+                                1 => route('admin.notifications.index'),
+                                2 => route('staff.notifications.index'),
+                                3 => route('customer.notifications.index'),
+                                default => '#'
+                            };
+                        @endphp
+                        <a href="{{ $notificationIndexRoute }}" class="text-primary">
+                            Xem tất cả thông báo
+                        </a>
+                    </div>
+                </ul>
             </li>
             
             <li class="nav-item topbar-user dropdown hidden-caret">
@@ -139,7 +108,7 @@
                         </li>
                         <li>
                             <div class="dropdown-divider"></div>
-                            @if(Auth::user()->role_id == 3)
+                            @if(Auth::user()->role == 3)
                                 <a class="dropdown-item" href="{{ route('customer.profile.edit') }}">
                                     <i class="fas fa-user-cog"></i> Cập nhật thông tin
                                 </a>
@@ -155,24 +124,195 @@
     </div>
 </nav>
 
-
-<!-- Đảm bảo jQuery được tải trước -->
-{{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function() {
-        $('#notifDropdown').on('click', function(event) {
-            let cartItems = $('.notification').text(); // Giả sử dữ liệu giỏ hàng là null
-            // alert(cartItems);
-            if (!cartItems == null || cartItems == 0) {
-                event.preventDefault(); // Ngăn điều hướng
-                Swal.fire({
-                    title: 'Giỏ hàng trống!',
-                    text: 'Vui lòng thêm đơn hàng vào giỏ hàng trước.',
-                    icon: 'warning',
-                    confirmButtonText: 'OK'
-                });
+// Notifications functionality - CHỈ 1 LẦN
+$(document).ready(function() {
+    function updateNotificationCount() {
+        $.get('/notifications/unread-count', function(response) {
+            const count = response.count;
+            const counter = $('.notification-counter');
+            if (count > 0) {
+                counter.text(count).show();
+            } else {
+                counter.hide();
             }
+        }).fail(function() {
+            console.error('Failed to load notification count');
+        });
+    }
+
+    function loadNotifications() {
+        const list = $('.notifications-list');
+        const loading = $('.loading-notifications');
+        const noNotifications = $('.no-notifications');
+        
+        list.find('.notification-item').remove();
+        loading.show();
+        noNotifications.hide();
+
+        $.get('/notifications/recent', function(response) {
+            loading.hide();
+            if (response.notifications && response.notifications.length > 0) {
+                response.notifications.forEach(function(notification) {
+                    const notificationHtml = `
+                        <a href="javascript:void(0);" 
+                           data-notification-id="${notification.id}" 
+                           data-notification-link="${notification.link}"
+                           class="dropdown-item notification-item ${!notification.is_read ? 'unread' : ''}">
+                            <div class="d-flex align-items-start">
+                                <div class="notification-icon">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="notification-content ms-3">
+                                    <p class="notification-text mb-1">${notification.title}</p>
+                                    <small class="text-muted">
+                                        ${notification.created_at}
+                                        ${!notification.is_read ? '<span class="unread-marker"></span>' : ''}
+                                    </small>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                    list.append(notificationHtml);
+                });
+            } else {
+                noNotifications.show();
+            }
+        }).fail(function() {
+            loading.hide();
+            noNotifications.show();
+        });
+    }
+
+    // Initial load
+    updateNotificationCount();
+    
+    // Load notifications when dropdown is opened
+    $('#notificationsDropdown').on('show.bs.dropdown', function () {
+        loadNotifications();
+    });
+
+    // Handle notification item click
+    $(document).on('click', '.notification-item', function(e) {
+        e.preventDefault();
+        const notificationLink = $(this).data('notification-link');
+        
+        if (notificationLink && notificationLink !== '#') {
+            window.location.href = notificationLink;
+        }
+    });
+
+    // Mark all as read
+    $('.mark-all-read').click(function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        $.post('/notifications/mark-all-read', function(response) {
+            if (response.success) {
+                updateNotificationCount();
+                loadNotifications();
+            }
+        }).fail(function() {
+            console.error('Failed to mark notifications as read');
         });
     });
+
+    // Poll for new notifications every 30 seconds
+    setInterval(updateNotificationCount, 30000);
+});
 </script>
+
+<style>
+    /* Notification Counter */
+    .notification-counter {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 0.25rem 0.5rem;
+        border-radius: 10px;
+        background-color: #dc3545;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: bold;
+        transform: translate(25%, -25%);
+    }
+
+    /* Notification Dropdown */
+    .notifications-menu {
+        width: 320px;
+        padding: 0;
+    }
+
+    .dropdown-header {
+        padding: 0.75rem 1rem;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .notification-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #dee2e6;
+        transition: background-color 0.2s;
+        cursor: pointer;
+    }
+
+    .notification-item:hover {
+        background-color: #f8f9fa;
+        text-decoration: none;
+    }
+
+    .notification-item.unread {
+        background-color: #f0f7ff;
+    }
+
+    .notification-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #e9ecef;
+        border-radius: 50%;
+        color: #6c757d;
+    }
+
+    .notification-text {
+        color: #495057;
+        font-size: 0.875rem;
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    .unread-marker {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #0d6efd;
+        margin-left: 5px;
+    }
+
+    /* Scrollbar styling */
+    .notifications-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .notifications-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .notifications-scroll::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+    .notifications-scroll::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+</style>
