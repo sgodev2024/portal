@@ -66,18 +66,73 @@
                                     <!-- Default Language -->
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="default_language" class="form-label">
-                                                <i class="fas fa-language me-1"></i>Ngôn ngữ mặc định
+                                            <label class="form-label">
+                                                Ngôn ngữ mặc định
                                             </label>
-                                            <select class="form-control @error('default_language') is-invalid @enderror"
-                                                id="default_language" name="default_language">
-                                                <option value="vi" {{ old('default_language', $company->default_language ?? 'vi') == 'vi' ? 'selected' : '' }}>
-                                                    🇻🇳 Tiếng Việt
-                                                </option>
-                                                <option value="de" {{ old('default_language', $company->default_language ?? 'vi') == 'de' ? 'selected' : '' }}>
-                                                    🇩🇪 Deutsch
-                                                </option>
-                                            </select>
+                                            <div class="language-radio-group">
+                                                <div class="form-check language-option">
+                                                    <input class="form-check-input" 
+                                                           type="radio" 
+                                                           name="default_language" 
+                                                           id="lang_vi" 
+                                                           value="vi"
+                                                           {{ old('default_language', $company->default_language ?? 'vi') == 'vi' ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="lang_vi">
+                                                        <img src="https://flagcdn.com/w20/vn.png" alt="VN" class="flag-img">
+                                                        <span>VN - Tiếng Việt</span>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check language-option">
+                                                    <input class="form-check-input" 
+                                                           type="radio" 
+                                                           name="default_language" 
+                                                           id="lang_de" 
+                                                           value="de"
+                                                           {{ old('default_language', $company->default_language ?? 'vi') == 'de' ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="lang_de">
+                                                        <img src="https://flagcdn.com/w20/de.png" alt="DE" class="flag-img">
+                                                        <span>DE - Deutsch</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <style>
+                                            .language-radio-group {
+                                                display: flex;
+                                                gap: 20px;
+                                                padding: 10px 0;
+                                            }
+                                            .language-option {
+                                                flex: 1;
+                                            }
+                                            .language-option .form-check-label {
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 8px;
+                                                padding: 10px 15px;
+                                                border: 2px solid #e0e0e0;
+                                                border-radius: 6px;
+                                                cursor: pointer;
+                                                transition: all 0.2s;
+                                            }
+                                            .language-option .form-check-label:hover {
+                                                border-color: #007bff;
+                                                background-color: #f8f9fa;
+                                            }
+                                            .language-option .form-check-input:checked + .form-check-label {
+                                                border-color: #007bff;
+                                                background-color: #e7f3ff;
+                                            }
+                                            .language-option .flag-img {
+                                                width: 24px;
+                                                height: 18px;
+                                                border-radius: 2px;
+                                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                                            }
+                                            .language-option .form-check-input {
+                                                display: none;
+                                            }
+                                            </style>
                                             @error('default_language')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror

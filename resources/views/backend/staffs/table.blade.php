@@ -8,7 +8,7 @@
                 </th>
                 <th class="text-center notranslate" style="width: 60px;">ID</th>
                 <th style="min-width: 180px;">HỌ TÊN</th>
-                <th class="notranslate" style="min-width: 150px;">EMAIL CÔNG TY</th>
+                <th style="min-width: 150px;">EMAIL CÔNG TY</th>
                 <th style="min-width: 130px;">SỐ ĐIỆN THOẠI</th>
                 <th style="min-width: 140px;">PHÒNG BAN</th>
                 <th style="min-width: 140px;">CHỨC VỤ</th>

@@ -109,20 +109,24 @@
                         <li>
                             <div class="dropdown-divider"></div>
                             @if(Auth::user()->role == 1)
-                                <a class="dropdown-item" href="{{ route('admin.profile.edit') }}">
-                                    <i class="fas fa-user-cog"></i> Cập nhật thông tin
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('admin.profile.edit') }}">
+                                    <i class="fas fa-user-cog me-2" style="width: 20px;"></i>
+                                    <span>Cập nhật thông tin</span>
                                 </a>
                             @elseif(Auth::user()->role == 2)
-                                <a class="dropdown-item" href="{{ route('staff.profile.edit') }}">
-                                    <i class="fas fa-user-cog"></i> Cập nhật thông tin
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('staff.profile.edit') }}">
+                                    <i class="fas fa-user-cog me-2" style="width: 20px;"></i>
+                                    <span>Cập nhật thông tin</span>
                                 </a>
                             @elseif(Auth::user()->role == 3)
-                                <a class="dropdown-item" href="{{ route('customer.profile.edit') }}">
-                                    <i class="fas fa-user-cog"></i> Cập nhật thông tin
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('customer.profile.edit') }}">
+                                    <i class="fas fa-user-cog me-2" style="width: 20px;"></i>
+                                    <span>Cập nhật thông tin</span>
                                 </a>
                             @endif
-                            <a class="dropdown-item" href="{{ route('logout') }}">
-                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('logout') }}">
+                                <i class="fas fa-sign-out-alt me-2" style="width: 20px;"></i>
+                                <span>Đăng xuất</span>
                             </a>
                         </li>
                     </div>
@@ -193,8 +197,57 @@ $(document).ready(function() {
         });
     }
 
+    // Store previous notification count
+    let previousNotificationCount = 0;
+    
     // Initial load
     updateNotificationCount();
+    
+    // Check for new notifications every 30 seconds
+    setInterval(function() {
+        $.get('/notifications/unread-count', function(response) {
+            const count = response.count;
+            const counter = $('.notification-counter');
+            
+            // Check if there are new notifications
+            if (count > previousNotificationCount && previousNotificationCount > 0) {
+                showNewNotificationAlert();
+            }
+            
+            previousNotificationCount = count;
+            
+            if (count > 0) {
+                counter.text(count).show();
+            } else {
+                counter.hide();
+            }
+        });
+    }, 30000);
+    
+    // Function to show new notification alert
+    function showNewNotificationAlert() {
+        const toast = $('<div class="notification-toast">')
+            .html('<i class="fas fa-bell"></i> Bạn có thông báo mới!')
+            .css({
+                position: 'fixed',
+                top: '80px',
+                right: '20px',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                padding: '15px 20px',
+                borderRadius: '5px',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                zIndex: 9999
+            });
+        
+        $('body').append(toast);
+        
+        setTimeout(function() {
+            toast.fadeOut(300, function() {
+                $(this).remove();
+            });
+        }, 5000);
+    }
     
     // Load notifications when dropdown is opened
     $('#notificationsDropdown').on('show.bs.dropdown', function () {
@@ -235,15 +288,39 @@ $(document).ready(function() {
     /* Notification Counter */
     .notification-counter {
         position: absolute;
-        top: 0;
-        right: 0;
-        padding: 0.25rem 0.5rem;
-        border-radius: 10px;
+        top: 5px;
+        right: 5px;
+        min-width: 18px;
+        height: 18px;
+        padding: 2px 5px;
+        border-radius: 50%;
         background-color: #dc3545;
         color: white;
-        font-size: 0.75rem;
+        font-size: 10px;
         font-weight: bold;
-        transform: translate(25%, -25%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.4);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.4);
+        }
+        50% {
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.8);
+        }
+    }
+    
+    /* Bell icon container */
+    #notificationsDropdown {
+        position: relative;
+    }
+    
+    #notificationsDropdown .fas.fa-bell {
+        font-size: 20px;
     }
 
     /* Notification Dropdown */

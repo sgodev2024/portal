@@ -34,8 +34,7 @@
     }
 
     .current-lang:hover {
-        background: #f8f9fa;
-        border-color: #d0d0d0;
+        /* Removed hover effect */
     }
 
     .flag-img {
@@ -98,7 +97,7 @@
     }
 
     .lang-option:hover {
-        background: #f8f9fa;
+        /* Removed hover effect */
     }
 </style>
 
@@ -307,6 +306,64 @@
             document.getElementById('languageMenu').style.display = 'none';
         }
     });
+    
+    // Update UI based on localStorage immediately on page load
+    (function updateUIOnLoad() {
+        const selectedLang = localStorage.getItem('selected_language');
+        
+        if (selectedLang && selectedLang !== 'vi') {
+            const flagImg = document.getElementById('current-flag');
+            const currentLangName = document.getElementById('current-lang-name');
+            
+            const langData = {
+                'de': {
+                    flag: 'https://flagcdn.com/w40/de.png',
+                    code: 'DE'
+                }
+            };
+            
+            if (langData[selectedLang]) {
+                if (flagImg) {
+                    flagImg.src = langData[selectedLang].flag;
+                    flagImg.alt = langData[selectedLang].code;
+                }
+                if (currentLangName) {
+                    currentLangName.innerHTML = `<span class="lang-code notranslate">${langData[selectedLang].code}</span>`;
+                }
+            }
+        }
+    })();
+    
+    // Monitor Google Translate changes and update UI
+    setInterval(function() {
+        const select = document.querySelector('select.goog-te-combo');
+        const selectedLang = localStorage.getItem('selected_language');
+        
+        if (select) {
+            const currentLang = select.value;
+            const flagImg = document.getElementById('current-flag');
+            const currentLangName = document.getElementById('current-lang-name');
+            
+            // Update UI based on actual Google Translate state
+            if (currentLang === 'de') {
+                if (flagImg && flagImg.alt !== 'DE') {
+                    flagImg.src = 'https://flagcdn.com/w40/de.png';
+                    flagImg.alt = 'DE';
+                }
+                if (currentLangName && !currentLangName.textContent.includes('DE')) {
+                    currentLangName.innerHTML = '<span class="lang-code notranslate">DE</span>';
+                }
+            } else if (currentLang === '' || currentLang === 'vi') {
+                if (flagImg && flagImg.alt !== 'VN') {
+                    flagImg.src = 'https://flagcdn.com/w40/vn.png';
+                    flagImg.alt = 'VN';
+                }
+                if (currentLangName && !currentLangName.textContent.includes('VN')) {
+                    currentLangName.innerHTML = '<span class="lang-code notranslate">VN</span>';
+                }
+            }
+        }
+    }, 500);
 
     // Auto-translate on page load
     (function() {
