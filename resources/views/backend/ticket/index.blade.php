@@ -1,7 +1,7 @@
 @extends('backend.layouts.master')
 
 @section('content')
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 notranslate">
         <div class="row mb-4">
             <div class="col-md-12">
                 <h2 class="mb-0">Quản lý Tickets</h2>
