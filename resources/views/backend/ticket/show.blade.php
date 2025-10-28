@@ -37,6 +37,10 @@
                                         <strong>{{ $ticket->user->name }}</strong>
                                     </span>
                                     <span>
+                                        <i class="bi bi-phone me-1"></i>
+                                        <strong>ID: {{ $ticket->user->account_id }}</strong>
+                                    </span>
+                                    <span>
                                         <i class="bi bi-envelope me-1"></i>
                                         <a href="mailto:{{ $ticket->user->email }}" class="text-decoration-none text-muted">
                                             {{ $ticket->user->email }}
@@ -179,6 +183,7 @@
                                 </div>
                                 <div class="info-value">
                                     <strong>{{ $ticket->user->name }}</strong>
+                                    <div class="small text-muted">ID: {{ $ticket->user->account_id }}</div>
                                     <div class="small text-muted">{{ $ticket->user->email }}</div>
                                 </div>
                             </div>

@@ -142,6 +142,10 @@ class AdminNotificationController extends Controller
     public function show($id)
     {
         $notification = Notification::with('userNotifications.user')->findOrFail($id);
+           
+        UserNotification::where('user_id', auth()->id())
+        ->where('notification_id', $id)
+        ->update(['is_read' => true]);
         return view('backend.notificationsadmin.show', compact('notification'));
     }
 

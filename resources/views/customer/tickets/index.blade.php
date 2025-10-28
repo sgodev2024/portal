@@ -139,8 +139,10 @@
                                         <td>
                                             @if($ticket->assignedStaff)
                                                 <div class="d-flex align-items-center">
-                                                    
-                                                    <small class="fw-semibold">{{ $ticket->assignedStaff->name }}</small>
+                                                    <div>
+                                                        <small class="fw-semibold">{{ $ticket->assignedStaff->name }}</small>
+                                                        <small class="text-muted d-block">ID: {{ $ticket->assignedStaff->account_id ?? 'N/A' }}</small>
+                                                    </div>
                                                 </div>
                                             @else
                                                 <span class="text-muted small">Chưa gán</span>
