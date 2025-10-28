@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\CustomerGroup;
 use App\Models\EmailTemplate;
 use App\Imports\CustomerImport;
+use App\Exports\CustomersExport;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
@@ -389,5 +390,13 @@ class CustomerController extends Controller
         }
 
         return response()->download($filePath, 'customer_import_template.xlsx');
+    }
+
+    /**
+     * Export customers to Excel
+     */
+    public function export()
+    {
+        return Excel::download(new CustomersExport, 'danh-sach-khach-hang-' . date('Y-m-d') . '.xlsx');
     }
 }

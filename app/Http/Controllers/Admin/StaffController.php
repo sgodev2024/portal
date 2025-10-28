@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Imports\StaffImport;
+use App\Exports\StaffsExport;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -217,5 +218,13 @@ class StaffController extends Controller
         // Trường hợp cực kỳ hiếm: tất cả các tổ hợp đều trùng
         // Thêm timestamp để đảm bảo unique
         return $phone . time();
+    }
+
+    /**
+     * Export staffs to Excel
+     */
+    public function export()
+    {
+        return Excel::download(new StaffsExport, 'danh-sach-nhan-vien-' . date('Y-m-d') . '.xlsx');
     }
 }

@@ -114,11 +114,16 @@
                                             placeholder="Tìm kiếm..." id="searchInput">
                                     </div>
 
-                                    <!-- Nút Import Excel - CHỈ TRIGGER, KHÔNG PHẢI FORM -->
+                                    <!-- Nút Import Excel -->
                                     <button type="button" class="btn btn-sm btn-light border"
                                         onclick="document.getElementById('excelFile').click()">
                                         <i class="fas fa-file-import"></i> Import
                                     </button>
+                                    
+                                    <!-- Nút Export Excel -->
+                                    <a href="{{ route('customers.export') }}" class="btn btn-sm btn-success border">
+                                        <i class="fas fa-file-excel"></i> Export
+                                    </a>
 
                                     <a href="{{ route('customers.create') }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-plus"></i> Thêm mới

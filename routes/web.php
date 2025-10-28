@@ -105,6 +105,7 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
         Route::put('/update/{id}', [StaffController::class, 'update'])->name('update');
         Route::post('/delete-selected', [StaffController::class, 'deleteSelected'])->name('deleteSelected');
         Route::post('/import', [StaffController::class, 'import'])->name('import');
+        Route::get('/export', [StaffController::class, 'export'])->name('export');
         Route::get('/download-template', [StaffController::class, 'downloadTemplate'])->name('downloadTemplate');
     });
     Route::prefix('email-templates')->name('admin.email_templates.')->group(function () {
@@ -213,6 +214,7 @@ Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1
     Route::get('/edit/{id}', [CustomerController::class, 'edit'])->name('edit');
     Route::put('/update/{id}', [CustomerController::class, 'update'])->name('update');
     Route::post('/import', [CustomerController::class, 'import'])->name('import');
+    Route::get('/export', [CustomerController::class, 'export'])->name('export');
     Route::get('/downTemplates', [CustomerController::class, 'downTemplates'])
         ->name('downTemplates');
     Route::get('/{id}', [CustomerController::class, 'show'])->name('show');
