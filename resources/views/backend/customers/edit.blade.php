@@ -57,19 +57,17 @@
                             @enderror
                         </div>
 
-                        {{-- SĐT --}}
+                        {{-- SĐT (đổi từ account_id sang phone) --}}
                         <div class="col-md-6">
-                            <label for="account_id" class="form-label fw-semibold">Số điện thoại <span
+                            <label for="phone" class="form-label fw-semibold">Số điện thoại <span
                                     class="text-danger">*</span></label>
-                            <input type="text" name="account_id" id="account_id"
-                                value="{{ old('account_id', $user->account_id) }}"
-                                class="form-control @error('account_id') is-invalid @enderror"
-                                placeholder="Nhập số điện thoại" required>
-                            @error('account_id')
+                            <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}"
+                                class="form-control @error('phone') is-invalid @enderror" placeholder="Nhập số điện thoại"
+                                required>
+                            @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
                         {{-- Công ty --}}
                         <div class="col-md-6">
                             <label for="company" class="form-label fw-semibold">Công ty</label>
@@ -82,7 +80,7 @@
                         </div>
 
                         {{-- Địa chỉ --}}
-                        <div class="col-md-12">
+                        <div class="col-md-6">
                             <label for="address" class="form-label fw-semibold">Địa chỉ</label>
                             <input type="text" name="address" id="address"
                                 value="{{ old('address', $user->address) }}" class="form-control"
@@ -119,19 +117,13 @@
                                 </div>
                             @endif
                         </div>
-
-                        {{-- Trạng thái --}}
-                        <div class="col-md-12">
-                            <div class="form-check form-switch">
-                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
-                                    value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
-                                <label class="form-check-label fw-semibold" for="is_active">Đang hoạt động</label>
-                            </div>
-                        </div>
                     </div>
 
                     {{-- Nút hành động --}}
-                    <div class="d-flex justify-content-end mt-4">
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ route('customers.index') }}" class="btn btn-secondary px-4">
+                            <i class="fas fa-times me-2"></i> Hủy
+                        </a>
                         <button type="submit" class="btn btn-primary px-4">
                             <i class="fas fa-save me-2"></i> Cập nhật khách hàng
                         </button>

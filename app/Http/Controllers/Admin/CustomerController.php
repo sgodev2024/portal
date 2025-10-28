@@ -17,6 +17,32 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
+    private function generateAccountId($phone)
+    {
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+
+        if (strlen($cleanPhone) < 3) {
+            throw new \Exception('Số điện thoại phải có ít nhất 3 chữ số');
+        }
+
+        for ($length = 3; $length <= strlen($cleanPhone); $length++) {
+            $accountId = substr($cleanPhone, -$length);
+
+            if (!User::where('account_id', $accountId)->exists()) {
+                return $accountId;
+            }
+        }
+
+        $baseAccountId = $cleanPhone;
+        $suffix = 1;
+
+        while (User::where('account_id', $baseAccountId . $suffix)->exists()) {
+            $suffix++;
+        }
+
+        return $baseAccountId . $suffix;
+    }
+
     public function index(Request $request)
     {
         $query = User::where('role', 3)->with('groups');
@@ -71,7 +97,7 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users',
-            'account_id' => 'required|string|max:20|unique:users',
+            'phone'      => 'required|string|max:20',
             'company'    => 'required|string|max:255',
             'address'    => 'nullable|string|max:500',
             'groups'     => 'nullable|array',
@@ -80,11 +106,12 @@ class CustomerController extends Controller
             'name.required'       => 'Họ tên không được để trống.',
             'email.required'      => 'Email không được để trống.',
             'email.unique'        => 'Email này đã được sử dụng.',
-            'account_id.required' => 'Số điện thoại không được để trống.',
-            'account_id.unique'   => 'Số điện thoại này đã được sử dụng.',
+            'phone.required'      => 'Số điện thoại không được để trống.',
             'company.required'    => 'Tên công ty không được để trống.',
             'groups.*.exists'     => 'Nhóm khách hàng không hợp lệ.',
         ]);
+
+        $accountId = $this->generateAccountId($validated['phone']);
 
         // Mật khẩu mặc định
         $password = '123456';
@@ -93,12 +120,13 @@ class CustomerController extends Controller
         $user = User::create([
             'name'                => $validated['name'],
             'email'               => $validated['email'],
-            'account_id'          => $validated['account_id'],
+            'phone'               => $validated['phone'],
+            'account_id'          => $accountId,
             'company'             => $validated['company'],
             'address'             => $validated['address'] ?? null,
             'password'            => Hash::make($password),
             'role'                => 3,
-            'is_active' => $request->boolean('is_active'),
+            'is_active'           => $request->boolean('is_active'),
             'must_update_profile' => true,
         ]);
 
@@ -119,6 +147,7 @@ class CustomerController extends Controller
                     [
                         'user_name'    => $user->name,
                         'user_email'   => $user->email,
+                        'account_id'   => $accountId,
                         'new_password' => $password,
                         'login_link'   => route('login'),
                         'app_name'     => config('app.name'),
@@ -129,7 +158,7 @@ class CustomerController extends Controller
             }
         }
 
-        return redirect()->route('customers.index')->with('success', 'Thêm khách hàng thành công và gửi email thông báo!');
+        return redirect()->route('customers.index')->with('success', "Thêm khách hàng thành công! Account ID: {$accountId}");
     }
 
     public function edit($id)
@@ -146,7 +175,7 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'name'       => 'required|string|max:255',
             'email'      => 'required|email|unique:users,email,' . $id,
-            'account_id' => 'required|string|max:20|unique:users,account_id,' . $id,
+            'phone'      => 'required|string|max:20',
             'company'    => 'nullable|string|max:255',
             'address'    => 'nullable|string|max:255',
             'group_id'   => 'nullable|exists:customer_groups,id',
@@ -154,15 +183,19 @@ class CustomerController extends Controller
             'name.required'       => 'Họ tên không được để trống.',
             'email.required'      => 'Email không được để trống.',
             'email.unique'        => 'Email này đã được sử dụng.',
-            'account_id.required' => 'Số điện thoại không được để trống.',
-            'account_id.unique'   => 'Số điện thoại này đã được sử dụng.',
+            'phone.required'      => 'Số điện thoại không được để trống.',
             'group_id.exists'     => 'Nhóm khách hàng không hợp lệ.',
         ]);
+        $accountId = $user->account_id;
+        if ($validated['phone'] !== $user->phone) {
+            $accountId = $this->generateAccountId($validated['phone']);
+        }
 
         $user->update([
             'name'       => $validated['name'],
             'email'      => $validated['email'],
-            'account_id' => $validated['account_id'],
+            'phone'      => $validated['phone'],
+            'account_id' => $accountId,
             'company'    => $validated['company'],
             'address'    => $validated['address'],
             'is_active'  => $request->has('is_active'),
@@ -201,6 +234,7 @@ class CustomerController extends Controller
                 [
                     'user_name'    => $user->name,
                     'user_email'   => $user->email,
+                    'account_id'   => $user->account_id,
                     'new_password' => $newPassword,
                     'login_link'   => route('login'),
                     'app_name'     => config('app.name'),
@@ -329,6 +363,7 @@ class CustomerController extends Controller
                             [
                                 'user_name'    => $customer->name,
                                 'user_email'   => $customer->email,
+                                'account_id'   => $customer->account_id,
                                 'new_password' => $newPassword,
                                 'login_link'   => route('login'),
                                 'app_name'     => config('app.name'),

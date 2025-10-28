@@ -55,14 +55,17 @@
                             @enderror
                         </div>
 
-                        {{-- SĐT --}}
+                        {{-- SĐT (đổi từ account_id sang phone) --}}
                         <div class="col-md-6">
-                            <label for="account_id" class="form-label fw-semibold">Số điện thoại <span
+                            <label for="phone" class="form-label fw-semibold">Số điện thoại <span
                                     class="text-danger">*</span></label>
-                            <input type="text" name="account_id" id="account_id" value="{{ old('account_id') }}"
-                                class="form-control @error('account_id') is-invalid @enderror"
+                            <input type="text" name="phone" id="phone" value="{{ old('phone') }}"
+                                class="form-control @error('phone') is-invalid @enderror"
                                 placeholder="Nhập số điện thoại" required>
-                            @error('account_id')
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> Mã đăng nhập sẽ được tạo tự động từ số điện thoại (3 số cuối)
+                            </small>
+                            @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

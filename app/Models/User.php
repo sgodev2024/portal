@@ -29,6 +29,7 @@ class User extends Authenticatable
         'password',
         'avatar',
         'role',
+        'phone',
         'is_active',
         'must_update_profile',
     ];
@@ -70,7 +71,7 @@ class User extends Authenticatable
     public function getRoleNameAttribute()
     {
         $locale = app()->getLocale();
-        
+
         if ($locale == 'de') {
             return match ($this->role) {
                 1 => 'Administrator',
@@ -79,7 +80,7 @@ class User extends Authenticatable
                 default => 'Unbekannt',
             };
         }
-        
+
         // Default Vietnamese
         return match ($this->role) {
             1 => 'Quản trị viên',

@@ -5,10 +5,11 @@
                 <th width="20" class="text-center border-end">
                     <input type="checkbox" id="checkAll" class="form-check-input">
                 </th>
-                <th width="40" class="border-end text-center notranslate">ID</th>
+                <th width="40" class="border-end text-center">STT</th>
+                <th width="100" class="border-end text-center notranslate">ID</th>
                 <th class="border-end">HỌ TÊN</th>
                 <th class="border-end notranslate">EMAIL</th>
-                <th class="border-end">SỐ ĐIỆN THOẠI</th>
+                <th class="border-end notranslate">SỐ ĐIỆN THOẠI</th>
                 <th class="border-end">CÔNG TY</th>
                 <th class="border-end">NHÓM</th>
                 <th class="text-center border-end">TRẠNG THÁI</th>
@@ -28,9 +29,13 @@
                         {{ ($customers->currentPage() - 1) * $customers->perPage() + $loop->iteration }}
                     </td>
 
+                    <td class="text-center border-end notranslate">
+                        {{ $c->account_id ?? '-' }}
+                    </td>
+
                     <td class="border-end"><strong>{{ $c->name }}</strong></td>
                     <td class="border-end text-muted notranslate">{{ $c->email ?? '-' }}</td>
-                    <td class="border-end notranslate">{{ $c->account_id ?? '-' }}</td>
+                    <td class="border-end notranslate">{{ $c->phone ?? '-' }}</td>
                     <td class="border-end">{{ $c->company ?? '-' }}</td>
 
                     <td class="border-end">
@@ -79,7 +84,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" class="text-center py-5">
+                    <td colspan="11" class="text-center py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
                         <p class="text-muted mb-0">Không có khách hàng nào.</p>
                     </td>
