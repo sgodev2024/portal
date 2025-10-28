@@ -35,9 +35,10 @@
                         <p class="fw-semibold mb-0">{{ $user->name }}</p>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <p class="mb-1 text-muted small">Email:</p>
+                        <p class="mb-1 text-muted small notranslate">Email:</p>
                         <p class="fw-semibold mb-0">
-                            <a href="mailto:{{ $user->email }}" class="text-decoration-none">{{ $user->email }}</a>
+                            <a href="mailto:{{ $user->email }}"
+                                class="text-decoration-none notranslate">{{ $user->email }}</a>
                         </p>
                     </div>
                 </div>
@@ -46,8 +47,9 @@
                     <div class="col-md-6 mb-3">
                         <p class="mb-1 text-muted small">Số điện thoại:</p>
                         <p class="fw-semibold mb-0">
-                            @if($user->account_id)
-                                <a href="tel:{{ $user->account_id }}" class="text-decoration-none">{{ $user->account_id }}</a>
+                            @if ($user->account_id)
+                                <a href="tel:{{ $user->account_id }}"
+                                    class="text-decoration-none">{{ $user->account_id }}</a>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
@@ -69,13 +71,13 @@
                 <div class="row mb-4">
                     <div class="col-md-12 mb-3">
                         <p class="mb-1 text-muted small">Nhóm khách hàng:</p>
-                        @if($user->groups && $user->groups->count() > 0)
+                        @if ($user->groups && $user->groups->count() > 0)
                             <div class="d-flex flex-wrap gap-2">
-                                @foreach($user->groups as $group)
+                                @foreach ($user->groups as $group)
                                     <span class="badge bg-primary rounded-pill px-3 py-2">
                                         <i class="fas fa-users me-1"></i>
                                         {{ $group->name }}
-                                        @if(!$group->is_active)
+                                        @if (!$group->is_active)
                                             <i class="fas fa-ban ms-1" title="Nhóm không hoạt động"></i>
                                         @endif
                                     </span>

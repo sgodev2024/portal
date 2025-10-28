@@ -5,7 +5,7 @@
     use App\Models\Notification as NotificationModel;
 
     $userRole = auth()->user()->role;
-    $dashboardRoute = match($userRole) {
+    $dashboardRoute = match ($userRole) {
         1 => 'admin.dashboard',
         2 => 'staff.dashboard',
         default => 'customer.dashboard',
@@ -16,15 +16,15 @@
     if (in_array($userRole, [1, 2])) {
         // Lấy tất cả tickets mà user có quyền xem
         $tickets = Ticket::with('messages')->get();
-        
+
         foreach ($tickets as $ticket) {
             // Kiểm tra ticket có message mới không
             $lastRead = TicketRead::where('ticket_id', $ticket->id)
                 ->where('user_id', auth()->id())
                 ->first();
-            
+
             $lastMessage = $ticket->messages()->latest()->first();
-            
+
             if ($lastMessage) {
                 // Nếu chưa đọc lần nào hoặc có message mới sau lần đọc
                 if (!$lastRead || !$lastRead->read_at || $lastMessage->created_at > $lastRead->read_at) {
@@ -102,7 +102,7 @@
                 <li class="nav-item {{ request()->routeIs($dashboardRoute) ? 'active' : '' }}">
                     <a href="{{ route($dashboardRoute) }}">
                         <i class="fas fa-home"></i>
-                        <p>Dashboard</p>
+                        <p class="notranslate">Dashboard</p>
                     </a>
                 </li>
 
@@ -111,10 +111,11 @@
 
                     {{-- Cấu hình --}}
                     @php
-                        $isConfigActive = request()->routeIs('company.index')
-                            || request()->routeIs('admin.staffs.*')
-                            || request()->routeIs('admin.email_templates.*')
-                            || request()->routeIs('admin.stmt.*');
+                        $isConfigActive =
+                            request()->routeIs('company.index') ||
+                            request()->routeIs('admin.staffs.*') ||
+                            request()->routeIs('admin.email_templates.*') ||
+                            request()->routeIs('admin.stmt.*');
                     @endphp
                     <li class="nav-item {{ $isConfigActive ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#config">
@@ -139,7 +140,7 @@
                                         <span class="sub-item">Quản lý Email</span>
                                     </a>
                                 </li>
-                                  <li class="{{ request()->routeIs('admin.stmt.index') ? 'active' : '' }}">
+                                <li class="{{ request()->routeIs('admin.stmt.index') ? 'active' : '' }}">
                                     <a href="{{ route('admin.stmt.index') }}">
                                         <span class="sub-item">Cấu hình STMT</span>
                                     </a>
@@ -158,9 +159,10 @@
 
                     {{-- Quản lý khách hàng --}}
                     @php
-                        $isCustomerManageActive = request()->routeIs('customers.*')
-                            || request()->routeIs('admin.customer-groups.*')
-                            || request()->routeIs('admin.group-staff.*');
+                        $isCustomerManageActive =
+                            request()->routeIs('customers.*') ||
+                            request()->routeIs('admin.customer-groups.*') ||
+                            request()->routeIs('admin.group-staff.*');
                     @endphp
                     <li class="nav-item {{ $isCustomerManageActive ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#customerMenu">
@@ -182,7 +184,7 @@
                                         </a>
                                     </li>
                                 @endif
-                              
+
                             </ul>
                         </div>
                     </li>
@@ -191,7 +193,6 @@
 
                 {{-- ============ STAFF MENUS ============ --}}
                 @if ($userRole == 2)
-
                     {{-- Thông báo Staff --}}
                     <li class="nav-item {{ request()->routeIs('staff.notifications.*') ? 'active' : '' }}">
                         <a href="{{ route('staff.notifications.index') }}">
@@ -200,13 +201,10 @@
                             <span class="badge bg-danger d-none" id="badge-notif-count-staff">0</span>
                         </a>
                     </li>
-
-                
                 @endif
 
                 {{-- ============ CUSTOMER MENUS ============ --}}
                 @if ($userRole == 3)
-
                     {{-- Thông báo Customer --}}
                     <li class="nav-item {{ request()->routeIs('customer.notifications.*') ? 'active' : '' }}">
                         <a href="{{ route('customer.notifications.index') }}">
@@ -215,22 +213,24 @@
                             <span class="badge bg-danger d-none" id="badge-notif-count-customer">0</span>
                         </a>
                     </li>
-
                 @endif
 
                 {{-- ============ TICKETS (Admin/Staff) ============ --}}
                 @php
-                    $isTicketsActive = request()->routeIs('admin.tickets.*')
-                        || request()->routeIs('staff.groups.*')
-                        || request()->routeIs('admin.group-staff.*');
+                    $isTicketsActive =
+                        request()->routeIs('admin.tickets.*') ||
+                        request()->routeIs('staff.groups.*') ||
+                        request()->routeIs('admin.group-staff.*');
                 @endphp
                 @if (in_array($userRole, [1, 2]))
                     <li class="nav-item {{ $isTicketsActive ? 'active' : '' }}">
-                        <a href="{{ route('admin.tickets.index') }}" data-has-unread="{{ $hasUnreadTickets ? 'true' : 'false' }}">
+                        <a href="{{ route('admin.tickets.index') }}"
+                            data-has-unread="{{ $hasUnreadTickets ? 'true' : 'false' }}">
                             <i class="fas fa-ticket-alt"></i>
-                            <p>Tickets</p>
+                            <p class="notranslate">Tickets</p>
                             @if ($hasUnreadTickets)
-                                <span class="badge bg-danger" id="ticketsBadge" style="display: inline-block; padding: 3px 8px;">!</span>
+                                <span class="badge bg-danger" id="ticketsBadge"
+                                    style="display: inline-block; padding: 3px 8px;">!</span>
                             @endif
                             <span class="caret"></span>
                         </a>
@@ -269,7 +269,7 @@
                     <li class="nav-item {{ request()->routeIs('customer.tickets.*') ? 'active' : '' }}">
                         <a href="{{ route('customer.tickets.index') }}">
                             <i class="fas fa-ticket-alt"></i>
-                            <p>Tickets</p>
+                            <p class="notranslate">Tickets</p>
                         </a>
                     </li>
                 @endif
@@ -322,10 +322,11 @@
                                 @endif
                                 <li class="{{ request()->routeIs('admin.file_manager.index') ? 'active' : '' }}">
                                     <a href="{{ route('admin.file_manager.index') }}">
-                                        <span class="sub-item">File Manager</span>
+                                        <span class="sub-item notranslate">File Manager</span>
                                     </a>
                                 </li>
-                                <li class="{{ request()->routeIs('admin.file_manager.download_history') ? 'active' : '' }}">
+                                <li
+                                    class="{{ request()->routeIs('admin.file_manager.download_history') ? 'active' : '' }}">
                                     <a href="{{ route('admin.file_manager.download_history') }}">
                                         <span class="sub-item">Lịch sử tải</span>
                                     </a>
@@ -342,12 +343,14 @@
                         $hasTemplatesRoute = Route::has('customer.files.templates');
                         $hasFileManagerRoute = Route::has('customer.file_manager.index');
                         $hasDownloadsRoute = Route::has('customer.files.my_downloads');
-                        $isCustomerFilesActive = request()->routeIs('customer.files.reports')
-                            || request()->routeIs('customer.files.show_report')
-                            || request()->routeIs('customer.files.templates')
-                            || request()->routeIs('customer.files.my_downloads')
-                            || request()->routeIs('customer.file_manager.*');
-                        $showCustomerFilesMenu = $hasReportsRoute || $hasTemplatesRoute || $hasFileManagerRoute || $hasDownloadsRoute;
+                        $isCustomerFilesActive =
+                            request()->routeIs('customer.files.reports') ||
+                            request()->routeIs('customer.files.show_report') ||
+                            request()->routeIs('customer.files.templates') ||
+                            request()->routeIs('customer.files.my_downloads') ||
+                            request()->routeIs('customer.file_manager.*');
+                        $showCustomerFilesMenu =
+                            $hasReportsRoute || $hasTemplatesRoute || $hasFileManagerRoute || $hasDownloadsRoute;
                     @endphp
 
                     @if ($showCustomerFilesMenu)
@@ -360,7 +363,8 @@
                             <div class="collapse {{ $isCustomerFilesActive ? 'show' : '' }}" id="customerFiles">
                                 <ul class="nav nav-collapse">
                                     @if ($hasReportsRoute)
-                                        <li class="{{ request()->routeIs('customer.files.reports') || request()->routeIs('customer.files.show_report') ? 'active' : '' }}">
+                                        <li
+                                            class="{{ request()->routeIs('customer.files.reports') || request()->routeIs('customer.files.show_report') ? 'active' : '' }}">
                                             <a href="{{ route('customer.files.reports') }}">
                                                 <span class="sub-item">File báo cáo</span>
                                             </a>
@@ -368,7 +372,8 @@
                                     @endif
 
                                     @if ($hasTemplatesRoute)
-                                        <li class="{{ request()->routeIs('customer.files.templates') ? 'active' : '' }}">
+                                        <li
+                                            class="{{ request()->routeIs('customer.files.templates') ? 'active' : '' }}">
                                             <a href="{{ route('customer.files.templates') }}">
                                                 <span class="sub-item">Biểu mẫu</span>
                                             </a>
@@ -387,105 +392,104 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Gestion de l'état actif des menus au chargement
-    const lastMenu = localStorage.getItem('activeMenu');
-    if (lastMenu) {
-        const $collapse = $('#' + lastMenu);
-        if ($collapse.length) {
-            $collapse.addClass('show');
-            $collapse.closest('.nav-item').addClass('active');
-            $("a[href='#" + lastMenu + "']").attr('aria-expanded', 'true');
+    $(document).ready(function() {
+        // Gestion de l'état actif des menus au chargement
+        const lastMenu = localStorage.getItem('activeMenu');
+        if (lastMenu) {
+            const $collapse = $('#' + lastMenu);
+            if ($collapse.length) {
+                $collapse.addClass('show');
+                $collapse.closest('.nav-item').addClass('active');
+                $("a[href='#" + lastMenu + "']").attr('aria-expanded', 'true');
+            }
         }
-    }
 
-    // Garder le menu ouvert si un sous-élément est actif
-    $('.nav-collapse li.active').each(function() {
-        const $collapse = $(this).closest('.collapse');
-        if ($collapse.length) {
-            const menuId = $collapse.attr('id');
-            $collapse.addClass('show');
-            $collapse.closest('.nav-item').addClass('active');
-            $("a[href='#" + menuId + "']").attr('aria-expanded', 'true');
-            localStorage.setItem('activeMenu', menuId);
-        }
-    });
-
-    // Gestion du clic sur menu parent (avec collapse)
-    $(".nav-item > a[data-bs-toggle='collapse']").on('click', function(e) {
-        const targetId = $(this).attr('href').replace('#', '');
-        const $collapse = $('#' + targetId);
-
-        // Ne pas fermer si on clique sur un menu déjà ouvert avec un élément actif
-        if ($collapse.hasClass('show') && $collapse.find('li.active').length === 0) {
-            localStorage.removeItem('activeMenu');
-        } else if (!$collapse.hasClass('show')) {
-            localStorage.setItem('activeMenu', targetId);
-        }
-    });
-
-    // Gestion du clic sur sous-menu
-    $(".nav-collapse li a").on('click', function(e) {
-        // Marquer le sous-menu comme actif
-        $('.nav-collapse li').removeClass('active');
-        $(this).parent('li').addClass('active');
-
-        // Garder le menu parent ouvert
-        const $collapse = $(this).closest('.collapse');
-        if ($collapse.length) {
-            const menuId = $collapse.attr('id');
-            localStorage.setItem('activeMenu', menuId);
-        }
-    });
-
-    // Gestion du clic sur menu simple (sans collapse)
-    $(".nav-item > a:not([data-bs-toggle='collapse'])").on('click', function() {
-        // Retirer l'état actif des autres menus
-        $('.nav-item').removeClass('active');
-        $(this).parent('.nav-item').addClass('active');
-
-        // Fermer tous les menus déroulants
-        $('.collapse.show').removeClass('show');
-        $('.nav-item > a[data-bs-toggle="collapse"]').attr('aria-expanded', 'false');
-
-        // Nettoyer le localStorage
-        localStorage.removeItem('activeMenu');
-    });
-
-    // Mise à jour du badge des notifications non lues
-    function updateUnreadBadge() {
-        $.ajax({
-            url: "{{ route('notifications.unread_count') }}",
-            method: 'GET',
-            dataType: 'json',
-            success: function(res) {
-                const count = res.count || 0;
-                const role = {{ $userRole }};
-
-                if (role === 2) {
-                    const $badge = $('#badge-notif-count-staff');
-                    if (count > 0) {
-                        $badge.text(count).removeClass('d-none');
-                    } else {
-                        $badge.addClass('d-none');
-                    }
-                } else if (role === 3) {
-                    const $badge = $('#badge-notif-count-customer');
-                    if (count > 0) {
-                        $badge.text(count).removeClass('d-none');
-                    } else {
-                        $badge.addClass('d-none');
-                    }
-                }
-            },
-            error: function() {
-                console.error('Erreur lors de la récupération du nombre de notifications');
+        // Garder le menu ouvert si un sous-élément est actif
+        $('.nav-collapse li.active').each(function() {
+            const $collapse = $(this).closest('.collapse');
+            if ($collapse.length) {
+                const menuId = $collapse.attr('id');
+                $collapse.addClass('show');
+                $collapse.closest('.nav-item').addClass('active');
+                $("a[href='#" + menuId + "']").attr('aria-expanded', 'true');
+                localStorage.setItem('activeMenu', menuId);
             }
         });
-    }
 
-    // Mise à jour initiale et périodique
-    updateUnreadBadge();
-    setInterval(updateUnreadBadge, 15000); // Toutes les 15 secondes
-});
+        // Gestion du clic sur menu parent (avec collapse)
+        $(".nav-item > a[data-bs-toggle='collapse']").on('click', function(e) {
+            const targetId = $(this).attr('href').replace('#', '');
+            const $collapse = $('#' + targetId);
+
+            // Ne pas fermer si on clique sur un menu déjà ouvert avec un élément actif
+            if ($collapse.hasClass('show') && $collapse.find('li.active').length === 0) {
+                localStorage.removeItem('activeMenu');
+            } else if (!$collapse.hasClass('show')) {
+                localStorage.setItem('activeMenu', targetId);
+            }
+        });
+
+        // Gestion du clic sur sous-menu
+        $(".nav-collapse li a").on('click', function(e) {
+            // Marquer le sous-menu comme actif
+            $('.nav-collapse li').removeClass('active');
+            $(this).parent('li').addClass('active');
+
+            // Garder le menu parent ouvert
+            const $collapse = $(this).closest('.collapse');
+            if ($collapse.length) {
+                const menuId = $collapse.attr('id');
+                localStorage.setItem('activeMenu', menuId);
+            }
+        });
+
+        // Gestion du clic sur menu simple (sans collapse)
+        $(".nav-item > a:not([data-bs-toggle='collapse'])").on('click', function() {
+            // Retirer l'état actif des autres menus
+            $('.nav-item').removeClass('active');
+            $(this).parent('.nav-item').addClass('active');
+
+            // Fermer tous les menus déroulants
+            $('.collapse.show').removeClass('show');
+            $('.nav-item > a[data-bs-toggle="collapse"]').attr('aria-expanded', 'false');
+
+            // Nettoyer le localStorage
+            localStorage.removeItem('activeMenu');
+        });
+
+        // Mise à jour du badge des notifications non lues
+        function updateUnreadBadge() {
+            $.ajax({
+                url: "{{ route('notifications.unread_count') }}",
+                method: 'GET',
+                dataType: 'json',
+                success: function(res) {
+                    const count = res.count || 0;
+                    const role = {{ $userRole }};
+
+                    if (role === 2) {
+                        const $badge = $('#badge-notif-count-staff');
+                        if (count > 0) {
+                            $badge.text(count).removeClass('d-none');
+                        } else {
+                            $badge.addClass('d-none');
+                        }
+                    } else if (role === 3) {
+                        const $badge = $('#badge-notif-count-customer');
+                        if (count > 0) {
+                            $badge.text(count).removeClass('d-none');
+                        } else {
+                            $badge.addClass('d-none');
+                        }
+                    }
+                },
+                error: function() {
+                    console.error('Erreur lors de la récupération du nombre de notifications');
+                }
+            });
+        }
+
+        updateUnreadBadge();
+        setInterval(updateUnreadBadge, 15000);
+    });
 </script>

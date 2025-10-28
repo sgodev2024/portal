@@ -12,7 +12,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
-    
+
     <!-- Google Translate -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
@@ -27,13 +27,14 @@
                     gaId: 'UA-XXXXX-X'
                 }, 'google_translate_element');
                 console.log('Google Translate initialized');
-            } catch(e) {
+            } catch (e) {
                 console.error('Google Translate initialization failed:', e);
             }
         }
     </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-    
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -58,28 +59,28 @@
     <script src="{{ asset('auth/js/api.js') }}" async defer></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    
+
     <!-- Initialize Google Translate Select for Login Page -->
     <script type="text/javascript">
         // Wait for Google Translate to be ready
         function waitForGoogleTranslate() {
             let attempts = 0;
             const maxAttempts = 30;
-            
+
             const checkForGoogleTranslate = setInterval(function() {
                 attempts++;
                 const select = document.querySelector('select.goog-te-combo');
-                
+
                 if (select && select.options && select.options.length > 0) {
                     console.log('Google Translate loaded successfully');
                     window.googleTranslateSelect = select;
-                    
+
                     // Set up language change handler
                     select.addEventListener('change', function() {
                         console.log('Language changed to:', this.value);
                         // No need to reload page - let Google Translate handle it
                     });
-                    
+
                     clearInterval(checkForGoogleTranslate);
                 } else if (attempts >= maxAttempts) {
                     console.log('Google Translate failed to load');
@@ -87,10 +88,10 @@
                 }
             }, 300);
         }
-        
+
         // Start checking when page loads
         window.addEventListener('load', waitForGoogleTranslate);
-        
+
         // Also check when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', waitForGoogleTranslate);
@@ -107,10 +108,23 @@
         left: -9999px !important;
         visibility: hidden !important;
     }
-    .goog-te-banner-frame { display: none !important; }
-    .goog-te-balloon-frame { display: none !important; }
-    .goog-tooltip { display: none !important; }
-    .goog-te-gadget { font-size: 0 !important; }
+
+    .goog-te-banner-frame {
+        display: none !important;
+    }
+
+    .goog-te-balloon-frame {
+        display: none !important;
+    }
+
+    .goog-tooltip {
+        display: none !important;
+    }
+
+    .goog-te-gadget {
+        font-size: 0 !important;
+    }
+
     .goog-te-gadget-simple {
         background: #fff !important;
         border: 2px solid #0066cc !important;
@@ -121,26 +135,43 @@
         cursor: pointer !important;
         display: inline-block !important;
     }
+
     .goog-te-gadget-simple:hover {
         background: #0066cc !important;
         color: #fff !important;
     }
-    .goog-te-gadget-icon { display: none !important; }
-    .goog-te-menu-value { 
-        color: #0066cc !important; 
-        font-size: 15px !important; 
+
+    .goog-te-gadget-icon {
+        display: none !important;
+    }
+
+    .goog-te-menu-value {
+        color: #0066cc !important;
+        font-size: 15px !important;
         font-weight: bold !important;
     }
-    .goog-te-menu-value span { font-size: 15px !important; }
-    .skiptranslate { display: none !important; }
-    body { top: 0 !important; }
-    .goog-te-menu-frame { z-index: 99999 !important; }
-    
+
+    .goog-te-menu-value span {
+        font-size: 15px !important;
+    }
+
+    .skiptranslate {
+        display: none !important;
+    }
+
+    body {
+        top: 0 !important;
+    }
+
+    .goog-te-menu-frame {
+        z-index: 99999 !important;
+    }
+
     /* Ensure translated content is visible */
     .goog-te-combo {
         display: block !important;
     }
-    
+
     .error_txt {
         color: red;
     }
@@ -294,10 +325,10 @@
         <div style="position: absolute; top: 20px; right: 20px; z-index: 999;">
             @include('components.language-switcher')
         </div>
-        
+
         <!-- Google Translate Element -->
         <div id="google_translate_element" style="position: absolute; left: -9999px; visibility: hidden;"></div>
-        
+
         <div class="login_display_02 login_page">
             <div class="ct_right">
                 <div class="ct_right_ct">
@@ -344,7 +375,8 @@
                                 </div>
                                 <div class="btn">
                                     <button type="submit" name="button"
-                                        class="loginButton loginButtonGg remove-msg before-login " id="submitBtn">Đăng nhập</button>
+                                        class="loginButton loginButtonGg remove-msg before-login " id="submitBtn">Đăng
+                                        nhập</button>
                                 </div>
                                 <div class="forgot-password-link">
                                     <a href="{{ route('password.request') }}" class="text-decoration-none"

@@ -6,9 +6,9 @@
                 <th class="text-center" style="width: 50px;">
                     <input type="checkbox" class="form-check-input" id="checkAll">
                 </th>
-                <th class="text-center" style="width: 60px;">ID</th>
+                <th class="text-center notranslate" style="width: 60px;">ID</th>
                 <th style="min-width: 180px;">HỌ TÊN</th>
-                <th style="min-width: 150px;">EMAIL CÔNG TY</th>
+                <th class="notranslate" style="min-width: 150px;">EMAIL CÔNG TY</th>
                 <th style="min-width: 130px;">SỐ ĐIỆN THOẠI</th>
                 <th style="min-width: 140px;">PHÒNG BAN</th>
                 <th style="min-width: 140px;">CHỨC VỤ</th>
@@ -21,18 +21,19 @@
             @forelse ($staffs as $staff)
                 <tr>
                     <td class="text-center">
-                        <input type="checkbox" class="form-check-input checkItem" name="ids[]" value="{{ $staff->id }}">
+                        <input type="checkbox" class="form-check-input checkItem" name="ids[]"
+                            value="{{ $staff->id }}">
                     </td>
                     <td class="text-center text-muted">
                         {{ ($staffs->currentPage() - 1) * $staffs->perPage() + $loop->iteration }}
                     </td>
                     <td><strong>{{ $staff->name }}</strong></td>
-                    <td>{{ $staff->email ?? '-' }}</td>
+                    <td class="notranslate">{{ $staff->email ?? '-' }}</td>
                     <td>{{ $staff->account_id ?? '-' }}</td>
                     <td>{{ $staff->department ?? '-' }}</td>
                     <td>{{ $staff->position ?? '-' }}</td>
                     <td>
-                        @if($staff->is_active)
+                        @if ($staff->is_active)
                             <span class="badge bg-success">Online</span>
                         @else
                             <span class="badge bg-danger">Offline</span>
@@ -40,7 +41,8 @@
                     </td>
                     <td>{{ $staff->created_at->format('d/m/Y') }}</td>
                     <td class="text-center">
-                        <a href="{{ route('admin.staffs.edit', $staff->id) }}" class="btn btn-sm btn-warning" title="Chỉnh sửa">
+                        <a href="{{ route('admin.staffs.edit', $staff->id) }}" class="btn btn-sm btn-warning"
+                            title="Chỉnh sửa">
                             <i class="fas fa-edit"></i>
                         </a>
                     </td>
@@ -58,7 +60,7 @@
 </div>
 
 <!-- Phân trang -->
-@if($staffs->hasPages())
+@if ($staffs->hasPages())
     <div class="pagination-wrapper bg-white border-top p-3">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div class="text-muted small mb-2 mb-md-0">
