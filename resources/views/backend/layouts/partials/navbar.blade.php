@@ -108,7 +108,15 @@
                         </li>
                         <li>
                             <div class="dropdown-divider"></div>
-                            @if(Auth::user()->role == 3)
+                            @if(Auth::user()->role == 1)
+                                <a class="dropdown-item" href="{{ route('admin.profile.edit') }}">
+                                    <i class="fas fa-user-cog"></i> Cập nhật thông tin
+                                </a>
+                            @elseif(Auth::user()->role == 2)
+                                <a class="dropdown-item" href="{{ route('staff.profile.edit') }}">
+                                    <i class="fas fa-user-cog"></i> Cập nhật thông tin
+                                </a>
+                            @elseif(Auth::user()->role == 3)
                                 <a class="dropdown-item" href="{{ route('customer.profile.edit') }}">
                                     <i class="fas fa-user-cog"></i> Cập nhật thông tin
                                 </a>

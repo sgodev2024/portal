@@ -26,6 +26,8 @@ use App\Http\Controllers\Staff\StaffNotificationController;
 use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Customer\CustomerNotificationController;
 use App\Http\Controllers\Admin\TicketController as AdminTicketController;
+use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\Staff\StaffProfileController;
 
 
 Route::get('/', function () {
@@ -77,6 +79,10 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
     // Quản lý thông tin công ty
     Route::get('/company', [CompanyController::class, 'index'])->name('company.index');
     Route::post('/company', [CompanyController::class, 'store'])->name('company.store');
+
+    // Quản lý profile admin
+    Route::get('/profile/edit', [AdminProfileController::class, 'edit'])->name('admin.profile.edit');
+    Route::post('/profile/update', [AdminProfileController::class, 'update'])->name('admin.profile.update');
 
     Route::prefix('chat')->name('chat.')->group(function () {
         Route::get('/', [ChatController::class, 'index'])->name('index');
@@ -217,6 +223,11 @@ Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1
 // route nhân viên
 Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Quản lý profile nhân viên
+    Route::get('/profile/edit', [StaffProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile/update', [StaffProfileController::class, 'update'])->name('profile.update');
+    
     Route::get('/chats', [ChatControllers::class, 'index'])->name('chats.index');
     Route::get('/chats/{id}', [ChatControllers::class, 'show'])->name('chats.show');
     Route::post('/chats/{id}/send', [ChatControllers::class, 'send'])->name('chats.send');

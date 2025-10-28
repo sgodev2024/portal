@@ -1,0 +1,142 @@
+@extends('backend.layouts.master')
+
+@section('title', 'Cập nhật thông tin nhân viên')
+
+@section('content')
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Cập nhật thông tin nhân viên</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('staff.profile.update') }}" method="POST">
+                            @csrf
+
+                            <!-- Họ tên -->
+                            <div class="form-group mb-3">
+                                <label for="name">Họ tên <span class="text-danger">*</span></label>
+                                <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}"
+                                    class="form-control @error('name') is-invalid @enderror" required>
+                                @error('name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Email -->
+                            <div class="form-group mb-3">
+                                <label for="email">Email <span class="text-danger">*</span></label>
+                                <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}"
+                                    class="form-control @error('email') is-invalid @enderror" required>
+                                @error('email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Số điện thoại -->
+                            <div class="form-group mb-3">
+                                <label for="phone">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}"
+                                    class="form-control @error('phone') is-invalid @enderror" required>
+                                @error('phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Phòng ban -->
+                            <div class="form-group mb-3">
+                                <label for="department">Phòng ban <span class="text-danger">*</span></label>
+                                <input type="text" name="department" id="department" value="{{ old('department', $user->department) }}"
+                                    class="form-control @error('department') is-invalid @enderror" required>
+                                @error('department')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Chức vụ -->
+                            <div class="form-group mb-3">
+                                <label for="position">Chức vụ <span class="text-danger">*</span></label>
+                                <input type="text" name="position" id="position" value="{{ old('position', $user->position) }}"
+                                    class="form-control @error('position') is-invalid @enderror" required>
+                                @error('position')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <hr class="my-4">
+
+                            <h5 class="mb-3">
+                                Thay đổi mật khẩu
+                                @if($user->must_update_profile)
+                                    <span class="text-danger">*</span>
+                                @endif
+                            </h5>
+
+                            @if($user->must_update_profile)
+                                <p class="text-danger small fw-bold">Bạn phải thay đổi mật khẩu để tiếp tục</p>
+                            @else
+                                <p class="text-muted small">Để trống nếu không muốn thay đổi mật khẩu</p>
+                            @endif
+
+                            @if(!$user->must_update_profile)
+                                <!-- Mật khẩu hiện tại (chỉ hiện khi không bắt buộc đổi) -->
+                                <div class="form-group mb-3">
+                                    <label for="current_password">Mật khẩu hiện tại</label>
+                                    <input type="password" name="current_password" id="current_password"
+                                        class="form-control @error('current_password') is-invalid @enderror"
+                                        placeholder="Nhập mật khẩu hiện tại để thay đổi">
+                                    @error('current_password')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <small class="form-text text-muted">Chỉ cần nhập nếu bạn muốn đổi mật khẩu</small>
+                                </div>
+                            @endif
+
+                            <!-- Mật khẩu mới -->
+                            <div class="form-group mb-3">
+                                <label for="password">
+                                    Mật khẩu mới
+                                    @if($user->must_update_profile)
+                                        <span class="text-danger">*</span>
+                                    @endif
+                                </label>
+                                <input type="password" name="password" id="password"
+                                    class="form-control @error('password') is-invalid @enderror"
+                                    placeholder="Nhập mật khẩu mới"
+                                    @if($user->must_update_profile) required @endif>
+                                @error('password')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Xác nhận mật khẩu mới -->
+                            <div class="form-group mb-3">
+                                <label for="password_confirmation">
+                                    Xác nhận mật khẩu mới
+                                    @if($user->must_update_profile)
+                                        <span class="text-danger">*</span>
+                                    @endif
+                                </label>
+                                <input type="password" name="password_confirmation" id="password_confirmation"
+                                    class="form-control" placeholder="Nhập lại mật khẩu mới"
+                                    @if($user->must_update_profile) required @endif>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Cập nhật
+                                </button>
+                                @if(!$user->must_update_profile)
+                                    <a href="{{ route('staff.dashboard') }}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Quay lại
+                                    </a>
+                                @endif
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
