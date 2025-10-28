@@ -57,7 +57,7 @@
     }
 
     .lang-full-name {
-        color: #666;
+        display: none;
     }
 
     .dropdown-arrow {
@@ -102,30 +102,30 @@
     }
 </style>
 
-<div class="language-switcher">
+<div class="language-switcher notranslate">
     <button class="current-lang" onclick="toggleLanguageMenu()">
         <img id="current-flag" src="{{ $currentLang['flag'] }}" alt="{{ $currentLang['code'] }}" class="flag-img">
-        <span id="current-lang-name" class="lang-name">
-            <span class="lang-code">{{ $currentLang['code'] }}</span>
+        <span id="current-lang-name" class="lang-name notranslate">
+            <span class="lang-code notranslate">{{ $currentLang['code'] }}</span>
             <span class="lang-full-name">{{ $currentLang['name'] }}</span>
         </span>
         <span class="dropdown-arrow">▼</span>
     </button>
 
-    <div id="languageMenu" class="language-menu">
+    <div id="languageMenu" class="language-menu notranslate">
         <a href="#" onclick="changeLanguage('vi', 'https://flagcdn.com/w40/vn.png', 'VN'); return false;"
             class="lang-option">
             <img src="https://flagcdn.com/w40/vn.png" alt="VN" class="flag-img">
-            <span class="lang-name">
-                <span class="lang-code">VN</span>
+            <span class="lang-name notranslate">
+                <span class="lang-code notranslate">VN</span>
                 <span class="lang-full-name">Tiếng Việt</span>
             </span>
         </a>
         <a href="#" onclick="changeLanguage('de', 'https://flagcdn.com/w40/de.png', 'DE'); return false;"
             class="lang-option">
             <img src="https://flagcdn.com/w40/de.png" alt="DE" class="flag-img">
-            <span class="lang-name">
-                <span class="lang-code">DE</span>
+            <span class="lang-name notranslate">
+                <span class="lang-code notranslate">DE</span>
                 <span class="lang-full-name">Deutsch</span>
             </span>
         </a>
@@ -160,6 +160,62 @@
     }
 
     function changeLanguage(locale, flagUrl, code) {
+        // Update UI first - Update flag image
+        const flagImg = document.getElementById('current-flag');
+        if (flagImg) {
+            flagImg.src = flagUrl;
+            flagImg.alt = code;
+        }
+
+        // Update language name display
+        const langNames = {
+            'vi': 'VN',
+            'de': 'DE'
+        };
+
+        const currentLangName = document.getElementById('current-lang-name');
+        if (currentLangName && langNames[locale]) {
+            currentLangName.innerHTML = `
+            <span class="lang-code notranslate">${langNames[locale]}</span>
+        `;
+        }
+
+        document.getElementById('languageMenu').style.display = 'none';
+
+        // If switching to Vietnamese, turn off Google Translate completely
+        if (locale === 'vi') {
+            // Clear storage
+            localStorage.removeItem('selected_language');
+            sessionStorage.removeItem('lang_translated');
+            
+            // Clear ALL Google Translate related cookies
+            const cookiesToClear = ['googtrans', 'googtrans=/auto/vi', 'googtrans=/auto/de'];
+            cookiesToClear.forEach(function(cookieName) {
+                document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + window.location.hostname + ";";
+            });
+            
+            // Clear all cookies that start with googtrans
+            document.cookie.split(";").forEach(function(c) {
+                const cookieName = c.trim().split('=')[0];
+                if (cookieName.includes('googtrans')) {
+                    document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + window.location.hostname + ";";
+                }
+            });
+            
+            // Always reload to ensure clean state
+            window.location.reload();
+            
+            return;
+        }
+        
+        // Save selected language to localStorage for non-Vietnamese languages
+        localStorage.setItem('selected_language', locale);
+        
+        // Mark that translation is needed
+        sessionStorage.setItem('lang_translated', 'true');
+
         // Prevent multiple simultaneous translations
         if (isTranslating) {
             // Reset the flag after a short delay to prevent permanent blocking
@@ -176,29 +232,6 @@
             clearInterval(translateInterval);
             translateInterval = null;
         }
-
-        // Update UI first - Update flag image
-        const flagImg = document.getElementById('current-flag');
-        if (flagImg) {
-            flagImg.src = flagUrl;
-            flagImg.alt = code;
-        }
-
-        // Update language name display
-        const langNames = {
-            'vi': ['VN', 'Tiếng Việt'],
-            'de': ['DE', 'Deutsch']
-        };
-
-        const currentLangName = document.getElementById('current-lang-name');
-        if (currentLangName && langNames[locale]) {
-            currentLangName.innerHTML = `
-            <span class="lang-code">${langNames[locale][0]}</span>
-            <span class="lang-full-name">${langNames[locale][1]}</span>
-        `;
-        }
-
-        document.getElementById('languageMenu').style.display = 'none';
 
         // Map to Google Translate language codes
         const langMap = {
@@ -222,8 +255,9 @@
                     return;
                 }
             } catch (e) {
-                console.error('Error setting language:', e);
+                console.warn('Error setting language:', e);
                 isTranslating = false;
+                return;
             }
         }
 
@@ -256,10 +290,12 @@
             }
 
             if (attempts >= maxAttempts) {
-                console.log('Google Translate not found');
+                console.warn('Google Translate not available - translation skipped');
                 clearInterval(translateInterval);
                 translateInterval = null;
                 isTranslating = false;
+                // Show a subtle notification that translation is not available
+                // (optional - you can remove this if you don't want any notification)
             }
         }, 500);
     }
@@ -272,13 +308,53 @@
         }
     });
 
-    // Auto-translate on page load if default language is not Vietnamese
+    // Auto-translate on page load
     (function() {
+        // Check if user has selected a language before
+        const selectedLang = localStorage.getItem('selected_language');
         const defaultLang = '{{ $defaultLang }}';
+        
+        // Use selected language if exists, otherwise use default
+        const targetLang = selectedLang || defaultLang;
+        
+        // Don't translate if target is Vietnamese or no language selected
+        if (!selectedLang || targetLang === 'vi') {
+            // Force clear any Google Translate cookie that might exist
+            const googtransCookie = document.cookie.split(';').find(c => c.trim().startsWith('googtrans'));
+            if (googtransCookie) {
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + window.location.hostname + ";";
+            }
+            
+            return;
+        }
+        
         const hasTranslatedBefore = sessionStorage.getItem('lang_translated') === 'true';
 
-        // Only auto-translate if default language is not 'vi' and not translated before
-        if (defaultLang !== 'vi' && !hasTranslatedBefore) {
+        // Only auto-translate if not translated in this session
+        if (!hasTranslatedBefore) {
+            // Update UI to show selected language
+            const langData = {
+                'de': {
+                    flag: 'https://flagcdn.com/w40/de.png',
+                    code: 'DE'
+                }
+            };
+            
+            if (langData[targetLang]) {
+                const flagImg = document.getElementById('current-flag');
+                const currentLangName = document.getElementById('current-lang-name');
+                
+                if (flagImg) {
+                    flagImg.src = langData[targetLang].flag;
+                    flagImg.alt = langData[targetLang].code;
+                }
+                
+                if (currentLangName) {
+                    currentLangName.innerHTML = `<span class="lang-code notranslate">${langData[targetLang].code}</span>`;
+                }
+            }
+            
             // Wait for Google Translate to load with better retry mechanism
             let attempts = 0;
             const maxAttempts = 20;
@@ -290,18 +366,16 @@
                 if (select && select.options && select.options.length > 0) {
                     // Check if the target language option exists
                     const targetOption = Array.from(select.options).find(option => option.value ===
-                        defaultLang);
+                        targetLang);
                     if (targetOption) {
-                        select.value = defaultLang;
+                        select.value = targetLang;
                         select.dispatchEvent(new Event('change'));
                         sessionStorage.setItem('lang_translated', 'true');
-                        console.log('Auto-translated to:', defaultLang);
                         clearInterval(autoTranslateInterval);
                     }
                 }
 
                 if (attempts >= maxAttempts) {
-                    console.log('Auto-translate failed');
                     clearInterval(autoTranslateInterval);
                 }
             }, 500);

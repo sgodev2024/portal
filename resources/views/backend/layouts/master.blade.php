@@ -11,16 +11,27 @@
     <!-- Google Translate -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'vi',
-                includedLanguages: 'vi,de',
-                layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
-                autoDisplay: false,
-                multilanguagePage: true
-            }, 'google_translate_element');
+            try {
+                new google.translate.TranslateElement({
+                    pageLanguage: 'vi',
+                    includedLanguages: 'vi,de',
+                    layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
+                    autoDisplay: false,
+                    multilanguagePage: true
+                }, 'google_translate_element');
+            } catch (error) {
+                console.warn('Google Translate initialization failed:', error);
+            }
         }
+        
+        // Add error handling for script loading
+        window.googleTranslateError = function() {
+            console.warn('Google Translate script failed to load');
+        };
     </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    <script type="text/javascript" 
+            src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+            onerror="googleTranslateError()">
     </script>
 
     <!-- Initialize Google Translate Select -->
