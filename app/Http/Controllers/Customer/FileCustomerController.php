@@ -44,7 +44,7 @@ class FileCustomerController extends Controller
             });
         }
 
-        $files = $query->latest()->paginate(12);
+        $files = $query->latest()->paginate(10);
 
         // Lấy danh sách categories
         $categories = File::templates()->active()

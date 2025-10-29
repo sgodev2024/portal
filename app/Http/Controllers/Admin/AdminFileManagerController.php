@@ -49,7 +49,7 @@ class AdminFileManagerController extends Controller
             });
         }
 
-        $files = $filesQuery->latest()->paginate(20);
+        $files = $filesQuery->latest()->paginate(10);
 
         // Lấy users
         $users = User::where('role', 3)

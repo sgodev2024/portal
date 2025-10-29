@@ -194,4 +194,59 @@ class TicketNotificationService
             'is_read' => false,
         ]);
     }
+
+    /**
+     * Thông báo khi ticket tự động đóng sau 3 ngày không phản hồi (gửi cho Khách)
+     */
+    public static function notifyTicketAutoClosed(Ticket $ticket)
+    {
+        $notification = Notification::create([
+            'title' => "Ticket #" . $ticket->id . " đã tự động đóng",
+            'content' => "Ticket \"" . $ticket->subject . "\" đã được tự động đóng do không có phản hồi sau 3 ngày.",
+            'target_role' => 3,
+            'created_by' => null, // System
+            'is_sent' => true,
+            'sent_at' => now(),
+        ]);
+
+        UserNotification::create([
+            'user_id' => $ticket->user_id,
+            'notification_id' => $notification->id,
+            'is_read' => false,
+        ]);
+
+        // Gửi email thông báo
+        try {
+            $template = \App\Models\EmailTemplate::where('code', 'ticket_auto_closed')
+                ->where('is_active', true)
+                ->first();
+
+            if (!$template) {
+                // Fallback to ticket_closed template
+                $template = \App\Models\EmailTemplate::where('code', 'ticket_closed')
+                    ->where('is_active', true)
+                    ->first();
+            }
+
+            if ($template && $ticket->user) {
+                $ticketLink = route('customer.tickets.show', $ticket->id);
+                
+                \Illuminate\Support\Facades\Mail::to($ticket->user->email)->queue(
+                    new \App\Mail\GenericMail(
+                        $template,
+                        [
+                            'user_name' => $ticket->user->name,
+                            'ticket_id' => $ticket->id,
+                            'ticket_subject' => $ticket->subject,
+                            'ticket_link' => $ticketLink,
+                            'app_name' => config('app.name'),
+                            'close_reason' => 'Ticket đã được tự động đóng do không có phản hồi từ bạn sau 3 ngày.',
+                        ]
+                    )
+                );
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send auto-close email: ' . $e->getMessage());
+        }
+    }
 }
