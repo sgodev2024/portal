@@ -159,7 +159,14 @@
 
                     {{-- Quản lý khách hàng --}}
                     @php
-                        $isCustomerManageActive = request()->routeIs('customers.*');
+                        // $isCustomerManageActive = 
+                        // request()->routeIs('customers.*') ||
+                        // request()->routeIs('admin.customer-groups.*') ;
+                        $isCustomerManageActive =
+                            request()->routeIs('customers.*') ||
+                            request()->routeIs('admin.customer-groups.*') ||
+                            request()->routeIs('admin.group-staff.*');
+                     
                     @endphp
                     <li class="nav-item {{ $isCustomerManageActive ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#customerMenu">
@@ -174,6 +181,13 @@
                                         <span class="sub-item">Danh sách khách hàng</span>
                                     </a>
                                 </li>
+                                  @if (Route::has('admin.customer-groups.index'))
+                                    <li class="{{ request()->routeIs('admin.customer-groups.*') ? 'active' : '' }}">
+                                        <a href="{{ route('admin.customer-groups.index') }}">
+                                            <span class="sub-item">Nhóm khách hàng</span>
+                                        </a>
+                                    </li>
+                                @endif
                             </ul>
                         </div>
                     </li>
