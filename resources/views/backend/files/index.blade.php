@@ -148,8 +148,15 @@
                     </table>
                 </div>
 
-                <div class="d-flex justify-content-center mt-3">
-                    {{ $files->links() }}
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3 px-3 pb-3">
+                    <div class="text-muted small">
+                        Hiển thị <strong>{{ $files->firstItem() ?? 0 }}</strong> - <strong>{{ $files->lastItem() ?? 0 }}</strong> 
+                        trong tổng số <strong>{{ $files->total() }}</strong> files
+                    </div>
+                    <div>
+                        {{ $files->links('pagination::bootstrap-5') }}
+                    </div>
                 </div>
             @else
                 <div class="text-center py-5">
@@ -169,6 +176,35 @@
     .card {
         border-radius: 8px;
         overflow: hidden;
+    }
+
+    /* Pagination Styling */
+    .pagination {
+        margin-bottom: 0;
+    }
+
+    .pagination .page-link {
+        color: #0d6efd;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: #fff;
+        border-color: #dee2e6;
     }
 
     .toolbar-section {

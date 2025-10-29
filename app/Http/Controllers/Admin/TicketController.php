@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Services\TicketNotificationService;
 
 class TicketController extends Controller
 {
@@ -28,20 +29,11 @@ class TicketController extends Controller
         $sort = $request->query('sort', 'created_at');
         $order = $request->query('order', 'desc');
 
-        $query = Ticket::with(['user', 'assignedStaff', 'user.groups']);
+        $query = Ticket::with(['user', 'assignedStaff']);
 
-        // PHÂN QUYỀN: Nhân viên chỉ xem ticket được gán
-        if ($user->role == 2) { // role 2 = staff
-            $query->where(function($q) use ($user) {
-                $q->where('assigned_staff_id', $user->id)
-                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
-                          $staffQuery->where('staff_id', $user->id);
-                      });
-                  });
-            });
-        }
-        // Admin (role 1) xem tất cả - không cần điều kiện
+        // Cả Admin và Nhân viên đều xem tất cả tickets
+        // Nhân viên có thể tự chọn (claim) ticket chưa có người phụ trách
+        // hoặc xem tickets đã được gán cho họ
 
         // Filter by status
         if ($status) {
@@ -88,18 +80,11 @@ class TicketController extends Controller
     public function show($id)
     {
         $user = Auth::user();
-        $query = Ticket::with(['user', 'messages.sender', 'assignedStaff', 'user.groups']);
+        $query = Ticket::with(['user', 'messages.sender', 'assignedStaff']);
 
-        // Nhân viên chỉ xem ticket của mình
+        // Nhân viên chỉ xem ticket được gán cho họ
         if ($user->role == 2) {
-            $query->where(function($q) use ($user) {
-                $q->where('assigned_staff_id', $user->id)
-                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
-                          $staffQuery->where('staff_id', $user->id);
-                      });
-                  });
-            });
+            $query->where('assigned_staff_id', $user->id);
         }
 
         $ticket = $query->findOrFail($id);
@@ -123,16 +108,9 @@ class TicketController extends Controller
         $user = Auth::user();
         $query = Ticket::query();
 
-        // Nhân viên chỉ reply ticket của mình
+        // Nhân viên chỉ reply ticket được gán cho họ
         if ($user->role == 2) {
-            $query->where(function($q) use ($user) {
-                $q->where('assigned_staff_id', $user->id)
-                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
-                          $staffQuery->where('staff_id', $user->id);
-                      });
-                  });
-            });
+            $query->where('assigned_staff_id', $user->id);
         }
 
         $ticket = $query->findOrFail($id);
@@ -142,9 +120,19 @@ class TicketController extends Controller
             'sender_id' => Auth::id(),
             'message' => $request->message,
         ]);
-        if ($ticket->status === Ticket::STATUS_NEW) {
-            $ticket->update(['status' => Ticket::STATUS_IN_PROGRESS]);
+        
+        // Sau khi nhân viên/Admin trả lời, cập nhật last_staff_response_at và chuyển sang đã phản hồi
+        if ($user->role == 1 || $user->role == 2) {
+            if ($ticket->status !== Ticket::STATUS_CLOSED) {
+                $ticket->update([
+                    'status' => Ticket::STATUS_RESPONDED,
+                    'last_staff_response_at' => now()
+                ]);
+            }
         }
+
+        // Gửi thông báo cho khách hàng
+        TicketNotificationService::notifyStaffReply($ticket, $user);
 
         // Gửi mail thông báo có reply mới
         try {
@@ -181,20 +169,16 @@ class TicketController extends Controller
         $user = Auth::user();
         $query = Ticket::query();
 
-        // Nhân viên chỉ đóng ticket của mình
+        // Nhân viên chỉ đóng ticket được gán cho họ
         if ($user->role == 2) {
-            $query->where(function($q) use ($user) {
-                $q->where('assigned_staff_id', $user->id)
-                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
-                          $staffQuery->where('staff_id', $user->id);
-                      });
-                  });
-            });
+            $query->where('assigned_staff_id', $user->id);
         }
 
         $ticket = $query->findOrFail($id);
         $ticket->update(['status' => Ticket::STATUS_CLOSED]);
+
+        // Gửi thông báo cho khách hàng
+        TicketNotificationService::notifyTicketClosed($ticket);
 
         // Gửi mail thông báo ticket được đóng
         try {
@@ -225,6 +209,7 @@ class TicketController extends Controller
         return back()->with('success', 'Ticket đã được đóng.');
     }
 
+
     public function assign(Request $request, $id)
     {
         if (Auth::user()->role != 1) {
@@ -244,8 +229,11 @@ class TicketController extends Controller
         $ticket->update([
             'assigned_staff_id' => $staff->id,
             'assignment_type' => Ticket::ASSIGNMENT_INDIVIDUAL,
-            'status' => $ticket->status === 'new' ? Ticket::STATUS_IN_PROGRESS : $ticket->status
+            'status' => in_array($ticket->status, [Ticket::STATUS_NEW]) ? Ticket::STATUS_IN_PROGRESS : $ticket->status
         ]);
+
+        // Gửi thông báo cho khách hàng và nhân viên
+        TicketNotificationService::notifyTicketAssigned($ticket, $staff);
 
         // Gửi mail thông báo ticket được gán
         try {
@@ -277,6 +265,31 @@ class TicketController extends Controller
         return back()->with('success', 'Đã gán ticket cho nhân viên ' . $staff->name);
     }
 
+    public function claim($id)
+    {
+        $user = Auth::user();
+        if ($user->role != 2) {
+            abort(403, 'Chỉ nhân viên mới có thể nhận ticket.');
+        }
+
+        $ticket = Ticket::findOrFail($id);
+
+        if (!is_null($ticket->assigned_staff_id)) {
+            return back()->with('error', 'Ticket đã có người phụ trách.');
+        }
+
+        $ticket->update([
+            'assigned_staff_id' => $user->id,
+            'assignment_type' => Ticket::ASSIGNMENT_INDIVIDUAL,
+            'status' => in_array($ticket->status, [Ticket::STATUS_NEW]) ? Ticket::STATUS_IN_PROGRESS : $ticket->status
+        ]);
+
+        // Gửi thông báo cho khách hàng
+        TicketNotificationService::notifyTicketClaimed($ticket, $user);
+
+        return back()->with('success', 'Bạn đã nhận xử lý ticket #' . $ticket->id);
+    }
+
     // API lấy messages mới (cho chat real-time polling)
     public function getMessages($id, Request $request)
     {
@@ -284,14 +297,7 @@ class TicketController extends Controller
         $query = Ticket::query();
 
         if ($user->role == 2) {
-            $query->where(function($q) use ($user) {
-                $q->where('assigned_staff_id', $user->id)
-                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
-                          $staffQuery->where('staff_id', $user->id);
-                      });
-                  });
-            });
+            $query->where('assigned_staff_id', $user->id);
         }
 
         $ticket = $query->findOrFail($id);
@@ -317,14 +323,7 @@ class TicketController extends Controller
         $query = Ticket::query();
         
         if ($user->role == 2) { // Staff
-            $query->where(function($q) use ($user) {
-                $q->where('assigned_staff_id', $user->id)
-                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
-                          $staffQuery->where('staff_id', $user->id);
-                      });
-                  });
-            });
+            $query->where('assigned_staff_id', $user->id);
         }
         
         $tickets = $query->get();

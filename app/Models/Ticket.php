@@ -11,55 +11,11 @@ class Ticket extends Model
 
     protected $fillable = [
         'user_id', 'subject', 'category', 'priority', 'description', 'status',
-        'assigned_staff_id', 'assignment_type' 
+        'assigned_staff_id', 'assignment_type', 'last_staff_response_at'
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        // Tự động gán ticket cho nhân viên phụ trách nhóm khi tạo ticket
-        static::created(function ($ticket) {
-            try {
-                // Load user với relationships
-                $user = $ticket->user()->with('groups.staff')->first();
-                
-                if ($user && $user->groups->count() > 0) {
-                    // Lấy nhóm đầu tiên của user
-                    $group = $user->groups->first();
-                    
-                    if ($group) {
-                        // Tìm nhân viên chính phụ trách nhóm
-                        $primaryStaff = $group->staff()->wherePivot('is_primary', true)->first();
-                        
-                        if ($primaryStaff) {
-                            $ticket->update([
-                                'assigned_staff_id' => $primaryStaff->id,
-                                'assignment_type' => self::ASSIGNMENT_INDIVIDUAL,
-                                'status' => self::STATUS_IN_PROGRESS
-                            ]);
-                            
-                            Log::info("Auto-assigned ticket {$ticket->id} to staff {$primaryStaff->name} for group {$group->name}");
-                        } else {
-                            // Không có staff trong group, set status = new (chưa xử lý)
-                            $ticket->update([
-                                'status' => self::STATUS_NEW
-                            ]);
-                            Log::warning("No primary staff found for group {$group->name}, ticket {$ticket->id} status set to NEW");
-                        }
-                    }
-                } else {
-                    // Nếu không tìm thấy staff thì giữ status là 'new' (chưa xử lý)
-                    $ticket->update([
-                        'status' => self::STATUS_NEW
-                    ]);
-                    Log::info("User {$user->name} has no groups, ticket {$ticket->id} status set to NEW (unassigned)");
-                }
-            } catch (\Exception $e) {
-                Log::error("Error auto-assigning ticket {$ticket->id}: " . $e->getMessage());
-            }
-        });
-    }
+    // Không cần auto-assign theo nhóm nữa
+    // Ticket sẽ được Admin gán hoặc Nhân viên tự claim
 
     public function user()
     {
@@ -77,7 +33,7 @@ class Ticket extends Model
 
     const STATUS_NEW = 'new';
     const STATUS_IN_PROGRESS = 'in_progress';
-    const STATUS_COMPLETED = 'completed';
+    const STATUS_RESPONDED = 'responded';
     const STATUS_CLOSED = 'closed';
 
     const CATEGORY_TECHNICAL = 'technical';
@@ -101,7 +57,7 @@ class Ticket extends Model
         $labels = [
             self::STATUS_NEW => 'Mới tạo',
             self::STATUS_IN_PROGRESS => 'Đang xử lý',
-            self::STATUS_COMPLETED => 'Hoàn tất',
+            self::STATUS_RESPONDED => 'Đã phản hồi',
             self::STATUS_CLOSED => 'Đóng',
         ];
         return $labels[$this->status] ?? $this->status;
@@ -113,7 +69,7 @@ class Ticket extends Model
         $badges = [
             self::STATUS_NEW => 'bg-info',
             self::STATUS_IN_PROGRESS => 'bg-warning text-dark',
-            self::STATUS_COMPLETED => 'bg-success',
+            self::STATUS_RESPONDED => 'bg-success',
             self::STATUS_CLOSED => 'bg-secondary',
         ];
         return $badges[$this->status] ?? 'bg-secondary';
@@ -213,7 +169,7 @@ class Ticket extends Model
         return [
             self::STATUS_NEW => 'Mới tạo',
             self::STATUS_IN_PROGRESS => 'Đang xử lý',
-            self::STATUS_COMPLETED => 'Hoàn tất',
+            self::STATUS_RESPONDED => 'Đã phản hồi',
             self::STATUS_CLOSED => 'Đóng',
         ];
     }
@@ -240,7 +196,6 @@ class Ticket extends Model
         return null;
     }
 
-    // Check if ticket is assigned to a specific staff member
     public function isAssignedToStaff($staffId)
     {
         return $this->assigned_staff_id == $staffId;

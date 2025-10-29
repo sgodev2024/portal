@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\GenericMail;
+use App\Services\TicketNotificationService;
 
 class TicketController extends Controller
 {
@@ -19,15 +20,9 @@ class TicketController extends Controller
     {
         $user = Auth::user();
         
-        // Lấy tickets của user và tickets của nhóm mà user thuộc về
-        $query = Ticket::where(function($q) use ($user) {
-            $q->where('user_id', $user->id)
-              ->orWhereHas('user', function($userQuery) use ($user) {
-                  $userQuery->whereHas('groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereIn('customer_group_id', $user->groups()->pluck('customer_group_id'));
-                  });
-              });
-        })->with(['messages', 'user', 'assignedStaff']);
+        // Lấy tickets của user (chỉ tickets họ tạo)
+        $query = Ticket::where('user_id', $user->id)
+            ->with(['messages', 'user', 'assignedStaff']);
 
         // Filter by category
         if ($request->filled('category')) {
@@ -98,6 +93,9 @@ class TicketController extends Controller
             'message' => $request->description,
         ]);
 
+        // Gửi thông báo cho Admin và Staff
+        TicketNotificationService::notifyNewTicket($ticket);
+
         // Gửi mail thông báo ticket được tạo
         try {
             $template = EmailTemplate::where('code', 'ticket_created')
@@ -129,16 +127,10 @@ class TicketController extends Controller
     {
         $user = Auth::user();
         
-        // Lấy ticket của user hoặc ticket của nhóm mà user thuộc về
-        $ticket = Ticket::where(function($q) use ($user) {
-            $q->where('user_id', $user->id)
-              ->orWhereHas('user', function($userQuery) use ($user) {
-                  $userQuery->whereHas('groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereIn('customer_group_id', $user->groups()->pluck('customer_group_id'));
-                  });
-              });
-        })->with(['messages.sender', 'assignedStaff', 'user'])
-          ->findOrFail($id);
+        // Lấy ticket của user (chỉ tickets họ tạo)
+        $ticket = Ticket::where('user_id', $user->id)
+            ->with(['messages.sender', 'assignedStaff', 'user'])
+            ->findOrFail($id);
           
         return view('customer.tickets.show', compact('ticket'));
     }
@@ -156,10 +148,13 @@ class TicketController extends Controller
             'message' => $request->message,
         ]);
 
-        // Cập nhật trạng thái nếu đang là "new"
-        if ($ticket->status === Ticket::STATUS_NEW) {
+        // Cập nhật trạng thái: new|responded|closed -> in_progress (reopen)
+        if (in_array($ticket->status, [Ticket::STATUS_NEW, Ticket::STATUS_RESPONDED, Ticket::STATUS_CLOSED])) {
             $ticket->update(['status' => Ticket::STATUS_IN_PROGRESS]);
         }
+
+        // Gửi thông báo cho Admin và Staff
+        TicketNotificationService::notifyCustomerReply($ticket);
 
         return back()->with('success', 'Phản hồi đã được gửi.');
     }

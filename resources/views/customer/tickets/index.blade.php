@@ -126,7 +126,7 @@
                                                     @case('in_progress')
                                                         <i class="bi bi-hourglass-split"></i>
                                                         @break
-                                                    @case('completed')
+                                                    @case('responded')
                                                         <i class="bi bi-check-circle"></i>
                                                         @break
                                                     @case('closed')
@@ -160,11 +160,14 @@
                     </div>
 
                     {{-- Pagination --}}
-                    <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="d-flex justify-content-between align-items-center mt-3 px-3 pb-3">
                         <div class="text-muted small">
-                            Hiển thị {{ $tickets->firstItem() }} - {{ $tickets->lastItem() }} trong tổng số {{ $tickets->total() }} ticket
+                            Hiển thị <strong>{{ $tickets->firstItem() ?? 0 }}</strong> - <strong>{{ $tickets->lastItem() ?? 0 }}</strong> 
+                            trong tổng số <strong>{{ $tickets->total() }}</strong> tickets
                         </div>
-                        {{ $tickets->links() }}
+                        <div>
+                            {{ $tickets->links('pagination::bootstrap-5') }}
+                        </div>
                     </div>
                 @else
                     <div class="text-center py-5">
@@ -203,6 +206,44 @@
         .badge {
             font-weight: 500;
             padding: 0.35em 0.65em;
+        }
+
+        /* Pagination Styling */
+        .pagination {
+            margin-bottom: 0;
+        }
+
+        .pagination .page-link {
+            color: #0d6efd;
+            border: 1px solid #dee2e6;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s ease;
+            border-radius: 0.375rem;
+            margin: 0 2px;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+            transform: translateY(-1px);
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item:first-child .page-link,
+        .pagination .page-item:last-child .page-link {
+            font-weight: 600;
         }
     </style>
 @endsection

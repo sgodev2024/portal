@@ -107,8 +107,8 @@
                     <div class="mb-3">
                         <i class="bi bi-clock-history display-4 text-info"></i>
                     </div>
-                    <h3 class="fw-bold mb-2">{{ $ticket_stats['open'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Chờ xử lý</p>
+                    <h3 class="fw-bold mb-2">{{ $ticket_stats['new'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Mới tạo</p>
                 </div>
             </div>
         </div>
@@ -130,6 +130,18 @@
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="bi bi-check-circle display-4 text-success"></i>
+                    </div>
+                    <h3 class="fw-bold mb-2">{{ $ticket_stats['responded'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Đã phản hồi</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 card-hover">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-x-circle display-4 text-secondary"></i>
                     </div>
                     <h3 class="fw-bold mb-2">{{ $ticket_stats['closed'] ?? 0 }}</h3>
                     <p class="text-muted mb-0">Đã đóng</p>
@@ -166,8 +178,8 @@
                             @else
                                 Tickets của tôi
                             @endif
-                            @if(($ticket_stats['open'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) > 0)
-                                <span class="total_ticket">{{ ($ticket_stats['open'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) }}</span>
+                            @if(($ticket_stats['new'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) > 0)
+                                <span class="total_ticket">{{ ($ticket_stats['new'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) }}</span>
                             @endif
                         </h5>
                         <a href="{{ $isCustomer ? route('customer.tickets.index') : route('admin.tickets.index') }}" 
@@ -244,9 +256,9 @@
 
                                         <td>
                                             @switch($ticket->status)
-                                                @case('open')
+                                                @case('new')
                                                     <span class="badge bg-info">
-                                                        <i class="bi bi-clock"></i> Chờ xử lý
+                                                        <i class="bi bi-clock"></i> Mới tạo
                                                     </span>
                                                     @break
                                                 @case('in_progress')
@@ -254,9 +266,14 @@
                                                         <i class="bi bi-hourglass-split"></i> Đang xử lý
                                                     </span>
                                                     @break
-                                                @case('closed')
+                                                @case('responded')
                                                     <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> Đã đóng
+                                                        <i class="bi bi-check-circle"></i> Đã phản hồi
+                                                    </span>
+                                                    @break
+                                                @case('closed')
+                                                    <span class="badge bg-secondary">
+                                                        <i class="bi bi-x-circle"></i> Đã đóng
                                                     </span>
                                                     @break
                                             @endswitch
