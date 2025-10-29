@@ -120,18 +120,50 @@
                     </table>
                 </div>
 
-                @if ($notifications->hasPages())
-                    <div class="mt-4 d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
-                            Hiển thị {{ $notifications->firstItem() }} - {{ $notifications->lastItem() }}
-                            trong tổng số {{ $notifications->total() }} thông báo
-                        </div>
-                        <div>
-                            {{ $notifications->links() }}
-                        </div>
+                <!-- Pagination -->
+                <div class="mt-4 px-3 pb-3 d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Hiển thị <strong>{{ $notifications->firstItem() ?? 0 }}</strong> - <strong>{{ $notifications->lastItem() ?? 0 }}</strong>
+                        trong tổng số <strong>{{ $notifications->total() }}</strong> thông báo
                     </div>
-                @endif
+                    <div>
+                        {{ $notifications->links('pagination::bootstrap-5') }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Pagination Styling */
+    .pagination {
+        margin-bottom: 0;
+    }
+
+    .pagination .page-link {
+        color: #0d6efd;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
+</style>
+@endpush

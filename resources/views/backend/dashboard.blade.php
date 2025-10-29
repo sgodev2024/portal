@@ -107,8 +107,8 @@
                     <div class="mb-3">
                         <i class="bi bi-clock-history display-4 text-info"></i>
                     </div>
-                    <h3 class="fw-bold mb-2">{{ $ticket_stats['open'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Chờ xử lý</p>
+                    <h3 class="fw-bold mb-2">{{ $ticket_stats['new'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Mới tạo</p>
                 </div>
             </div>
         </div>
@@ -130,6 +130,18 @@
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="bi bi-check-circle display-4 text-success"></i>
+                    </div>
+                    <h3 class="fw-bold mb-2">{{ $ticket_stats['responded'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Đã phản hồi</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100 card-hover">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-x-circle display-4 text-secondary"></i>
                     </div>
                     <h3 class="fw-bold mb-2">{{ $ticket_stats['closed'] ?? 0 }}</h3>
                     <p class="text-muted mb-0">Đã đóng</p>
@@ -166,8 +178,8 @@
                             @else
                                 Tickets của tôi
                             @endif
-                            @if(($ticket_stats['open'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) > 0)
-                                <span class="total_ticket">{{ ($ticket_stats['open'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) }}</span>
+                            @if(($ticket_stats['new'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) > 0)
+                                <span class="total_ticket">{{ ($ticket_stats['new'] ?? 0) + ($ticket_stats['in_progress'] ?? 0) }}</span>
                             @endif
                         </h5>
                         <a href="{{ $isCustomer ? route('customer.tickets.index') : route('admin.tickets.index') }}" 
@@ -244,9 +256,9 @@
 
                                         <td>
                                             @switch($ticket->status)
-                                                @case('open')
+                                                @case('new')
                                                     <span class="badge bg-info">
-                                                        <i class="bi bi-clock"></i> Chờ xử lý
+                                                        <i class="bi bi-clock"></i> Mới tạo
                                                     </span>
                                                     @break
                                                 @case('in_progress')
@@ -254,9 +266,14 @@
                                                         <i class="bi bi-hourglass-split"></i> Đang xử lý
                                                     </span>
                                                     @break
-                                                @case('closed')
+                                                @case('responded')
                                                     <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> Đã đóng
+                                                        <i class="bi bi-check-circle"></i> Đã phản hồi
+                                                    </span>
+                                                    @break
+                                                @case('closed')
+                                                    <span class="badge bg-secondary">
+                                                        <i class="bi bi-x-circle"></i> Đã đóng
                                                     </span>
                                                     @break
                                             @endswitch
@@ -387,5 +404,116 @@
         font-weight: bold;
         flex-shrink: 0;
     }
+
+    /* Realtime update animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .realtime-update {
+        animation: fadeInUp 0.3s ease;
+    }
 </style>
+
+@if($isAdmin || $isStaff)
+<script>
+// Realtime polling for tickets
+let lastCheckTime = '{{ now()->toIso8601String() }}';
+
+function updateTicketStats() {
+    fetch('{{ route("admin.tickets.check_new") }}?last_check=' + lastCheckTime)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Cập nhật stats
+                if (data.stats) {
+                    updateStatCard('new', data.stats.new);
+                    updateStatCard('in_progress', data.stats.in_progress);
+                    updateStatCard('responded', data.stats.responded);
+                    updateStatCard('closed', data.stats.closed);
+                    updateStatCard('total', data.stats.total);
+                    
+                    @if($isAdmin)
+                    if (data.stats.unassigned !== undefined) {
+                        updateStatCard('unassigned', data.stats.unassigned);
+                    }
+                    @endif
+                }
+                
+                // Hiển thị thông báo nếu có ticket mới
+                if (data.new_tickets && data.new_tickets.length > 0) {
+                    showNewTicketNotification(data.new_tickets.length);
+                    playNotificationSound();
+                }
+                
+                // Cập nhật timestamp
+                lastCheckTime = data.timestamp;
+            }
+        })
+        .catch(error => console.error('Error checking new tickets:', error));
+}
+
+function updateStatCard(type, value) {
+    const cards = {
+        'new': '.col-md-3:nth-child(3) h3',
+        'in_progress': '.col-md-3:nth-child(4) h3',
+        'responded': '.col-md-3:nth-child(5) h3',
+        'closed': '.col-md-3:nth-child(6) h3',
+        'total': '.col-md-3:nth-child(1) h3',
+        'unassigned': '.col-md-3:nth-child(7) h3'
+    };
+    
+    const selector = cards[type];
+    if (selector) {
+        const element = document.querySelector(selector);
+        if (element && element.textContent != value) {
+            element.textContent = value;
+            element.classList.add('realtime-update');
+            setTimeout(() => element.classList.remove('realtime-update'), 300);
+        }
+    }
+}
+
+function showNewTicketNotification(count) {
+    // Tạo toast notification đơn giản
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <i class="bi bi-bell-fill me-2"></i>
+        <strong>Có ${count} ticket mới!</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(toast);
+    
+    // Tự động ẩn sau 5 giây
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 150);
+    }, 5000);
+}
+
+function playNotificationSound() {
+    try {
+        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBR10yPLaizsIGGS56+mnVRwHPJjb88p5KwUue8rx3ZJBChd0zPDTgjMJHmzB7Oq4YjcHSaXm87BdGgk+ltv0xnQjBSuDz/LajjgIGmy66Oq7ZSIGSans87hnHAU5jdfywnwvBSiDz/LYjzoJHWrA7uq4YjUHSKTl87FgHQlAndny');
+        audio.volume = 0.3;
+        audio.play().catch(e => console.log('Cannot play sound'));
+    } catch(e) {}
+}
+
+// Polling mỗi 10 giây
+setInterval(updateTicketStats, 10000);
+
+// Check ngay khi load trang
+setTimeout(updateTicketStats, 2000);
+</script>
+@endif
+
 @endsection

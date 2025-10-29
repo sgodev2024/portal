@@ -26,6 +26,7 @@ class DashboardController extends Controller
                     'total' => Ticket::count(),
                     'new' => Ticket::where('status', Ticket::STATUS_NEW)->count(),
                     'in_progress' => Ticket::where('status', Ticket::STATUS_IN_PROGRESS)->count(),
+                    'responded' => Ticket::where('status', Ticket::STATUS_RESPONDED)->count(),
                     'closed' => Ticket::where('status', Ticket::STATUS_CLOSED)->count(),
                     'unassigned' => Ticket::whereNull('assigned_staff_id')->count(),
                 ],
@@ -37,53 +38,33 @@ class DashboardController extends Controller
             ];
         }
 
-        // Dữ liệu cho STAFF
+        // Dữ liệu cho STAFF - Xem tất cả tickets
         if ($user->role == 2) {
-            // Query tickets của staff (bao gồm cả tickets của nhóm)
-            $staffTicketsQuery = Ticket::where(function($q) use ($user) {
-                $q->where('assigned_staff_id', $user->id)
-                  ->orWhereHas('user.groups', function($groupQuery) use ($user) {
-                      $groupQuery->whereHas('staff', function($staffQuery) use ($user) {
-                          $staffQuery->where('staff_id', $user->id);
-                      });
-                  });
-            });
-
             $data = [
-                'my_customers' => User::where('role', 3)
-                    ->whereHas('groups.staff', function($q) use ($user) {
-                        $q->where('staff_id', $user->id);
-                    })
-                    ->count(),
+                'total_customers' => User::where('role', 3)->count(),
                 
-                // Thống kê ticket của nhân viên (cả assigned và nhóm)
+                // Thống kê tất cả tickets
                 'ticket_stats' => [
-                    'total' => (clone $staffTicketsQuery)->count(),
-                    'new' => (clone $staffTicketsQuery)->where('status', Ticket::STATUS_NEW)->count(),
-                    'in_progress' => (clone $staffTicketsQuery)->where('status', Ticket::STATUS_IN_PROGRESS)->count(),
-                    'closed' => (clone $staffTicketsQuery)->where('status', Ticket::STATUS_CLOSED)->count(),
+                    'total' => Ticket::count(),
+                    'new' => Ticket::where('status', Ticket::STATUS_NEW)->count(),
+                    'in_progress' => Ticket::where('status', Ticket::STATUS_IN_PROGRESS)->count(),
+                    'responded' => Ticket::where('status', Ticket::STATUS_RESPONDED)->count(),
+                    'closed' => Ticket::where('status', Ticket::STATUS_CLOSED)->count(),
                     'assigned_to_me' => Ticket::where('assigned_staff_id', $user->id)->count(),
                 ],
                 
-                'recent_tickets' => (clone $staffTicketsQuery)
-                    ->with(['user', 'assignedStaff', 'messages'])
+                // Hiển thị tất cả tickets gần đây
+                'recent_tickets' => Ticket::with(['user', 'assignedStaff', 'messages'])
                     ->latest()
                     ->limit(5)
                     ->get(),
             ];
         }
 
-        // Dữ liệu cho CUSTOMER
+        // Dữ liệu cho CUSTOMER - Chỉ xem tickets của mình
         if ($user->role == 3) {
-            // Query tickets của customer (cả cá nhân và nhóm)
-            $customerTicketsQuery = Ticket::where(function($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhereHas('user', function($userQuery) use ($user) {
-                      $userQuery->whereHas('groups', function($groupQuery) use ($user) {
-                          $groupQuery->whereIn('customer_group_id', $user->groups()->pluck('customer_group_id'));
-                      });
-                  });
-            });
+            // Query chỉ tickets của customer này
+            $customerTicketsQuery = Ticket::where('user_id', $user->id);
 
             $data = [
                 'my_tickets' => (clone $customerTicketsQuery)
@@ -96,6 +77,7 @@ class DashboardController extends Controller
                     'total' => (clone $customerTicketsQuery)->count(),
                     'new' => (clone $customerTicketsQuery)->where('status', Ticket::STATUS_NEW)->count(),
                     'in_progress' => (clone $customerTicketsQuery)->where('status', Ticket::STATUS_IN_PROGRESS)->count(),
+                    'responded' => (clone $customerTicketsQuery)->where('status', Ticket::STATUS_RESPONDED)->count(),
                     'closed' => (clone $customerTicketsQuery)->where('status', Ticket::STATUS_CLOSED)->count(),
                 ],
             ];

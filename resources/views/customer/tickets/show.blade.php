@@ -489,7 +489,7 @@
                 const statusMap = {
                     'new': { text: 'Mới tạo', class: 'bg-info' },
                     'in_progress': { text: 'Đang xử lý', class: 'bg-warning text-dark' },
-                    'completed': { text: 'Hoàn tất', class: 'bg-success' },
+                    'responded': { text: 'Đã phản hồi', class: 'bg-success' },
                     'closed': { text: 'Đóng', class: 'bg-secondary' }
                 };
 

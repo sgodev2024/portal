@@ -90,7 +90,7 @@
                                 <div class="message-card mb-3" data-message-id="{{ $message->id }}">
                                     <div class="message-header">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="avatar-circle {{ (isset($message->sender->role) && ($message->sender->role === '2' || $message->sender->role === '1')) ? 'bg-danger' : 'bg-secondary' }} text-white">
+                                            <div class="avatar-circle {{ (isset($message->sender->role) && ($message->sender->role == 2 || $message->sender->role == 1)) ? 'bg-danger' : 'bg-secondary' }} text-white">
                                                 {{ strtoupper(substr($message->sender->name, 0, 1)) }}
                                             </div>
                                             <div>
@@ -100,9 +100,9 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        @if (isset($message->sender->role) && ($message->sender->role === '2' || $message->sender->role === '1'))
+                                        @if (isset($message->sender->role) && ($message->sender->role == 2 || $message->sender->role == 1))
                                             <span class="badge bg-danger">
-                                                <i class="bi bi-shield-check"></i> Staff
+                                                <i class="bi bi-shield-check"></i> Nhân viên
                                             </span>
                                         @else
                                             <span class="badge bg-secondary">
@@ -409,7 +409,7 @@
 
             function appendMessage(message) {
                 const messagesContainer = document.getElementById('messages-container');
-                const isStaff = message.sender.role == 1 || message.sender.role == 2;
+                const isStaff = (message.sender.role == 1 || message.sender.role == 2 || message.sender.role === '1' || message.sender.role === '2');
                 const avatarClass = isStaff ? 'bg-danger' : 'bg-secondary';
                 const badgeHtml = isStaff 
                     ? '<span class="badge bg-danger"><i class="bi bi-shield-check"></i> Staff</span>'

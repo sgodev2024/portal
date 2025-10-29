@@ -79,4 +79,48 @@ class NotificationCounterController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function markAsRead($notificationId)
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        // Tìm UserNotification của user hiện tại với notification_id
+        $userNotification = UserNotification::where('user_id', $userId)
+            ->where('notification_id', $notificationId)
+            ->first();
+
+        if (!$userNotification) {
+            return response()->json(['success' => false, 'message' => 'Notification not found'], 404);
+        }
+
+        // Đánh dấu là đã đọc
+        $userNotification->update(['is_read' => true]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function deleteNotification($notificationId)
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        // Tìm và xóa UserNotification của user hiện tại
+        $userNotification = UserNotification::where('user_id', $userId)
+            ->where('notification_id', $notificationId)
+            ->first();
+
+        if (!$userNotification) {
+            return response()->json(['success' => false, 'message' => 'Notification not found'], 404);
+        }
+
+        // Xóa thông báo
+        $userNotification->delete();
+
+        return response()->json(['success' => true, 'message' => 'Notification deleted successfully']);
+    }
 }

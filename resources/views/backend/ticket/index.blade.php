@@ -33,8 +33,8 @@
                 <div class="card border-success shadow-sm">
                     <div class="card-body text-center">
                         <i class="bi bi-check-circle display-4 text-success"></i>
-                        <h3 class="mt-2">{{ $tickets->where('status', 'completed')->count() + $tickets->where('status', 'closed')->count() }}</h3>
-                        <p class="text-muted mb-0">Đã hoàn tất</p>
+                        <h3 class="mt-2">{{ $tickets->where('status', 'closed')->count() }}</h3>
+                        <p class="text-muted mb-0">Đã đóng</p>
                     </div>
                 </div>
             </div>
@@ -67,7 +67,7 @@
                             <option value="">Tất cả</option>
                             <option value="new" {{ $status == 'new' ? 'selected' : '' }}>Chưa xử lý</option>
                             <option value="in_progress" {{ $status == 'in_progress' ? 'selected' : '' }}>Đang xử lý</option>
-                            <option value="completed" {{ $status == 'completed' ? 'selected' : '' }}>Hoàn tất</option>
+                            <option value="responded" {{ $status == 'responded' ? 'selected' : '' }}>Đã phản hồi</option>
                             <option value="closed" {{ $status == 'closed' ? 'selected' : '' }}>Đã đóng</option>
                         </select>
                     </div>
@@ -157,13 +157,19 @@
                                             <td>
                                                 @if ($ticket->assignedStaff)
                                                     <div class="d-flex align-items-center">
-                                                      
                                                         <span class="small">{{ $ticket->assignedStaff->name }}</span>
                                                     </div>
                                                 @else
-                                                    <span class="badge bg-secondary">
-                                                        <i class="bi bi-person-x"></i> Chưa gán
-                                                    </span>
+                                                    <form method="POST" action="{{ route('admin.tickets.assign', $ticket->id) }}" class="d-flex gap-2 align-items-center">
+                                                        @csrf
+                                                        <select name="assigned_to" class="form-select form-select-sm" required>
+                                                            <option value="">-- Chọn nhân viên --</option>
+                                                            @foreach($staffList as $staff)
+                                                                <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary">Gán</button>
+                                                    </form>
                                                 @endif
                                             </td>
                                         @endif
@@ -182,9 +188,9 @@
                                                     </span>
                                                 @break
 
-                                                @case('completed')
+                                                @case('responded')
                                                     <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> Hoàn tất
+                                                        <i class="bi bi-check-circle"></i> Đã phản hồi
                                                     </span>
                                                 @break
 
@@ -211,6 +217,16 @@
                                                 </a>
 
 
+                                                <!-- Claim ticket (nhân viên tự nhận) -->
+                                                @if (Auth::user()->role == 2 && !$ticket->assignedStaff)
+                                                    <form action="{{ route('admin.tickets.claim', $ticket->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Nhận xử lý ticket này">
+                                                            <i class="fas fa-user-plus"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+
                                                 <!-- Đóng ticket -->
                                                 @if ($ticket->status != 'closed')
                                                     <form action="{{ route('admin.tickets.close', $ticket->id) }}"
@@ -218,9 +234,8 @@
                                                         onsubmit="return confirm('Bạn có chắc muốn đóng ticket này?')">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <button type="submit" class="btn btn-sm btn-outline-success"
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger"
                                                             title="Đóng ticket">
-                                                            {{-- <i class="bi bi-check-circle"></i> --}}
                                                              <i class="fa-solid fa-x"></i>
                                                         </button>
                                                     </form>
@@ -234,8 +249,14 @@
                     </div>
 
                     <!-- Pagination -->
-                    <div class="d-flex justify-content-center mt-4">
-                        {{ $tickets->links() }}
+                    <div class="d-flex justify-content-between align-items-center mt-4 px-3 pb-3">
+                        <div class="text-muted small">
+                            Hiển thị <strong>{{ $tickets->firstItem() ?? 0 }}</strong> - <strong>{{ $tickets->lastItem() ?? 0 }}</strong> 
+                            trong tổng số <strong>{{ $tickets->total() }}</strong> tickets
+                        </div>
+                        <div>
+                            {{ $tickets->links('pagination::bootstrap-5') }}
+                        </div>
                     </div>
                 @else
                     <div class="text-center py-5">
@@ -286,6 +307,35 @@
         .btn-group .btn:last-child {
             border-top-right-radius: 0.25rem;
             border-bottom-right-radius: 0.25rem;
+        }
+
+        /* Pagination Styling */
+        .pagination {
+            margin-bottom: 0;
+        }
+
+        .pagination .page-link {
+            color: #0d6efd;
+            border: 1px solid #dee2e6;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            font-weight: 600;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
         }
     </style>
 

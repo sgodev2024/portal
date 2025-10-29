@@ -159,10 +159,7 @@
 
                     {{-- Quản lý khách hàng --}}
                     @php
-                        $isCustomerManageActive =
-                            request()->routeIs('customers.*') ||
-                            request()->routeIs('admin.customer-groups.*') ||
-                            request()->routeIs('admin.group-staff.*');
+                        $isCustomerManageActive = request()->routeIs('customers.*');
                     @endphp
                     <li class="nav-item {{ $isCustomerManageActive ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#customerMenu">
@@ -177,14 +174,6 @@
                                         <span class="sub-item">Danh sách khách hàng</span>
                                     </a>
                                 </li>
-                                @if (Route::has('admin.customer-groups.index'))
-                                    <li class="{{ request()->routeIs('admin.customer-groups.*') ? 'active' : '' }}">
-                                        <a href="{{ route('admin.customer-groups.index') }}">
-                                            <span class="sub-item">Nhóm khách hàng</span>
-                                        </a>
-                                    </li>
-                                @endif
-
                             </ul>
                         </div>
                     </li>
@@ -217,10 +206,7 @@
 
                 {{-- ============ TICKETS (Admin/Staff) ============ --}}
                 @php
-                    $isTicketsActive =
-                        request()->routeIs('admin.tickets.*') ||
-                        request()->routeIs('staff.groups.*') ||
-                        request()->routeIs('admin.group-staff.*');
+                    $isTicketsActive = request()->routeIs('admin.tickets.*');
                 @endphp
                 @if (in_array($userRole, [1, 2]))
                     <li class="nav-item {{ $isTicketsActive ? 'active' : '' }}">
@@ -228,39 +214,8 @@
                             data-has-unread="{{ $hasUnreadTickets ? 'true' : 'false' }}">
                             <i class="fas fa-ticket-alt"></i>
                             <p class="notranslate">Tickets</p>
-                            @if ($hasUnreadTickets)
-                                <span class="badge bg-danger" id="ticketsBadge"
-                                    style="display: inline-block; padding: 3px 8px;">!</span>
-                            @endif
-                            <span class="caret"></span>
                         </a>
-                        <div class="collapse {{ $isTicketsActive ? 'show' : '' }}" id="ticketsMenu">
-                            <ul class="nav nav-collapse">
-                                <li class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
-                                    <a href="{{ route('admin.tickets.index') }}">
-                                        <span class="sub-item">Tất cả Tickets</span>
-                                    </a>
-                                </li>
-
-                                {{-- Nhóm của tôi: chỉ hiện cho role 2 (staff) --}}
-                                @if ($userRole == 2 && Route::has('staff.groups.index'))
-                                    <li class="{{ request()->routeIs('staff.groups.*') ? 'active' : '' }}">
-                                        <a href="{{ route('staff.groups.index') }}">
-                                            <span class="sub-item">Nhóm của tôi</span>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                {{-- Nhân viên - nhóm: chỉ hiện cho role 1 (admin) --}}
-                                @if ($userRole == 1 && Route::has('admin.group-staff.index'))
-                                    <li class="{{ request()->routeIs('admin.group-staff.*') ? 'active' : '' }}">
-                                        <a href="{{ route('admin.group-staff.index') }}">
-                                            <span class="sub-item">Nhân viên - nhóm</span>
-                                        </a>
-                                    </li>
-                                @endif
-                            </ul>
-                        </div>
+                       
                     </li>
                 @endif
 

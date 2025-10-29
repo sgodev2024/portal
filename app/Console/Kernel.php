@@ -12,7 +12,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Tự động đóng ticket đã phản hồi sau 3 ngày không có phản hồi từ khách hàng
+        $schedule->call(function () {
+            \App\Models\Ticket::where('status', \App\Models\Ticket::STATUS_RESPONDED)
+                ->where('last_staff_response_at', '<=', now()->subDays(3))
+                ->update(['status' => \App\Models\Ticket::STATUS_CLOSED]);
+        })->dailyAt('01:00');
     }
 
     /**
