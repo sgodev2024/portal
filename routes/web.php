@@ -10,9 +10,9 @@ use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Staff\ChatControllers;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CustomerGroupController;
 use App\Http\Controllers\Api\TicketStatsController;
 use App\Http\Controllers\Customer\TicketController;
-// Đã xóa: GroupStaffController, StaffGroupController, CustomerGroupController
 use App\Http\Controllers\Admin\EmailTemplateController;
 use App\Http\Controllers\NotificationCounterController;
 use App\Http\Controllers\Customer\FileManagerController;
@@ -211,6 +211,17 @@ Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1
     Route::post('/bulk-action', [CustomerController::class, 'bulkAction'])->name('bulkAction');
     Route::get('{id}/reset-password', [CustomerController::class, 'resetPassword'])->name('resetPassword');
 });
+
+// Route nhóm khách hàng (Admin only)
+Route::prefix('admin/customer-groups')->name('admin.customer-groups.')->middleware(['auth', 'checkRole:1'])->group(function () {
+    Route::get('/', [CustomerGroupController::class, 'index'])->name('index');
+    Route::get('/create', [CustomerGroupController::class, 'create'])->name('create');
+    Route::post('/store', [CustomerGroupController::class, 'store'])->name('store');
+    Route::get('/edit/{id}', [CustomerGroupController::class, 'edit'])->name('edit');
+    Route::put('/update/{id}', [CustomerGroupController::class, 'update'])->name('update');
+    Route::delete('/destroy/{id}', [CustomerGroupController::class, 'destroy'])->name('destroy');
+});
+
 // route nhân viên
 Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
