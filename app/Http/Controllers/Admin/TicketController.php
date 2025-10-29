@@ -345,4 +345,42 @@ class TicketController extends Controller
             'message' => 'Tất cả tickets đã được đánh dấu là đã đọc.'
         ]);
     }
+
+    /**
+     * API để kiểm tra tickets mới (realtime polling)
+     */
+    public function checkNewTickets(Request $request)
+    {
+        $lastCheck = $request->query('last_check');
+        $user = Auth::user();
+        
+        // Query tickets mới từ thời điểm last_check
+        $query = Ticket::with(['user', 'assignedStaff', 'messages']);
+        
+        if ($lastCheck) {
+            $query->where('created_at', '>', $lastCheck);
+        }
+        
+        $newTickets = $query->latest()->limit(10)->get();
+        
+        // Đếm số lượng tickets theo trạng thái
+        $stats = [
+            'new' => Ticket::where('status', Ticket::STATUS_NEW)->count(),
+            'in_progress' => Ticket::where('status', Ticket::STATUS_IN_PROGRESS)->count(),
+            'responded' => Ticket::where('status', Ticket::STATUS_RESPONDED)->count(),
+            'closed' => Ticket::where('status', Ticket::STATUS_CLOSED)->count(),
+            'total' => Ticket::count(),
+        ];
+        
+        if ($user->role == 1) {
+            $stats['unassigned'] = Ticket::whereNull('assigned_staff_id')->count();
+        }
+        
+        return response()->json([
+            'success' => true,
+            'new_tickets' => $newTickets,
+            'stats' => $stats,
+            'timestamp' => now()->toIso8601String(),
+        ]);
+    }
 }

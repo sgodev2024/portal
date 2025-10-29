@@ -156,11 +156,12 @@ $(document).ready(function() {
             if (response.notifications && response.notifications.length > 0) {
                 response.notifications.forEach(function(notification) {
                     const notificationHtml = `
-                        <a href="javascript:void(0);" 
-                           data-notification-id="${notification.id}" 
-                           data-notification-link="${notification.link}"
-                           class="dropdown-item notification-item ${!notification.is_read ? 'unread' : ''}">
-                            <div class="d-flex align-items-start">
+                        <div class="dropdown-item notification-item ${!notification.is_read ? 'unread' : ''}" style="position: relative;">
+                            <a href="javascript:void(0);" 
+                               data-notification-id="${notification.id}" 
+                               data-notification-link="${notification.link}"
+                               class="notification-link d-flex align-items-start"
+                               style="text-decoration: none; color: inherit; flex: 1;">
                                 <div class="notification-icon">
                                     <i class="fas fa-bell"></i>
                                 </div>
@@ -171,8 +172,11 @@ $(document).ready(function() {
                                         ${!notification.is_read ? '<span class="unread-marker"></span>' : ''}
                                     </small>
                                 </div>
-                            </div>
-                        </a>
+                            </a>
+                            <button class="btn-delete-notification" data-notification-id="${notification.id}" title="Xóa thông báo">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     `;
                     list.append(notificationHtml);
                 });
@@ -191,16 +195,79 @@ $(document).ready(function() {
     // Load notifications when dropdown is opened
     $('#notificationsDropdown').on('show.bs.dropdown', function () {
         loadNotifications();
+        // Ẩn dấu đỏ ngay khi mở dropdown
+        $('.notification-counter').hide();
     });
 
-    // Handle notification item click
-    $(document).on('click', '.notification-item', function(e) {
+    // Handle notification link click
+    $(document).on('click', '.notification-link', function(e) {
         e.preventDefault();
-        const notificationLink = $(this).data('notification-link');
+        const $this = $(this);
+        const notificationId = $this.data('notification-id');
+        const notificationLink = $this.data('notification-link');
         
-        if (notificationLink && notificationLink !== '#') {
+        // Đánh dấu thông báo là đã đọc
+        if (notificationId) {
+            $.post('/notifications/' + notificationId + '/mark-read', function(response) {
+                if (response.success) {
+                    // Cập nhật UI ngay lập tức
+                    $this.closest('.notification-item').removeClass('unread');
+                    $this.find('.unread-marker').remove();
+                    
+                    // Chuyển hướng nếu có link
+                    if (notificationLink && notificationLink !== '#') {
+                        window.location.href = notificationLink;
+                    }
+                }
+            }).fail(function() {
+                // Vẫn chuyển hướng nếu có lỗi
+                if (notificationLink && notificationLink !== '#') {
+                    window.location.href = notificationLink;
+                }
+            });
+        } else if (notificationLink && notificationLink !== '#') {
             window.location.href = notificationLink;
         }
+    });
+
+    // Handle delete notification button
+    $(document).on('click', '.btn-delete-notification', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const $btn = $(this);
+        const notificationId = $btn.data('notification-id');
+        const $notificationItem = $btn.closest('.notification-item');
+        
+        if (!notificationId) return;
+        
+        // Xóa trực tiếp không cần confirm
+        $.ajax({
+            url: '/notifications/' + notificationId + '/delete',
+            type: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Xóa khỏi UI với animation
+                    $notificationItem.fadeOut(300, function() {
+                        $(this).remove();
+                        
+                        // Kiểm tra còn thông báo nào không
+                        if ($('.notification-item').length === 0) {
+                            $('.no-notifications').show();
+                        }
+                    });
+                    
+                    // Cập nhật counter
+                    updateNotificationCount();
+                }
+            },
+            error: function() {
+                console.error('Có lỗi xảy ra khi xóa thông báo');
+            }
+        });
     });
 
     // Mark all as read
@@ -260,6 +327,9 @@ $(document).ready(function() {
         border-bottom: 1px solid #dee2e6;
         transition: background-color 0.2s;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
 
     .notification-item:hover {
@@ -269,6 +339,36 @@ $(document).ready(function() {
 
     .notification-item.unread {
         background-color: #f0f7ff;
+    }
+
+    .notification-link {
+        flex: 1;
+        padding-right: 10px;
+    }
+
+    .btn-delete-notification {
+        background: none;
+        border: none;
+        color: #6c757d;
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        opacity: 0;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .notification-item:hover .btn-delete-notification {
+        opacity: 1;
+    }
+
+    .btn-delete-notification:hover {
+        color: #dc3545;
+        transform: scale(1.2);
+    }
+
+    .btn-delete-notification:active {
+        transform: scale(0.95);
     }
 
     .notification-icon {

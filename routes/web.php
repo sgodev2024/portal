@@ -48,6 +48,10 @@ Route::middleware('auth')->group(function () {
         ->name('notifications.recent');
     Route::post('/notifications/mark-all-read', [NotificationCounterController::class, 'markAllAsRead'])
         ->name('notifications.mark_all_read');
+    Route::post('/notifications/{id}/mark-read', [NotificationCounterController::class, 'markAsRead'])
+        ->name('notifications.mark_read');
+    Route::delete('/notifications/{id}/delete', [NotificationCounterController::class, 'deleteNotification'])
+        ->name('notifications.delete');
 });
 Route::middleware('auth')->group(function () {
     Route::get('/api/ticket-stats', [TicketStatsController::class, 'getStats'])
@@ -182,6 +186,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
             ->name('claim')
             ->middleware('checkRole:2');
         Route::post('/mark-all-read', [AdminTicketController::class, 'markAllAsRead'])->name('mark_all_read');
+        Route::get('/check-new', [AdminTicketController::class, 'checkNewTickets'])->name('check_new');
     });
 });
 Route::prefix('customers')->name('customers.')->middleware(['auth', 'checkRole:1,2'])->group(function () {
