@@ -13,28 +13,6 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
 
-    <!-- Google Translate -->
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            try {
-                new google.translate.TranslateElement({
-                    pageLanguage: 'vi',
-                    includedLanguages: 'vi,de',
-                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                    autoDisplay: false,
-                    multilanguagePage: true,
-                    gaTrack: true,
-                    gaId: 'UA-XXXXX-X'
-                }, 'google_translate_element');
-                console.log('Google Translate initialized');
-            } catch (e) {
-                console.error('Google Translate initialization failed:', e);
-            }
-        }
-    </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
-    </script>
-
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -60,53 +38,36 @@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
-    <!-- Initialize Google Translate Select for Login Page -->
+    <!-- Google Translate -->
     <script type="text/javascript">
-        // Wait for Google Translate to be ready
-        function waitForGoogleTranslate() {
-            let attempts = 0;
-            const maxAttempts = 30;
-
-            const checkForGoogleTranslate = setInterval(function() {
-                attempts++;
-                const select = document.querySelector('select.goog-te-combo');
-
-                if (select && select.options && select.options.length > 0) {
-                    console.log('Google Translate loaded successfully');
-                    window.googleTranslateSelect = select;
-
-                    // Set up language change handler
-                    select.addEventListener('change', function() {
-                        console.log('Language changed to:', this.value);
-                        // No need to reload page - let Google Translate handle it
-                    });
-
-                    clearInterval(checkForGoogleTranslate);
-                } else if (attempts >= maxAttempts) {
-                    console.log('Google Translate failed to load');
-                    clearInterval(checkForGoogleTranslate);
+        function googleTranslateElementInit() {
+            try {
+                if (typeof google !== 'undefined' && google.translate) {
+                    new google.translate.TranslateElement({
+                        pageLanguage: 'vi',
+                        includedLanguages: 'vi,de',
+                        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                        autoDisplay: false
+                    }, 'google_translate_element');
                 }
-            }, 300);
+            } catch (e) {
+                // Silent fail
+            }
         }
-
-        // Start checking when page loads
-        window.addEventListener('load', waitForGoogleTranslate);
-
-        // Also check when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', waitForGoogleTranslate);
-        } else {
-            waitForGoogleTranslate();
-        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
     </script>
 
 </head>
 <style type="text/css">
     /* Google Translate Styling */
     #google_translate_element {
-        position: absolute !important;
-        left: -9999px !important;
-        visibility: hidden !important;
+        position: fixed !important;
+        top: -1000px !important;
+        left: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        z-index: -1 !important;
     }
 
     .goog-te-banner-frame {
@@ -327,7 +288,7 @@
         </div>
 
         <!-- Google Translate Element -->
-        <div id="google_translate_element" style="position: absolute; left: -9999px; visibility: hidden;"></div>
+        <div id="google_translate_element"></div>
 
         <div class="login_display_02 login_page">
             <div class="ct_right">
@@ -347,7 +308,7 @@
                             <div class="form_group" style="display: block;">
                                 <div class="list_group">
                                     <input type="text" name="email" autocomplete="off" required=""
-                                        placeholder="Email" id="email" value="{{ old('email') }}">
+                                        placeholder="Email" id="email" value="{{ old('email') }}" translate="no">
                                     <figure class="feild_icon"><img
                                             src="{{ asset('auth/images/login_user_icon.png') }}"></figure>
                                     @error('email')
@@ -357,7 +318,7 @@
 
                                 <div class="list_group">
                                     <input type="password" name="password" autocomplete="off" required=""
-                                        placeholder="Password" id="password" value="{{ old('password') }}">
+                                        placeholder="Mật khẩu" id="password" value="{{ old('password') }}">
                                     <figure class="feild_icon"><img
                                             src="{{ asset('auth/images/login_padlock_icon.png') }}"></figure>
                                     @error('password')
@@ -368,19 +329,18 @@
                                 <div class="form-group">
                                     <div class="form-check my-3">
                                         <input class="form-check-input" name="remember" type="checkbox" id="remember">
-                                        <label class="form-check-label" for="remember">
+                                        <label class="form-check-label" for="remember" translate="yes">
                                             Lưu mật khẩu
                                         </label>
                                     </div>
                                 </div>
                                 <div class="btn">
                                     <button type="submit" name="button"
-                                        class="loginButton loginButtonGg remove-msg before-login " id="submitBtn">Đăng
-                                        nhập</button>
+                                        class="loginButton loginButtonGg remove-msg before-login " id="submitBtn" translate="yes">Đăng nhập</button>
                                 </div>
                                 <div class="forgot-password-link">
                                     <a href="{{ route('password.request') }}" class="text-decoration-none"
-                                        style="color:#007bff;">Quên mật khẩu?</a>
+                                        style="color:#007bff;" translate="yes">Quên mật khẩu?</a>
                                 </div>
                             </div>
 

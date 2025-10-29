@@ -5,6 +5,27 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
+
+    <!-- Google Translate -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            try {
+                if (typeof google !== 'undefined' && google.translate) {
+                    new google.translate.TranslateElement({
+                        pageLanguage: 'vi',
+                        includedLanguages: 'vi,de',
+                        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                        autoDisplay: false
+                    }, 'google_translate_element');
+                }
+            } catch (e) {
+                // Silent fail
+            }
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,6 +52,79 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <style type="text/css">
+    /* Google Translate Styling */
+    #google_translate_element {
+        position: fixed !important;
+        top: -1000px !important;
+        left: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        z-index: -1 !important;
+    }
+
+    .goog-te-banner-frame {
+        display: none !important;
+    }
+
+    .goog-te-balloon-frame {
+        display: none !important;
+    }
+
+    .goog-tooltip {
+        display: none !important;
+    }
+
+    .goog-te-gadget {
+        font-size: 0 !important;
+    }
+
+    .goog-te-gadget-simple {
+        background: #fff !important;
+        border: 2px solid #0066cc !important;
+        border-radius: 5px !important;
+        padding: 10px 20px !important;
+        font-size: 15px !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        display: inline-block !important;
+    }
+
+    .goog-te-gadget-simple:hover {
+        background: #0066cc !important;
+        color: #fff !important;
+    }
+
+    .goog-te-gadget-icon {
+        display: none !important;
+    }
+
+    .goog-te-menu-value {
+        color: #0066cc !important;
+        font-size: 15px !important;
+        font-weight: bold !important;
+    }
+
+    .goog-te-menu-value span {
+        font-size: 15px !important;
+    }
+
+    .skiptranslate {
+        display: none !important;
+    }
+
+    body {
+        top: 0 !important;
+    }
+
+    .goog-te-menu-frame {
+        z-index: 99999 !important;
+    }
+
+    /* Ensure translated content is visible */
+    .goog-te-combo {
+        display: block !important;
+    }
+
     .error_txt {
         color: red;
     }
@@ -203,6 +297,14 @@
 
 <body class="form_page">
     <div id="qb_content_navi_2021">
+        <!-- Language Switcher -->
+        <div style="position: absolute; top: 20px; right: 20px; z-index: 999;">
+            @include('components.language-switcher')
+        </div>
+
+        <!-- Google Translate Element -->
+        <div id="google_translate_element"></div>
+
         <div class="login_display_02 login_page">
             <div class="ct_right">
                 <div class="ct_right_ct">
@@ -220,14 +322,14 @@
                             <input type="hidden" name="token" value="{{ $token }}">
 
                             <div class="form_group" style="display: block;">
-                                <h4 class="text-center mb-3">
-                                    </i>Đặt lại mật khẩu
+                                <h4 class="text-center mb-3" translate="yes">
+                                    Đặt lại mật khẩu
                                 </h4>
 
                                 <div class="list_group">
                                     <i class="fas fa-envelope"></i>
                                     <input type="email" name="email" autocomplete="off" required
-                                        placeholder="Nhập email của bạn" id="email" value="{{ old('email') }}">
+                                        placeholder="Nhập email của bạn" id="email" value="{{ old('email') }}" translate="no">
                                     @error('email')
                                         <small class="text-danger mb-2">{{ $message }}</small>
                                     @enderror
@@ -239,7 +341,7 @@
                                 <div class="list_group">
                                     <i class="fas fa-key"></i>
                                     <input type="password" name="password" autocomplete="off" required
-                                        placeholder="Mật khẩu mới" id="password">
+                                        placeholder="Mật khẩu mới" id="password" translate="no">
                                     <i class="fas fa-eye password-toggle" onclick="togglePassword('password', this)"></i>
                                     @error('password')
                                         <small class="text-danger mb-2">{{ $message }}</small>
@@ -249,7 +351,7 @@
                                 <div class="list_group">
                                     <i class="fas fa-shield-alt"></i>
                                     <input type="password" name="password_confirmation" autocomplete="off" required
-                                        placeholder="Xác nhận mật khẩu" id="password_confirmation">
+                                        placeholder="Xác nhận mật khẩu" id="password_confirmation" translate="no">
                                     <i class="fas fa-eye password-toggle" onclick="togglePassword('password_confirmation', this)"></i>
                                 </div>
 
@@ -258,13 +360,13 @@
                                 @endif
 
                                 <div class="btn">
-                                    <button type="submit" class="loginButton w-100" id="submitBtn">
+                                    <button type="submit" class="loginButton w-100" id="submitBtn" translate="yes">
                                         Cập nhật mật khẩu
                                     </button>
                                 </div>
 
                                 <div class="back-to-login">
-                                    <a href="{{ route('login') }}">
+                                    <a href="{{ route('login') }}" translate="yes">
                                         <i class="fas fa-arrow-left"></i> Quay lại đăng nhập
                                     </a>
                                 </div>
