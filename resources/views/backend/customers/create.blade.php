@@ -60,10 +60,11 @@
                             <label for="phone" class="form-label fw-semibold">Số điện thoại <span
                                     class="text-danger">*</span></label>
                             <input type="text" name="phone" id="phone" value="{{ old('phone') }}"
-                                class="form-control @error('phone') is-invalid @enderror"
-                                placeholder="Nhập số điện thoại" required>
+                                class="form-control @error('phone') is-invalid @enderror" placeholder="Nhập số điện thoại"
+                                required>
                             <small class="text-muted">
-                                <i class="fas fa-info-circle"></i> Mã đăng nhập sẽ được tạo tự động từ số điện thoại (3 số cuối)
+                                <i class="fas fa-info-circle"></i> Mã đăng nhập sẽ được tạo tự động từ số điện thoại (3 số
+                                cuối)
                             </small>
                             @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -93,29 +94,75 @@
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Nhóm khách hàng</label>
                             @if (isset($groups) && $groups->count() > 0)
-                                <select class="form-select" name="group_id" id="customer_group">
-                                    <option value="">-- Chọn nhóm khách hàng --</option>
-                                    @foreach ($groups as $group)
-                                        <option value="{{ $group->id }}"
-                                            {{ old('group_id') == $group->id ? 'selected' : '' }}
-                                            {{ !$group->is_active ? 'disabled' : '' }}>
-                                            {{ $group->name }}
-                                            @if (!$group->is_active)
-                                                (Không hoạt động)
-                                            @endif
-                                            @if ($group->description)
-                                                - {{ $group->description }}
-                                            @endif
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                                    <div class="row">
+                                        @php
+                                            $halfCount = ceil($groups->count() / 2);
+                                            $leftGroups = $groups->slice(0, $halfCount);
+                                            $rightGroups = $groups->slice($halfCount);
+                                        @endphp
+
+                                        {{-- Cột trái --}}
+                                        <div class="col-md-6">
+                                            @foreach ($leftGroups as $group)
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="group_ids[]"
+                                                        value="{{ $group->id }}" id="group_{{ $group->id }}"
+                                                        {{ in_array($group->id, old('group_ids', [])) ? 'checked' : '' }}
+                                                        {{ !$group->is_active ? 'disabled' : '' }}>
+                                                    <label class="form-check-label" for="group_{{ $group->id }}">
+                                                        <span class="{{ !$group->is_active ? 'text-muted' : '' }}">
+                                                            {{ $group->name }}
+                                                            @if (!$group->is_active)
+                                                                <small class="text-danger">(Không hoạt động)</small>
+                                                            @endif
+                                                        </span>
+                                                        @if ($group->description)
+                                                            <br>
+                                                            <small class="text-muted">{{ $group->description }}</small>
+                                                        @endif
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        {{-- Cột phải --}}
+                                        <div class="col-md-6">
+                                            @foreach ($rightGroups as $group)
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="group_ids[]"
+                                                        value="{{ $group->id }}" id="group_{{ $group->id }}"
+                                                        {{ in_array($group->id, old('group_ids', [])) ? 'checked' : '' }}
+                                                        {{ !$group->is_active ? 'disabled' : '' }}>
+                                                    <label class="form-check-label" for="group_{{ $group->id }}">
+                                                        <span class="{{ !$group->is_active ? 'text-muted' : '' }}">
+                                                            {{ $group->name }}
+                                                            @if (!$group->is_active)
+                                                                <small class="text-danger">(Không hoạt động)</small>
+                                                            @endif
+                                                        </span>
+                                                        @if ($group->description)
+                                                            <br>
+                                                            <small class="text-muted">{{ $group->description }}</small>
+                                                        @endif
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted mt-1 d-block">
+                                    <i class="fas fa-info-circle"></i> Chọn một hoặc nhiều nhóm khách hàng
+                                </small>
                             @else
                                 <div class="border rounded p-3" style="background-color: #f8f9fa;">
                                     <p class="text-muted mb-0">
                                         <i class="fas fa-info-circle me-1"></i>
                                         Chưa có nhóm khách hàng.
                                         <a href="{{ route('admin.customer-groups.create') }}" target="_blank"
-                                            class="text-primary">Tạo nhóm mới</a>
+                                            class="text-primary">
+                                            Tạo nhóm mới
+                                        </a>
                                     </p>
                                 </div>
                             @endif

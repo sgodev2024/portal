@@ -44,7 +44,7 @@
                     </div>
 
                     <!-- Phòng ban -->
-                    <div class="form-group mb-3">
+                    {{-- <div class="form-group mb-3">
                         <label for="department">Phòng ban <span class="text-danger">*</span></label>
                         <input type="text" name="department" id="department"
                             value="{{ old('department', $staff->department) }}"
@@ -52,7 +52,7 @@
                         @error('department')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                    </div>
+                    </div> --}}
 
                     <!-- Chức vụ -->
                     <div class="form-group mb-3">

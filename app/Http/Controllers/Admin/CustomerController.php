@@ -96,19 +96,20 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users',
-            'phone'      => 'required|string|max:20',
-            'company'    => 'required|string|max:255',
-            'address'    => 'nullable|string|max:500',
-            'group_id'   => 'nullable|exists:customer_groups,id',
+            'name'        => 'required|string|max:255',
+            'email'       => 'required|email|unique:users',
+            'phone'       => 'required|string|max:20',
+            'company'     => 'required|string|max:255',
+            'address'     => 'nullable|string|max:500',
+            'group_ids'   => 'nullable|array',
+            'group_ids.*' => 'exists:customer_groups,id',
         ], [
-            'name.required'       => 'Họ tên không được để trống.',
-            'email.required'      => 'Email không được để trống.',
-            'email.unique'        => 'Email này đã được sử dụng.',
-            'phone.required'      => 'Số điện thoại không được để trống.',
-            'company.required'    => 'Tên công ty không được để trống.',
-            'group_id.exists'     => 'Nhóm khách hàng không hợp lệ.',
+            'name.required'         => 'Họ tên không được để trống.',
+            'email.required'        => 'Email không được để trống.',
+            'email.unique'          => 'Email này đã được sử dụng.',
+            'phone.required'        => 'Số điện thoại không được để trống.',
+            'company.required'      => 'Tên công ty không được để trống.',
+            'group_ids.*.exists'    => 'Nhóm khách hàng không hợp lệ.',
         ]);
 
         $accountId = $this->generateAccountId($validated['phone']);
@@ -130,9 +131,9 @@ class CustomerController extends Controller
             'must_update_profile' => true,
         ]);
 
-        // Gán nhóm cho khách hàng (nếu có chọn)
-        if (!empty($validated['group_id'])) {
-            $user->groups()->attach($validated['group_id']);
+        // Gán nhiều nhóm cho khách hàng (nếu có chọn)
+        if (!empty($validated['group_ids'])) {
+            $user->groups()->attach($validated['group_ids']);
         }
 
         // Gửi email thông báo tạo tài khoản
@@ -173,19 +174,21 @@ class CustomerController extends Controller
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,' . $id,
-            'phone'      => 'required|string|max:20',
-            'company'    => 'nullable|string|max:255',
-            'address'    => 'nullable|string|max:255',
-            'group_id'   => 'nullable|exists:customer_groups,id',
+            'name'        => 'required|string|max:255',
+            'email'       => 'required|email|unique:users,email,' . $id,
+            'phone'       => 'required|string|max:20',
+            'company'     => 'nullable|string|max:255',
+            'address'     => 'nullable|string|max:255',
+            'group_ids'   => 'nullable|array',
+            'group_ids.*' => 'exists:customer_groups,id',
         ], [
-            'name.required'       => 'Họ tên không được để trống.',
-            'email.required'      => 'Email không được để trống.',
-            'email.unique'        => 'Email này đã được sử dụng.',
-            'phone.required'      => 'Số điện thoại không được để trống.',
-            'group_id.exists'     => 'Nhóm khách hàng không hợp lệ.',
+            'name.required'         => 'Họ tên không được để trống.',
+            'email.required'        => 'Email không được để trống.',
+            'email.unique'          => 'Email này đã được sử dụng.',
+            'phone.required'        => 'Số điện thoại không được để trống.',
+            'group_ids.*.exists'    => 'Nhóm khách hàng không hợp lệ.',
         ]);
+
         $accountId = $user->account_id;
         if ($validated['phone'] !== $user->phone) {
             $accountId = $this->generateAccountId($validated['phone']);
@@ -201,8 +204,9 @@ class CustomerController extends Controller
             'is_active'  => $request->has('is_active'),
         ]);
 
-        if ($validated['group_id']) {
-            $user->groups()->sync([$validated['group_id']]);
+        // Đồng bộ nhiều nhóm khách hàng
+        if (!empty($validated['group_ids'])) {
+            $user->groups()->sync($validated['group_ids']);
         } else {
             $user->groups()->detach();
         }

@@ -10,7 +10,7 @@
                 <th style="min-width: 180px;">HỌ TÊN</th>
                 <th style="min-width: 150px;">EMAIL CÔNG TY</th>
                 <th style="min-width: 130px;">SỐ ĐIỆN THOẠI</th>
-                <th style="min-width: 140px;">PHÒNG BAN</th>
+                {{-- <th style="min-width: 140px;">PHÒNG BAN</th> --}}
                 <th style="min-width: 140px;">CHỨC VỤ</th>
                 <th style="min-width: 130px;">TRẠNG THÁI</th>
                 <th style="min-width: 120px;">NGÀY TẠO</th>
@@ -30,7 +30,7 @@
                     <td><strong>{{ $staff->name }}</strong></td>
                     <td class="notranslate">{{ $staff->email ?? '-' }}</td>
                     <td>{{ $staff->phone ?? '-' }}</td>
-                    <td>{{ $staff->department ?? '-' }}</td>
+                    {{-- <td>{{ $staff->department ?? '-' }}</td> --}}
                     <td>{{ $staff->position ?? '-' }}</td>
                     <td>
                         @if ($staff->is_active)

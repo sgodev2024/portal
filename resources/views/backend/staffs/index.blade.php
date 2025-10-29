@@ -68,15 +68,15 @@
                                     </div>
 
                                     <!-- Nút Import Excel -->
-                                    <button type="button" class="btn btn-sm btn-light border"
+                                    <!-- <button type="button" class="btn btn-sm btn-light border"
                                         onclick="document.getElementById('excelFile').click()">
                                         <i class="fas fa-file-import"></i> Import
-                                    </button>
+                                    </button> -->
                                     
                                     <!-- Nút Export Excel -->
-                                    <a href="{{ route('admin.staffs.export') }}" class="btn btn-sm btn-success border">
+                                    <!-- <a href="{{ route('admin.staffs.export') }}" class="btn btn-sm btn-success border">
                                         <i class="fas fa-file-excel"></i> Export
-                                    </a>
+                                    </a> -->
 
                                     <a href="{{ route('admin.staffs.create') }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-plus"></i> Thêm mới
@@ -84,7 +84,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row mt-3">
+                        <!-- <div class="row mt-3">
                             <div class="col-12 text-end">
                                 <small class="text-muted">
                                     <i class="fas fa-info-circle me-1 text-primary"></i>
@@ -94,7 +94,7 @@
                                     để import dữ liệu
                                 </small>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
 
                     <!-- Bảng nhân viên -->
