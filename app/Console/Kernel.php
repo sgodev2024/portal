@@ -14,9 +14,17 @@ class Kernel extends ConsoleKernel
     {
         // Tự động đóng ticket đã phản hồi sau 3 ngày không có phản hồi từ khách hàng
         $schedule->call(function () {
-            \App\Models\Ticket::where('status', \App\Models\Ticket::STATUS_RESPONDED)
+            $tickets = \App\Models\Ticket::where('status', \App\Models\Ticket::STATUS_RESPONDED)
                 ->where('last_staff_response_at', '<=', now()->subDays(3))
-                ->update(['status' => \App\Models\Ticket::STATUS_CLOSED]);
+                ->get();
+            
+            foreach ($tickets as $ticket) {
+                // Cập nhật trạng thái
+                $ticket->update(['status' => \App\Models\Ticket::STATUS_CLOSED]);
+                
+                // Gửi thông báo cho khách hàng
+                \App\Services\TicketNotificationService::notifyTicketAutoClosed($ticket);
+            }
         })->dailyAt('01:00');
     }
 

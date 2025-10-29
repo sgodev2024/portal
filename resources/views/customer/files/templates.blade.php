@@ -146,14 +146,13 @@
 
         @if($files->count() > 0)
         <div class="card-footer bg-white border-0 pt-3">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                <div class="text-muted">
-                    <i class="fas fa-info-circle me-1"></i>
+            <div class="d-flex justify-content-between align-items-center mt-3 px-3 pb-3">
+                <div class="text-muted small">
                     Hiển thị <strong>{{ $files->firstItem() ?? 0 }}</strong> - <strong>{{ $files->lastItem() ?? 0 }}</strong> 
                     trong tổng số <strong>{{ $files->total() }}</strong> biểu mẫu
                 </div>
-                <div class="pagination-wrapper">
-                    {{ $files->links() }}
+                <div>
+                    {{ $files->links('pagination::bootstrap-5') }}
                 </div>
             </div>
         </div>
@@ -469,6 +468,35 @@
             font-size: 0.8rem;
             padding: 0.5rem;
         }
+    }
+
+    /* Pagination Styling */
+    .pagination {
+        margin-bottom: 0;
+    }
+
+    .pagination .page-link {
+        color: #0d6efd;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s ease;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: #fff;
+        border-color: #dee2e6;
     }
     
 </style>
