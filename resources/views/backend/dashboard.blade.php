@@ -198,7 +198,7 @@
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="8%">#ID</th>
+                                        
                                         @if($isAdmin || $isStaff)
                                             <th width="20%">Khách hàng</th>
                                         @endif
@@ -213,14 +213,12 @@
                                 <tbody>
                                     @foreach($tickets as $ticket)
                                     <tr>
-                                        <td class="fw-bold text-primary">#{{ $ticket->id }}</td>
+                                        
                                         
                                         @if($isAdmin || $isStaff)
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar-circle bg-primary text-white me-2" style="width: 30px; height: 30px; font-size: 0.75rem;">
-                                                    {{ strtoupper(substr($ticket->user->name ?? 'U', 0, 1)) }}
-                                                </div>
+                                               
                                                 <div>
                                                     <div class="fw-semibold small">{{ $ticket->user->name ?? 'N/A' }}</div>
                                                 </div>

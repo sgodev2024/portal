@@ -14,7 +14,7 @@
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>ID</th>
+                <th>STT</th>
                 <th>Mã template</th>
                 <th>Tên template</th>
                 <th>Subject</th>
@@ -25,7 +25,7 @@
         <tbody>
             @foreach($templates as $template)
             <tr>
-                <td>{{ $template->id }}</td>
+                <td>{{ $loop->iteration }}</td>
                 <td>{{ $template->code }}</td>
                 <td>{{ $template->name }}</td>
                 <td>{{ $template->subject }}</td>
