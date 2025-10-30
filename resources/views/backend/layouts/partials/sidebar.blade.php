@@ -159,12 +159,10 @@
 
                     {{-- Quản lý khách hàng --}}
                     @php
-                        // $isCustomerManageActive = 
-                        // request()->routeIs('customers.*') ||
-                        // request()->routeIs('admin.customer-groups.*') ;
                         $isCustomerManageActive =
                             request()->routeIs('customers.*') ||
                             request()->routeIs('admin.customer-groups.*') ||
+                            request()->routeIs('admin.project-groups.*') ||
                             request()->routeIs('admin.group-staff.*');
                      
                     @endphp
@@ -185,6 +183,13 @@
                                     <li class="{{ request()->routeIs('admin.customer-groups.*') ? 'active' : '' }}">
                                         <a href="{{ route('admin.customer-groups.index') }}">
                                             <span class="sub-item">Nhóm khách hàng</span>
+                                        </a>
+                                    </li>
+                                @endif
+                                @if (Route::has('admin.project-groups.index'))
+                                    <li class="{{ request()->routeIs('admin.project-groups.*') ? 'active' : '' }}">
+                                        <a href="{{ route('admin.project-groups.index') }}">
+                                            <span class="sub-item">Nhóm dự án</span>
                                         </a>
                                     </li>
                                 @endif

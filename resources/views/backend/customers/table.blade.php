@@ -11,7 +11,8 @@
                 <th class="border-end notranslate">EMAIL</th>
                 <th class="border-end notranslate">SỐ ĐIỆN THOẠI</th>
                 <th class="border-end">CÔNG TY</th>
-                <th class="border-end">NHÓM</th>
+                <th class="border-end">NHÓM KHÁCH HÀNG</th>
+                <th class="border-end">DỰ ÁN</th>
                 <th class="text-center border-end">TRẠNG THÁI</th>
                 <th class="text-center border-end">HỒ SƠ</th>
                 <th width="180" class="text-center">HÀNH ĐỘNG</th>
@@ -41,7 +42,19 @@
                     <td class="border-end">
                         @if ($c->groups && $c->groups->count())
                             @foreach ($c->groups as $group)
-                                <span class="badge bg-primary">{{ $group->name }}</span>
+                                <span class="badge bg-primary mb-1">{{ $group->name }}</span>
+                            @endforeach
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
+                    </td>
+
+                    <td class="border-end">
+                        @if ($c->projectGroups && $c->projectGroups->count())
+                            @foreach ($c->projectGroups as $project)
+                                <span class="badge bg-success mb-1" title="{{ $project->location }}">
+                                    {{ $project->name }} ({{ $project->code }})
+                                </span>
                             @endforeach
                         @else
                             <span class="text-muted">-</span>
@@ -84,7 +97,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="11" class="text-center py-5">
+                    <td colspan="12" class="text-center py-5">
                         <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
                         <p class="text-muted mb-0">Không có khách hàng nào.</p>
                     </td>
