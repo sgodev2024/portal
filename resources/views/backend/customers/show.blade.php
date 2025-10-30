@@ -68,26 +68,29 @@
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-12 mb-3">
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
                         <p class="mb-1 text-muted small">Nhóm khách hàng:</p>
                         @if ($user->groups && $user->groups->count() > 0)
-                            <div class="d-flex flex-wrap gap-2">
+                            <p class="fw-semibold mb-0">
                                 @foreach ($user->groups as $group)
-                                    <span class="badge bg-primary rounded-pill px-3 py-2">
-                                        <i class="fas fa-users me-1"></i>
-                                        {{ $group->name }}
-                                        @if (!$group->is_active)
-                                            <i class="fas fa-ban ms-1" title="Nhóm không hoạt động"></i>
-                                        @endif
-                                    </span>
+                                    {{ $group->name }}@if (!$loop->last), @endif
                                 @endforeach
-                            </div>
-                        @else
-                            <p class="text-muted mb-0">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Chưa thuộc nhóm nào
                             </p>
+                        @else
+                            <p class="fw-semibold mb-0 text-muted">—</p>
+                        @endif
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p class="mb-1 text-muted small">Dự án:</p>
+                        @if ($user->projectGroups && $user->projectGroups->count() > 0)
+                            <p class="fw-semibold mb-0">
+                                @foreach ($user->projectGroups as $project)
+                                    {{ $project->name }} ({{ $project->code }})@if (!$loop->last), @endif
+                                @endforeach
+                            </p>
+                        @else
+                            <p class="fw-semibold mb-0 text-muted">—</p>
                         @endif
                     </div>
                 </div>

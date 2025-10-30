@@ -66,6 +66,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Quan hệ: user thuộc nhiều nhóm dự án (many-to-many)
+     */
+    public function projectGroups()
+    {
+        return $this->belongsToMany(ProjectGroup::class, 'user_project_group', 'user_id', 'project_group_id')
+                    ->withTimestamps();
+    }
+
+    /**
      * Lấy tên vai trò (role name)
      */
     public function getRoleNameAttribute()

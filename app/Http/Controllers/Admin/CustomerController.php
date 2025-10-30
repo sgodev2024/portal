@@ -7,6 +7,7 @@ use App\Mail\GenericMail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\CustomerGroup;
+use App\Models\ProjectGroup;
 use App\Models\EmailTemplate;
 use App\Imports\CustomerImport;
 use App\Exports\CustomersExport;
@@ -46,7 +47,7 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        $query = User::where('role', 3)->with('groups');
+        $query = User::where('role', 3)->with(['groups', 'projectGroups']);
 
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
@@ -83,33 +84,39 @@ class CustomerController extends Controller
 
     public function show($id)
     {
-        $user = User::where('role', 3)->with('groups')->findOrFail($id);
+        $user = User::where('role', 3)->with(['groups', 'projectGroups'])->findOrFail($id);
         return view('backend.customers.show', compact('user'));
     }
 
     public function create()
     {
         $groups = CustomerGroup::orderBy('name')->get();
-        return view('backend.customers.create', compact('groups'));
+        $projectGroups = ProjectGroup::where('status', 'active')->orderBy('name')->get();
+        return view('backend.customers.create', compact('groups', 'projectGroups'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|email|unique:users',
-            'phone'       => 'required|string|max:20',
-            'company'     => 'required|string|max:255',
-            'address'     => 'nullable|string|max:500',
-            'group_ids'   => 'nullable|array',
-            'group_ids.*' => 'exists:customer_groups,id',
+            'name'                => 'required|string|max:255',
+            'email'               => 'required|email|unique:users',
+            'phone'               => 'required|string|max:20',
+            'company'             => 'required|string|max:255',
+            'address'             => 'nullable|string|max:500',
+            'group_ids'           => 'nullable|array',
+            'group_ids.*'         => 'exists:customer_groups,id',
+            'project_group_ids'   => 'required|array|min:1',
+            'project_group_ids.*' => 'exists:project_groups,id',
         ], [
-            'name.required'         => 'Họ tên không được để trống.',
-            'email.required'        => 'Email không được để trống.',
-            'email.unique'          => 'Email này đã được sử dụng.',
-            'phone.required'        => 'Số điện thoại không được để trống.',
-            'company.required'      => 'Tên công ty không được để trống.',
-            'group_ids.*.exists'    => 'Nhóm khách hàng không hợp lệ.',
+            'name.required'                 => 'Họ tên không được để trống.',
+            'email.required'                => 'Email không được để trống.',
+            'email.unique'                  => 'Email này đã được sử dụng.',
+            'phone.required'                => 'Số điện thoại không được để trống.',
+            'company.required'              => 'Tên công ty không được để trống.',
+            'group_ids.*.exists'            => 'Nhóm khách hàng không hợp lệ.',
+            'project_group_ids.required'    => 'Vui lòng chọn ít nhất một nhóm dự án.',
+            'project_group_ids.min'         => 'Vui lòng chọn ít nhất một nhóm dự án.',
+            'project_group_ids.*.exists'    => 'Nhóm dự án không hợp lệ.',
         ]);
 
         $accountId = $this->generateAccountId($validated['phone']);
@@ -131,9 +138,14 @@ class CustomerController extends Controller
             'must_update_profile' => true,
         ]);
 
-        // Gán nhiều nhóm cho khách hàng (nếu có chọn)
+        // Gán nhiều nhóm khách hàng (nếu có chọn)
         if (!empty($validated['group_ids'])) {
             $user->groups()->attach($validated['group_ids']);
+        }
+
+        // Gán nhiều nhóm dự án (bắt buộc)
+        if (!empty($validated['project_group_ids'])) {
+            $user->projectGroups()->attach($validated['project_group_ids']);
         }
 
         // Gửi email thông báo tạo tài khoản
@@ -166,7 +178,8 @@ class CustomerController extends Controller
     {
         $user = User::with('groups')->findOrFail($id);
         $groups = CustomerGroup::orderBy('name')->get();
-        return view('backend.customers.edit', compact('user', 'groups'));
+        $projectGroups = ProjectGroup::where('status', 'active')->orderBy('name')->get();
+        return view('backend.customers.edit', compact('user', 'groups', 'projectGroups'));
     }
 
     public function update(Request $request, $id)
@@ -174,19 +187,24 @@ class CustomerController extends Controller
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
-            'name'        => 'required|string|max:255',
-            'email'       => 'required|email|unique:users,email,' . $id,
-            'phone'       => 'required|string|max:20',
-            'company'     => 'nullable|string|max:255',
-            'address'     => 'nullable|string|max:255',
-            'group_ids'   => 'nullable|array',
-            'group_ids.*' => 'exists:customer_groups,id',
+            'name'                => 'required|string|max:255',
+            'email'               => 'required|email|unique:users,email,' . $id,
+            'phone'               => 'required|string|max:20',
+            'company'             => 'nullable|string|max:255',
+            'address'             => 'nullable|string|max:255',
+            'group_ids'           => 'nullable|array',
+            'group_ids.*'         => 'exists:customer_groups,id',
+            'project_group_ids'   => 'required|array|min:1',
+            'project_group_ids.*' => 'exists:project_groups,id',
         ], [
-            'name.required'         => 'Họ tên không được để trống.',
-            'email.required'        => 'Email không được để trống.',
-            'email.unique'          => 'Email này đã được sử dụng.',
-            'phone.required'        => 'Số điện thoại không được để trống.',
-            'group_ids.*.exists'    => 'Nhóm khách hàng không hợp lệ.',
+            'name.required'                 => 'Họ tên không được để trống.',
+            'email.required'                => 'Email không được để trống.',
+            'email.unique'                  => 'Email này đã được sử dụng.',
+            'phone.required'                => 'Số điện thoại không được để trống.',
+            'group_ids.*.exists'            => 'Nhóm khách hàng không hợp lệ.',
+            'project_group_ids.required'    => 'Vui lòng chọn ít nhất một nhóm dự án.',
+            'project_group_ids.min'         => 'Vui lòng chọn ít nhất một nhóm dự án.',
+            'project_group_ids.*.exists'    => 'Nhóm dự án không hợp lệ.',
         ]);
 
         $accountId = $user->account_id;
@@ -209,6 +227,13 @@ class CustomerController extends Controller
             $user->groups()->sync($validated['group_ids']);
         } else {
             $user->groups()->detach();
+        }
+
+        // Đồng bộ nhiều nhóm dự án
+        if (!empty($validated['project_group_ids'])) {
+            $user->projectGroups()->sync($validated['project_group_ids']);
+        } else {
+            $user->projectGroups()->detach();
         }
 
         return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công!');

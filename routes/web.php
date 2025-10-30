@@ -228,6 +228,16 @@ Route::prefix('admin/customer-groups')->name('admin.customer-groups.')->middlewa
     Route::delete('/destroy/{id}', [CustomerGroupController::class, 'destroy'])->name('destroy');
 });
 
+// Route nhóm dự án (Admin only)
+Route::prefix('admin/project-groups')->name('admin.project-groups.')->middleware(['auth', 'checkRole:1'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\ProjectGroupController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\Admin\ProjectGroupController::class, 'create'])->name('create');
+    Route::post('/store', [\App\Http\Controllers\Admin\ProjectGroupController::class, 'store'])->name('store');
+    Route::get('/edit/{id}', [\App\Http\Controllers\Admin\ProjectGroupController::class, 'edit'])->name('edit');
+    Route::put('/update/{id}', [\App\Http\Controllers\Admin\ProjectGroupController::class, 'update'])->name('update');
+    Route::delete('/destroy/{id}', [\App\Http\Controllers\Admin\ProjectGroupController::class, 'destroy'])->name('destroy');
+});
+
 // route nhân viên
 Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

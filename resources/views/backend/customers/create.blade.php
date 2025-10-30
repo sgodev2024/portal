@@ -167,6 +167,84 @@
                                 </div>
                             @endif
                         </div>
+
+                        {{-- Nhóm dự án --}}
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Nhóm dự án <span class="text-danger">*</span></label>
+                            @if (isset($projectGroups) && $projectGroups->count() > 0)
+                                <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                                    <div class="row">
+                                        @php
+                                            $halfCount = ceil($projectGroups->count() / 2);
+                                            $leftProjects = $projectGroups->slice(0, $halfCount);
+                                            $rightProjects = $projectGroups->slice($halfCount);
+                                        @endphp
+
+                                        {{-- Cột trái --}}
+                                        <div class="col-md-6">
+                                            @foreach ($leftProjects as $projectGroup)
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="project_group_ids[]"
+                                                        value="{{ $projectGroup->id }}" id="project_{{ $projectGroup->id }}"
+                                                        {{ in_array($projectGroup->id, old('project_group_ids', [])) ? 'checked' : '' }}
+                                                        {{ $projectGroup->status != 'active' ? 'disabled' : '' }}>
+                                                    <label class="form-check-label" for="project_{{ $projectGroup->id }}">
+                                                        <span class="{{ $projectGroup->status != 'active' ? 'text-muted' : '' }}">
+                                                            <strong>{{ $projectGroup->name }}</strong> ({{ $projectGroup->code }})
+                                                            @if ($projectGroup->status != 'active')
+                                                                <small class="text-danger">(Không hoạt động)</small>
+                                                            @endif
+                                                        </span>
+                                                        @if ($projectGroup->location)
+                                                            <br>
+                                                            <small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ $projectGroup->location }}</small>
+                                                        @endif
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+
+                                        {{-- Cột phải --}}
+                                        <div class="col-md-6">
+                                            @foreach ($rightProjects as $projectGroup)
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input" type="checkbox" name="project_group_ids[]"
+                                                        value="{{ $projectGroup->id }}" id="project_{{ $projectGroup->id }}"
+                                                        {{ in_array($projectGroup->id, old('project_group_ids', [])) ? 'checked' : '' }}
+                                                        {{ $projectGroup->status != 'active' ? 'disabled' : '' }}>
+                                                    <label class="form-check-label" for="project_{{ $projectGroup->id }}">
+                                                        <span class="{{ $projectGroup->status != 'active' ? 'text-muted' : '' }}">
+                                                            <strong>{{ $projectGroup->name }}</strong> ({{ $projectGroup->code }})
+                                                            @if ($projectGroup->status != 'active')
+                                                                <small class="text-danger">(Không hoạt động)</small>
+                                                            @endif
+                                                        </span>
+                                                        @if ($projectGroup->location)
+                                                            <br>
+                                                            <small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ $projectGroup->location }}</small>
+                                                        @endif
+                                                    </label>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted mt-1 d-block">
+                                    <i class="fas fa-info-circle"></i> Chọn một hoặc nhiều nhóm dự án (bắt buộc)
+                                </small>
+                            @else
+                                <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Chưa có nhóm dự án.
+                                        <a href="{{ route('admin.project-groups.create') }}" target="_blank"
+                                            class="text-primary">
+                                            Tạo nhóm dự án mới
+                                        </a>
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
                     {{-- Nút hành động --}}
