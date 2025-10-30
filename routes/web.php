@@ -126,7 +126,13 @@ Route::prefix('admin')->middleware(['auth', 'checkRole:1'])->group(function () {
             'destroy' => 'admin.notifications.destroy',
         ]);
 
-    // Đã xóa: Quản lý nhóm khách hàng và nhân viên - nhóm
+    // Quản lý nhân viên - nhóm khách hàng
+    Route::prefix('group-staff')->name('admin.group_staff.')->group(function () {
+        \App\Http\Controllers\Admin\GroupStaffController::class;
+        Route::get('/', [\App\Http\Controllers\Admin\GroupStaffController::class, 'index'])->name('index');
+        Route::post('/assign', [\App\Http\Controllers\Admin\GroupStaffController::class, 'assign'])->name('assign');
+        Route::delete('/{groupId}/{staffId}', [\App\Http\Controllers\Admin\GroupStaffController::class, 'remove'])->name('remove');
+    });
 });
 // route admin, nhân viên
 
@@ -254,7 +260,12 @@ Route::prefix('staff')->name('staff.')->middleware(['auth', 'checkRole:2'])->gro
             
         });
 
-    // Đã xóa: Staff groups routes
+    // Staff quản lý nhóm khách hàng (tự nhận/bỏ)
+    Route::prefix('groups')->name('groups.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Staff\StaffGroupController::class, 'index'])->name('index');
+        Route::post('/{groupId}/claim', [\App\Http\Controllers\Staff\StaffGroupController::class, 'claim'])->name('claim');
+        Route::delete('/{groupId}/leave', [\App\Http\Controllers\Staff\StaffGroupController::class, 'leave'])->name('leave');
+    });
 });
 
 Route::prefix('customer')->name('customer.')->middleware(['auth', 'checkRole:3'])->group(function () {

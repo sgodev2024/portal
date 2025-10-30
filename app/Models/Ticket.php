@@ -11,7 +11,7 @@ class Ticket extends Model
 
     protected $fillable = [
         'user_id', 'subject', 'category', 'priority', 'description', 'status',
-        'assigned_staff_id', 'assignment_type', 'last_staff_response_at'
+        'assigned_staff_id', 'assigned_group_id', 'assignment_type', 'last_staff_response_at'
     ];
 
     // Không cần auto-assign theo nhóm nữa
@@ -29,6 +29,11 @@ class Ticket extends Model
     public function assignedStaff()
     {
         return $this->belongsTo(User::class, 'assigned_staff_id');
+    }
+
+    public function assignedGroup()
+    {
+        return $this->belongsTo(CustomerGroup::class, 'assigned_group_id');
     }
 
     const STATUS_NEW = 'new';
@@ -199,5 +204,22 @@ class Ticket extends Model
     public function isAssignedToStaff($staffId)
     {
         return $this->assigned_staff_id == $staffId;
+    }
+
+    /**
+     * Scope: tickets a staff can access
+     * - Individually assigned to the staff, or
+     * - Belong to a customer who is in a group managed by the staff
+     */
+    public function scopeAccessibleByStaff($query, int $staffId)
+    {
+        return $query->where(function ($q) use ($staffId) {
+            $q->where('assigned_staff_id', $staffId)
+              ->orWhereHas('user.groups', function ($q2) use ($staffId) {
+                  $q2->whereHas('staff', function ($q3) use ($staffId) {
+                      $q3->where('users.id', $staffId);
+                  });
+              });
+        });
     }
 }

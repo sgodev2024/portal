@@ -31,6 +31,26 @@ class TicketController extends Controller
 
         $query = Ticket::with(['user', 'assignedStaff']);
 
+        // Staff: hỗ trợ phân tách danh sách (working/available/all)
+        $list = $request->query('list'); // working | available | all
+        if ($user->role == 2) {
+            if ($list === 'working' || empty($list)) {
+                $list = 'working';
+                $query->where('assigned_staff_id', $user->id);
+            } elseif ($list === 'available') {
+                $query->accessibleByStaff($user->id)->whereNull('assigned_staff_id');
+            } elseif ($list === 'all') {
+                // Hiển thị tất cả tickets trong hệ thống (theo yêu cầu)
+                // Không giới hạn theo nhóm/phân quyền xem
+                // Lưu ý: nếu cần hạn chế, có thể thêm policy sau này
+                // $query->accessibleByStaff($user->id);
+            } else {
+                // fallback an toàn
+                $list = 'working';
+                $query->where('assigned_staff_id', $user->id);
+            }
+        }
+
         // Cả Admin và Nhân viên đều xem tất cả tickets
         // Nhân viên có thể tự chọn (claim) ticket chưa có người phụ trách
         // hoặc xem tickets đã được gán cho họ
@@ -74,7 +94,21 @@ class TicketController extends Controller
                 ->get();
         }
 
-        return view('backend.ticket.index', compact('tickets', 'status', 'search', 'sort', 'order', 'staffList'));
+        // Thống kê riêng cho Staff tabs
+        $staffTabs = null;
+        if ($user->role == 2) {
+            $staffWorkingCount = Ticket::where('assigned_staff_id', $user->id)->count();
+            $staffAvailableCount = Ticket::accessibleByStaff($user->id)->whereNull('assigned_staff_id')->count();
+            $staffAllCount = Ticket::count();
+            $staffTabs = [
+                'list' => $list,
+                'working' => $staffWorkingCount,
+                'available' => $staffAvailableCount,
+                'all' => $staffAllCount,
+            ];
+        }
+
+        return view('backend.ticket.index', compact('tickets', 'status', 'search', 'sort', 'order', 'staffList', 'staffTabs'));
     }
 
     public function show($id)
@@ -82,9 +116,20 @@ class TicketController extends Controller
         $user = Auth::user();
         $query = Ticket::with(['user', 'messages.sender', 'assignedStaff']);
 
-        // Nhân viên chỉ xem ticket được gán cho họ
+        // Nhân viên có thể xem:
+        // 1. Tickets được gán cho họ
+        // 2. Tickets thuộc nhóm họ quản lý
+        // 3. Tickets chưa có người phụ trách (để có thể claim)
         if ($user->role == 2) {
-            $query->where('assigned_staff_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('assigned_staff_id', $user->id)
+                  ->orWhereNull('assigned_staff_id')
+                  ->orWhereHas('user.groups', function ($q2) use ($user) {
+                      $q2->whereHas('staff', function ($q3) use ($user) {
+                          $q3->where('users.id', $user->id);
+                      });
+                  });
+            });
         }
 
         $ticket = $query->findOrFail($id);
@@ -235,7 +280,7 @@ class TicketController extends Controller
         // Gửi thông báo cho khách hàng và nhân viên
         TicketNotificationService::notifyTicketAssigned($ticket, $staff);
 
-        // Gửi mail thông báo ticket được gán
+        // Gửi mail thông báo ticket được gán (cho khách hàng)
         try {
             $template = EmailTemplate::where('code', 'ticket_assigned')
                 ->where('is_active', true)
@@ -260,6 +305,30 @@ class TicketController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Failed to send ticket_assigned email: ' . $e->getMessage());
+        }
+
+        // Gửi mail thông báo cho nhân viên được gán
+        try {
+            $staffTemplate = EmailTemplate::where('code', 'ticket_assigned_to_staff')
+                ->where('is_active', true)
+                ->first();
+
+            if ($staffTemplate) {
+                $ticketLinkForStaff = route('admin.tickets.show', $ticket->id);
+
+                Mail::to($staff->email)->queue(new GenericMail(
+                    $staffTemplate,
+                    [
+                        'user_name' => $staff->name,
+                        'ticket_id' => $ticket->id,
+                        'ticket_subject' => $ticket->subject,
+                        'ticket_link' => $ticketLinkForStaff,
+                        'app_name' => config('app.name'),
+                    ]
+                ));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send ticket_assigned_to_staff email: ' . $e->getMessage());
         }
 
         return back()->with('success', 'Đã gán ticket cho nhân viên ' . $staff->name);
@@ -287,6 +356,32 @@ class TicketController extends Controller
         // Gửi thông báo cho khách hàng
         TicketNotificationService::notifyTicketClaimed($ticket, $user);
 
+        // Gửi mail thông báo nhân viên đã nhận ticket (cho khách hàng)
+        try {
+            $template = EmailTemplate::where('code', 'ticket_claimed')
+                ->where('is_active', true)
+                ->first();
+
+            if ($template && $ticket->user) {
+                $ticketLink = $ticket->user->role == 3 
+                    ? route('customer.tickets.show', $ticket->id)
+                    : route('admin.tickets.show', $ticket->id);
+                
+                Mail::to($ticket->user->email)->queue(new GenericMail(
+                    $template,
+                    [
+                        'user_name' => $ticket->user->name,
+                        'ticket_id' => $ticket->id,
+                        'ticket_subject' => $ticket->subject,
+                        'ticket_link' => $ticketLink,
+                        'app_name' => config('app.name'),
+                    ]
+                ));
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send ticket_claimed email: ' . $e->getMessage());
+        }
+
         return back()->with('success', 'Bạn đã nhận xử lý ticket #' . $ticket->id);
     }
 
@@ -297,7 +392,15 @@ class TicketController extends Controller
         $query = Ticket::query();
 
         if ($user->role == 2) {
-            $query->where('assigned_staff_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('assigned_staff_id', $user->id)
+                  ->orWhereNull('assigned_staff_id')
+                  ->orWhereHas('user.groups', function ($q2) use ($user) {
+                      $q2->whereHas('staff', function ($q3) use ($user) {
+                          $q3->where('users.id', $user->id);
+                      });
+                  });
+            });
         }
 
         $ticket = $query->findOrFail($id);
@@ -323,7 +426,15 @@ class TicketController extends Controller
         $query = Ticket::query();
         
         if ($user->role == 2) { // Staff
-            $query->where('assigned_staff_id', $user->id);
+            $query->where(function ($q) use ($user) {
+                $q->where('assigned_staff_id', $user->id)
+                  ->orWhereNull('assigned_staff_id')
+                  ->orWhereHas('user.groups', function ($q2) use ($user) {
+                      $q2->whereHas('staff', function ($q3) use ($user) {
+                          $q3->where('users.id', $user->id);
+                      });
+                  });
+            });
         }
         
         $tickets = $query->get();

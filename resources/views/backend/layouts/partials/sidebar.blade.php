@@ -164,7 +164,7 @@
                             request()->routeIs('admin.customer-groups.*') ||
                             request()->routeIs('admin.project-groups.*') ||
                             request()->routeIs('admin.group-staff.*');
-                     
+                   
                     @endphp
                     <li class="nav-item {{ $isCustomerManageActive ? 'active' : '' }}">
                         <a data-bs-toggle="collapse" href="#customerMenu">
@@ -179,7 +179,7 @@
                                         <span class="sub-item">Danh sách khách hàng</span>
                                     </a>
                                 </li>
-                                  @if (Route::has('admin.customer-groups.index'))
+                                @if (Route::has('admin.customer-groups.index'))
                                     <li class="{{ request()->routeIs('admin.customer-groups.*') ? 'active' : '' }}">
                                         <a href="{{ route('admin.customer-groups.index') }}">
                                             <span class="sub-item">Nhóm khách hàng</span>
@@ -224,17 +224,47 @@
                 @endif
 
                 {{-- ============ TICKETS (Admin/Staff) ============ --}}
-                @php
-                    $isTicketsActive = request()->routeIs('admin.tickets.*');
-                @endphp
                 @if (in_array($userRole, [1, 2]))
+                    @php
+                        $isTicketsActive = 
+                            request()->routeIs('admin.tickets.*') ||
+                            request()->routeIs('admin.group_staff.*') ||
+                            request()->routeIs('staff.groups.*');
+                    @endphp
                     <li class="nav-item {{ $isTicketsActive ? 'active' : '' }}">
-                        <a href="{{ route('admin.tickets.index') }}"
-                            data-has-unread="{{ $hasUnreadTickets ? 'true' : 'false' }}">
+                        <a data-bs-toggle="collapse" href="#ticketsMenu">
                             <i class="fas fa-ticket-alt"></i>
                             <p class="notranslate">Tickets</p>
+                            <span class="caret"></span>
                         </a>
-                       
+                        <div class="collapse {{ $isTicketsActive ? 'show' : '' }}" id="ticketsMenu">
+                            <ul class="nav nav-collapse">
+                                <li class="{{ request()->routeIs('admin.tickets.*') ? 'active' : '' }}">
+                                    <a href="{{ route('admin.tickets.index') }}"
+                                        data-has-unread="{{ $hasUnreadTickets ? 'true' : 'false' }}">
+                                        <span class="sub-item">Danh sách Tickets</span>
+                                    </a>
+                                </li>
+                                
+                                {{-- Phân công NV - Nhóm (chỉ Admin) --}}
+                                @if ($userRole == 1 && Route::has('admin.group_staff.index'))
+                                    <li class="{{ request()->routeIs('admin.group_staff.*') ? 'active' : '' }}">
+                                        <a href="{{ route('admin.group_staff.index') }}">
+                                            <span class="sub-item">Phân công NV - Nhóm</span>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                {{-- Nhóm khách hàng (chỉ Staff) --}}
+                                @if ($userRole == 2 && Route::has('staff.groups.index'))
+                                    <li class="{{ request()->routeIs('staff.groups.*') ? 'active' : '' }}">
+                                        <a href="{{ route('staff.groups.index') }}">
+                                            <span class="sub-item">Nhóm khách hàng</span>
+                                        </a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </div>
                     </li>
                 @endif
 
