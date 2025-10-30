@@ -57,32 +57,36 @@ class GroupStaffController extends Controller
             'customer_group_id' => $request->group_id
         ]);
 
-        // ✅ Auto assign tickets chưa xử lý
-        $unassignedTickets = Ticket::whereHas('user.groups', function($query) use ($request) {
-                $query->where('customer_group_id', $request->group_id);
-            })
-            ->whereNull('assigned_staff_id')
-            ->whereIn('status', [Ticket::STATUS_NEW, Ticket::STATUS_IN_PROGRESS])
-            ->get();
-
-        foreach ($unassignedTickets as $ticket) {
-            $ticket->update([
-                'assigned_staff_id' => $staff->id,
-                'assignment_type' => Ticket::ASSIGNMENT_INDIVIDUAL,
-                'status' => $ticket->status === Ticket::STATUS_NEW ? Ticket::STATUS_IN_PROGRESS : $ticket->status
-            ]);
-
-            TicketMessage::create([
-                'ticket_id' => $ticket->id,
-                'sender_id' => Auth::id(),
-                'message' => "Ticket đã được gán cho {$staff->name} - nhân viên phụ trách nhóm {$group->name}.",
-                'is_system_message' => true
-            ]);
-        }
-
         $message = "Đã gán {$staff->name} cho nhóm {$group->name}!";
-        if ($unassignedTickets->isNotEmpty()) {
-            $message .= " Đã tự động gán {$unassignedTickets->count()} ticket(s).";
+
+        // Optional: tự động gán ticket nếu bật auto_assign
+        if ($request->boolean('auto_assign')) {
+            $unassignedTickets = Ticket::whereHas('user.groups', function($query) use ($request) {
+                    $query->where('customer_group_id', $request->group_id);
+                })
+                ->whereNull('assigned_staff_id')
+                ->whereIn('status', [Ticket::STATUS_NEW, Ticket::STATUS_IN_PROGRESS])
+                ->get();
+
+            foreach ($unassignedTickets as $ticket) {
+                $ticket->update([
+                    'assigned_staff_id' => $staff->id,
+                    'assigned_group_id' => $group->id,
+                    'assignment_type' => Ticket::ASSIGNMENT_GROUP,
+                    'status' => in_array($ticket->status, [Ticket::STATUS_NEW, 'open']) ? Ticket::STATUS_IN_PROGRESS : $ticket->status
+                ]);
+
+                TicketMessage::create([
+                    'ticket_id' => $ticket->id,
+                    'sender_id' => Auth::id(),
+                    'message' => "Ticket đã được gán theo nhóm {$group->name} cho {$staff->name}.",
+                    'is_system_message' => true
+                ]);
+            }
+
+            if ($unassignedTickets->isNotEmpty()) {
+                $message .= " Đã tự động gán {$unassignedTickets->count()} ticket(s).";
+            }
         }
 
         DB::commit();
@@ -107,18 +111,22 @@ class GroupStaffController extends Controller
                 ->where('staff_id', $staffId)
                 ->firstOrFail();
 
-            // ✅ Unassign tất cả tickets của nhân viên này trong nhóm
+            // ✅ Unassign tất cả tickets của nhân viên này trong nhóm (trừ tickets đã đóng)
             $affectedTickets = Ticket::whereHas('user.groups', function($query) use ($groupId) {
                     $query->where('customer_group_id', $groupId);
                 })
                 ->where('assigned_staff_id', $staffId)
-                ->whereIn('status', [Ticket::STATUS_NEW, Ticket::STATUS_IN_PROGRESS])
+                ->where('assignment_type', Ticket::ASSIGNMENT_GROUP)
+                ->where('assigned_group_id', $groupId)
+                ->where('status', '!=', Ticket::STATUS_CLOSED) // Không unassign tickets đã đóng
                 ->get();
 
             foreach ($affectedTickets as $ticket) {
                 $ticket->update([
                     'assigned_staff_id' => null,
-                    'assignment_type' => null
+                    'assigned_group_id' => null,
+                    'assignment_type' => null,
+                    'status' => Ticket::STATUS_NEW // Reset về trạng thái chưa xử lý khi bỏ gán
                 ]);
                 
                 TicketMessage::create([

@@ -148,13 +148,41 @@ class TicketController extends Controller
             'message' => $request->message,
         ]);
 
-        // Cập nhật trạng thái: new|responded|closed -> in_progress (reopen)
-        if (in_array($ticket->status, [Ticket::STATUS_NEW, Ticket::STATUS_RESPONDED, Ticket::STATUS_CLOSED])) {
+        // Cập nhật trạng thái:
+        // - Nếu ticket đã có người phụ trách: new|responded|closed -> in_progress (reopen)
+        // - Nếu chưa có người phụ trách: giữ nguyên status 'new'
+        if ($ticket->assigned_staff_id && in_array($ticket->status, [Ticket::STATUS_NEW, Ticket::STATUS_RESPONDED, Ticket::STATUS_CLOSED])) {
             $ticket->update(['status' => Ticket::STATUS_IN_PROGRESS]);
         }
 
         // Gửi thông báo cho Admin và Staff
         TicketNotificationService::notifyCustomerReply($ticket);
+
+        // Gửi email cho nhân viên đang phụ trách
+        try {
+            if ($ticket->assigned_staff_id && $ticket->assignedStaff) {
+                $template = EmailTemplate::where('code', 'ticket_customer_replied')
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($template) {
+                    $ticketLinkForStaff = route('admin.tickets.show', $ticket->id);
+
+                    Mail::to($ticket->assignedStaff->email)->queue(new GenericMail(
+                        $template,
+                        [
+                            'user_name' => $ticket->assignedStaff->name,
+                            'ticket_id' => $ticket->id,
+                            'ticket_subject' => $ticket->subject,
+                            'ticket_link' => $ticketLinkForStaff,
+                            'app_name' => config('app.name'),
+                        ]
+                    ));
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send ticket_customer_replied email: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Phản hồi đã được gửi.');
     }

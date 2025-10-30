@@ -1,3 +1,102 @@
+{{-- @extends('backend.layouts.master')
+
+@section('title', 'Nhóm khách hàng của tôi')
+
+@section('content')
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-md-12 d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1"><i class="bi bi-people me-2"></i>Nhóm khách hàng</h2>
+                    <p class="text-muted mb-0">Bạn có thể tự nhận nhóm chưa có nhân viên hoặc rời nhóm đang phụ trách.</p>
+                </div>
+            </div>
+        </div>
+
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 text-uppercase small"><i class="bi bi-person-check me-2"></i>Nhóm tôi đang phụ trách</h6>
+                    </div>
+                    <div class="card-body">
+                        @forelse ($myGroups as $group)
+                            <div class="border rounded p-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="pe-3">
+                                        <div class="fw-semibold">{{ $group->name }}</div>
+                                        <div class="small text-muted">{{ $group->description }}</div>
+                                        <div class="small text-muted mt-1"><i class="bi bi-people me-1"></i>{{ $group->users->count() }} khách hàng</div>
+                                    </div>
+                                    <form method="POST" action="{{ route('staff.groups.leave', $group->id) }}" onsubmit="return confirm('Bạn chắc chắn rời nhóm này?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-box-arrow-right me-1"></i>Rời nhóm
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-muted small">Bạn chưa phụ trách nhóm nào.</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 text-uppercase small"><i class="bi bi-plus-circle me-2"></i>Nhóm có thể nhận</h6>
+                    </div>
+                    <div class="card-body">
+                        @forelse ($availableGroups as $group)
+                            <div class="border rounded p-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="pe-3">
+                                        <div class="fw-semibold">{{ $group->name }}</div>
+                                        <div class="small text-muted">{{ $group->description }}</div>
+                                        <div class="small text-muted mt-1"><i class="bi bi-people me-1"></i>{{ $group->users->count() }} khách hàng</div>
+                                    </div>
+                                    <form method="POST" action="{{ route('staff.groups.claim', $group->id) }}">
+                                        @csrf
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" name="auto_assign" id="auto_assign_staff_{{ $group->id }}" checked>
+                                            <label class="form-check-label small" for="auto_assign_staff_{{ $group->id }}">Tự động gán các ticket chưa có người phụ trách</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-hand-thumbs-up me-1"></i>Nhận
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-muted small">Không có nhóm trống để nhận.</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .card { border-radius: 12px; }
+    </style>
+@endsection --}}
+
 @extends('backend.layouts.master')
 
 @section('title', 'Nhóm Khách hàng của tôi')
@@ -125,6 +224,12 @@
 
                                 <form action="{{ route('staff.groups.claim', $group->id) }}" method="POST">
                                     @csrf
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" name="auto_assign" id="auto_assign_{{ $group->id }}" checked>
+                                        <label class="form-check-label small text-muted" for="auto_assign_{{ $group->id }}">
+                                            Tự động gán các ticket chưa có người phụ trách
+                                        </label>
+                                    </div>
                                     <button type="submit" class="btn btn-success btn-sm w-100">
                                         <i class="bi bi-hand-thumbs-up me-1"></i>Nhận nhóm này
                                     </button>

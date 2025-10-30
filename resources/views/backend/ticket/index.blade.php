@@ -9,45 +9,61 @@
             </div>
         </div>
 
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card border-info shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-clock-history display-4 text-info"></i>
-                        <h3 class="mt-2">{{ $tickets->where('status', 'new')->count() }}</h3>
-                        <p class="text-muted mb-0">Chưa xử lý</p>
+        @if (isset($staffTabs) && Auth::user()->role == 2)
+            <ul class="nav nav-tabs mb-3">
+                <li class="nav-item">
+                    <a class="nav-link {{ $staffTabs['list'] === 'working' ? 'active' : '' }}" href="{{ route('admin.tickets.index', array_filter(array_merge(request()->query(), ['list' => 'working']))) }}">
+                        Đang làm việc <span class="badge bg-secondary">{{ $staffTabs['working'] }}</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link {{ $staffTabs['list'] === 'all' ? 'active' : '' }}" href="{{ route('admin.tickets.index', array_filter(array_merge(request()->query(), ['list' => 'all']))) }}">
+                        Tất cả <span class="badge bg-secondary">{{ $staffTabs['all'] }}</span>
+                    </a>
+                </li>
+            </ul>
+        @else
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-info shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clock-history display-4 text-info"></i>
+                            <h3 class="mt-2">{{ $tickets->where('status', 'new')->count() }}</h3>
+                            <p class="text-muted mb-0">Chưa xử lý</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-hourglass-split display-4 text-warning"></i>
+                            <h3 class="mt-2">{{ $tickets->where('status', 'in_progress')->count() }}</h3>
+                            <p class="text-muted mb-0">Đang xử lý</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-check-circle display-4 text-success"></i>
+                            <h3 class="mt-2">{{ $tickets->where('status', 'closed')->count() }}</h3>
+                            <p class="text-muted mb-0">Đã đóng</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-primary shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="bi bi-ticket-perforated display-4 text-primary"></i>
+                            <h3 class="mt-2">{{ $tickets->total() }}</h3>
+                            <p class="text-muted mb-0">Tổng tickets</p>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card border-warning shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-hourglass-split display-4 text-warning"></i>
-                        <h3 class="mt-2">{{ $tickets->where('status', 'in_progress')->count() }}</h3>
-                        <p class="text-muted mb-0">Đang xử lý</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-success shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-check-circle display-4 text-success"></i>
-                        <h3 class="mt-2">{{ $tickets->where('status', 'closed')->count() }}</h3>
-                        <p class="text-muted mb-0">Đã đóng</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-primary shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-ticket-perforated display-4 text-primary"></i>
-                        <h3 class="mt-2">{{ $tickets->total() }}</h3>
-                        <p class="text-muted mb-0">Tổng tickets</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @endif
 
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -150,6 +166,22 @@
                                             <small class="text-muted">
                                                 <i class="bi bi-chat-dots"></i> {{ $ticket->messages->count() }} tin nhắn
                                             </small>
+                                            @if (Auth::user()->role == 2 && isset($ticket->user))
+                                                @php
+                                                    $managedGroupNames = $ticket->user->groups
+                                                        ? $ticket->user->groups->filter(function($g){
+                                                            return $g->staff->contains('id', auth()->id());
+                                                        })->pluck('name')->take(1)
+                                                        : collect();
+                                                @endphp
+                                                @if($managedGroupNames->isNotEmpty())
+                                                    <div>
+                                                        <span class="badge bg-light text-dark border">
+                                                            <i class="bi bi-people me-1"></i>Nhóm: {{ $managedGroupNames->first() }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            @endif
                                         </td>
 
                                         <!-- Cột Nhân viên (chỉ admin thấy) -->
@@ -229,16 +261,18 @@
 
                                                 <!-- Đóng ticket -->
                                                 @if ($ticket->status != 'closed')
-                                                    <form action="{{ route('admin.tickets.close', $ticket->id) }}"
-                                                        method="POST" class="d-inline"
-                                                        onsubmit="return confirm('Bạn có chắc muốn đóng ticket này?')">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                            title="Đóng ticket">
-                                                             <i class="fa-solid fa-x"></i>
-                                                        </button>
-                                                    </form>
+                                                    @if (Auth::user()->role == 1 || (Auth::user()->role == 2 && $ticket->assigned_staff_id == Auth::id()))
+                                                        <form action="{{ route('admin.tickets.close', $ticket->id) }}"
+                                                            method="POST" class="d-inline"
+                                                            onsubmit="return confirm('Bạn có chắc muốn đóng ticket này?')">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                                title="Đóng ticket">
+                                                                 <i class="fa-solid fa-x"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </td>
