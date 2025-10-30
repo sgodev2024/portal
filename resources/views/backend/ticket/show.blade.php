@@ -17,14 +17,16 @@
                                     <span class="badge bg-light text-dark px-2 py-1">#{{ $ticket->id }}</span>
                                     <span id="ticket-status-badge"
                                         class="badge px-3 py-2
-                                        @if ($ticket->status === 'open') bg-warning text-dark
+                                        @if ($ticket->status === 'new') bg-warning text-dark
                                         @elseif($ticket->status === 'in_progress') bg-info text-white
-                                        @else bg-success text-white @endif">
+                                        @elseif($ticket->status === 'responded') bg-success text-white
+                                        @else bg-secondary text-white @endif">
                                         <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
                                         <span id="ticket-status-text">
                                             @switch($ticket->status)
-                                                @case('open') Mới @break
+                                                @case('new') Chưa xử lý @break
                                                 @case('in_progress') Đang xử lý @break
+                                                @case('responded') Đã phản hồi @break
                                                 @case('closed') Đã đóng @break
                                             @endswitch
                                         </span>
@@ -50,6 +52,21 @@
                                         <i class="bi bi-calendar3 me-1"></i>
                                         {{ $ticket->created_at->format('d/m/Y H:i') }}
                                     </span>
+                                    @if (Auth::user()->role == 2 && isset($ticket->user))
+                                        @php
+                                            $managedGroupNames = $ticket->user->groups
+                                                ? $ticket->user->groups->filter(function($g){
+                                                    return $g->staff->contains('id', auth()->id());
+                                                })->pluck('name')
+                                                : collect();
+                                        @endphp
+                                        @if($managedGroupNames->isNotEmpty())
+                                            <span>
+                                                <i class="bi bi-people me-1"></i>
+                                                Thuộc nhóm: <strong>{{ $managedGroupNames->join(', ') }}</strong>
+                                            </span>
+                                        @endif
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -66,8 +83,20 @@
                             </div>
                         @else
                             <div class="alert alert-warning border-0 mb-0" role="alert">
-                                <i class="bi bi-exclamation-triangle me-2"></i>
-                                <strong>Chưa có nhân viên phụ trách</strong>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <strong>Chưa có nhân viên phụ trách</strong>
+                                    </div>
+                                    @if(Auth::user()->role == 2)
+                                        <form action="{{ route('admin.tickets.claim', $ticket->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Bạn có chắc muốn nhận xử lý ticket này?')">
+                                                <i class="bi bi-hand-thumbs-up me-1"></i>Nhận xử lý
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -124,38 +153,52 @@
                 </div>
 
                 {{-- Reply Form - Improved --}}
+                @php
+                    $canReply = Auth::user()->role == 1 || (Auth::user()->role == 2 && $ticket->assigned_staff_id == Auth::id());
+                @endphp
+
                 @if ($ticket->status !== 'closed')
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <h5 class="mb-3">
-                                <i class="bi bi-reply me-2"></i>Trả lời
-                            </h5>
+                    @if ($canReply)
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-reply me-2"></i>Trả lời
+                                </h5>
 
-                            @if (session('success'))
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    <i class="bi bi-check-circle me-2"></i>
-                                    {{ session('success') }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            @endif
+                                @if (session('success'))
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="bi bi-check-circle me-2"></i>
+                                        {{ session('success') }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                @endif
 
-                            <form action="{{ route('admin.tickets.reply', $ticket->id) }}" method="POST" id="replyForm">
-                                @csrf
-                                <div class="mb-3">
-                                    <textarea id="admin_reply_message" name="message" class="form-control @error('message') is-invalid @enderror"
-                                        placeholder="Nhập phản hồi...">{{ old('message') }}</textarea>
-                                    @error('message')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                                <div class="d-flex justify-content-end">
-                                    <button type="submit" class="btn btn-primary px-4" id="sendBtn">
-                                        <i class="bi bi-send me-2"></i>Gửi phản hồi
-                                    </button>
-                                </div>
-                            </form>
+                                <form action="{{ route('admin.tickets.reply', $ticket->id) }}" method="POST" id="replyForm">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <textarea id="admin_reply_message" name="message" class="form-control @error('message') is-invalid @enderror"
+                                            placeholder="Nhập phản hồi...">{{ old('message') }}</textarea>
+                                        @error('message')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-primary px-4" id="sendBtn">
+                                            <i class="bi bi-send me-2"></i>Gửi phản hồi
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="alert alert-warning border-0 d-flex align-items-center" role="alert">
+                            <i class="bi bi-eye-fill fs-4 me-3"></i>
+                            <div>
+                                <strong>Chế độ chỉ xem</strong>
+                                <div class="small">Bạn chỉ có thể xem ticket này. Để trả lời, vui lòng nhận xử lý ticket hoặc liên hệ Admin.</div>
+                            </div>
+                        </div>
+                    @endif
                 @else
                     <div class="alert alert-info border-0 d-flex align-items-center" role="alert">
                         <i class="bi bi-lock-fill fs-4 me-3"></i>
@@ -228,12 +271,14 @@
                                 <div class="info-value">
                                     <span id="sidebar-status-badge"
                                         class="badge
-                                        @if ($ticket->status === 'open') bg-warning text-dark
+                                        @if ($ticket->status === 'new') bg-warning text-dark
                                         @elseif($ticket->status === 'in_progress') bg-info text-white
-                                        @else bg-success text-white @endif">
+                                        @elseif($ticket->status === 'responded') bg-success text-white
+                                        @else bg-secondary text-white @endif">
                                         @switch($ticket->status)
-                                            @case('open') Mới @break
+                                            @case('new') Chưa xử lý @break
                                             @case('in_progress') Đang xử lý @break
+                                            @case('responded') Đã phản hồi @break
                                             @case('closed') Đã đóng @break
                                         @endswitch
                                     </span>
@@ -254,19 +299,21 @@
 
                     {{-- Actions Card --}}
                     @if ($ticket->status !== 'closed')
-                        <div class="card border-0 shadow-sm mb-3">
-                            <div class="card-body p-4">
-                                <h6 class="text-uppercase text-muted small mb-3">Hành động</h6>
-                                <form action="{{ route('admin.tickets.close', $ticket->id) }}" method="POST"
-                                    onsubmit="return confirm('Bạn có chắc chắn muốn đóng ticket này?');">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-danger w-100">
-                                        <i class="bi bi-x-circle me-2"></i>Đóng Ticket
-                                    </button>
-                                </form>
+                        @if ($canReply)
+                            <div class="card border-0 shadow-sm mb-3">
+                                <div class="card-body p-4">
+                                    <h6 class="text-uppercase text-muted small mb-3">Hành động</h6>
+                                    <form action="{{ route('admin.tickets.close', $ticket->id) }}" method="POST"
+                                        onsubmit="return confirm('Bạn có chắc chắn muốn đóng ticket này?');">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="btn btn-danger w-100">
+                                            <i class="bi bi-x-circle me-2"></i>Đóng Ticket
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     @else
                         <div class="alert alert-success border-0" role="alert">
                             <div class="d-flex align-items-center gap-2">

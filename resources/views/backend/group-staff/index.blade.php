@@ -44,7 +44,7 @@
         <!-- Info Banner -->
         <div class="alert alert-info border-0 mb-4" role="alert">
             <i class="bi bi-lightbulb me-2"></i>
-            Mỗi nhóm chỉ có <strong>1 nhân viên duy nhất</strong> phụ trách. Tickets mới sẽ tự động được gán cho nhân viên đó.
+            Mỗi nhóm chỉ có <strong>1 nhân viên duy nhất</strong> phụ trách. Nhân viên phụ trách sẽ <strong>có quyền quản lý tất cả tickets</strong> của khách hàng trong nhóm; gán ticket lẻ vẫn thực hiện riêng khi cần.
         </div>
 
         <!-- Groups Grid -->
@@ -82,13 +82,13 @@
                                             <small class="text-muted">{{ $assignedStaff->email }}</small>
                                         </div>
                                     </div>
-                                    <form action="{{ route('admin.group-staff.remove', [$group->id, $assignedStaff->id]) }}" 
+                                    <form action="{{ route('admin.group_staff.remove', [$group->id, $assignedStaff->id]) }}" 
                                           method="POST" class="ms-2">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger"
                                                 onclick="return confirm('Bạn có chắc muốn gỡ {{ $assignedStaff->name }} khỏi nhóm này?')">
-                                            <i class="bi bi-x-circle"></i>
+                                            <i class="fa-solid fa-user-xmark"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -98,7 +98,7 @@
                                 </div>
 
                                 <!-- Add Staff Form -->
-                                <form action="{{ route('admin.group-staff.assign') }}" method="POST">
+                                <form action="{{ route('admin.group_staff.assign') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="group_id" value="{{ $group->id }}">
                                     <div class="mb-2">
@@ -108,6 +108,10 @@
                                                 <option value="{{ $staff->id }}">{{ $staff->name }} ({{ $staff->email }})</option>
                                             @endforeach
                                         </select>
+                                    </div>
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" name="auto_assign" id="auto_assign_{{ $group->id }}" checked>
+                                        <label class="form-check-label small" for="auto_assign_{{ $group->id }}">Tự động gán các ticket chưa có người phụ trách</label>
                                     </div>
                                     <button type="submit" class="btn btn-sm btn-primary w-100">
                                         <i class="bi bi-plus-circle me-1"></i>Gán nhân viên
