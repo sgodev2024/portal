@@ -94,7 +94,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th width="5%">#</th>
+                            <th width="5%">STT</th>
                             <th width="30%">Tên File</th>
                             <th width="15%">User Tải</th>
                             <th width="15%">Người Upload</th>
@@ -105,7 +105,7 @@
                     <tbody>
                         @foreach($downloads as $index => $download)
                             <tr>
-                                <td>{{ $downloads->firstItem() + $index }}</td>
+                                <td>{{ $loop->iteration }}</td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge bg-light text-dark" style="min-width: 35px;">
@@ -127,10 +127,6 @@
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="avatar-xs bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                                             style="width: 32px; height: 32px; font-size: 0.75rem; font-weight: 600;">
-                                            {{ substr($download->user->name, 0, 1) }}
-                                        </div>
                                         <span>{{ $download->user->name }}</span>
                                     </div>
                                 </td>

@@ -45,13 +45,13 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="file">File <span class="text-danger">*</span></label>
-                                    <input type="file" class="form-control @error('file') is-invalid @enderror" 
-                                           id="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar" required>
+                                    <label for="files">File <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control @error('files') is-invalid @enderror" 
+                                           id="files" name="files[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar" required>
                                     <small class="form-text text-muted">
                                         Định dạng: PDF, DOC, DOCX, XLS, XLSX, ZIP, RAR (Tối đa 50MB)
                                     </small>
-                                    @error('file')
+                                    @error('files')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
